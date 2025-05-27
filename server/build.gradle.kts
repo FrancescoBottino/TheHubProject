@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.kotlinJvm)
     alias(libs.plugins.ktor)
     application
+    id("com.github.johnrengelman.shadow") version "8.1.1" //TODO use version catalog
 }
 
 group = "com.francescobottino.hexchessgame"
