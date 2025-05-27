@@ -1,0 +1,4 @@
+FROM eclipse-temurin:21-jre-jammy
+WORKDIR /app
+COPY server/build/libs/server-all.jar ktor-server.jar
+ENTRYPOINT ["java", "-jar", "/app/ktor-server.jar"]
