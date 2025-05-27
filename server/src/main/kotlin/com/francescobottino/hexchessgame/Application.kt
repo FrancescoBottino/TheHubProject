@@ -1,5 +1,10 @@
 package com.francescobottino.hexchessgame
 
+import com.francescobottino.hexchessgame.ServerConstants.CORS_ALLOWED_HOSTS
+import com.francescobottino.hexchessgame.ServerConstants.CORS_ALLOWED_SCHEMES
+import com.francescobottino.hexchessgame.ServerConstants.CORS_ALLOW_ANY_HOST
+import com.francescobottino.hexchessgame.ServerConstants.CORS_ALLOW_CREDENTIALS
+import com.francescobottino.hexchessgame.ServerConstants.DEV_SERVER_PORT
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
