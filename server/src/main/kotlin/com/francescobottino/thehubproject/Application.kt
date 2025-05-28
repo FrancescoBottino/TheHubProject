@@ -1,10 +1,5 @@
 package com.francescobottino.thehubproject
 
-import com.francescobottino.thehubproject.ServerConstants.CORS_ALLOWED_HOSTS
-import com.francescobottino.thehubproject.ServerConstants.CORS_ALLOWED_SCHEMES
-import com.francescobottino.thehubproject.ServerConstants.CORS_ALLOW_ANY_HOST
-import com.francescobottino.thehubproject.ServerConstants.CORS_ALLOW_CREDENTIALS
-import com.francescobottino.thehubproject.ServerConstants.DEV_SERVER_PORT
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -23,7 +18,7 @@ import kotlinx.serialization.json.Json
 import kotlin.time.Duration.Companion.seconds
 
 fun main() {
-    val port = System.getenv("PORT")?.toIntOrNull() ?: DEV_SERVER_PORT
+    val port = System.getenv("PORT")?.toIntOrNull() ?: Config.DEBUG_PORT
 
     embeddedServer(
         factory = Netty,
@@ -58,14 +53,12 @@ fun Application.module() {
         allowHeader(io.ktor.http.HttpHeaders.Authorization)
         allowHeader(io.ktor.http.HttpHeaders.ContentType)
 
-        allowCredentials = CORS_ALLOW_CREDENTIALS
+        allowCredentials = false
 
-        if (CORS_ALLOW_ANY_HOST) {
+        if(Config.IS_DEBUG) {
             anyHost()
         } else {
-            for (host in CORS_ALLOWED_HOSTS) {
-                allowHost(host, schemes = CORS_ALLOWED_SCHEMES)
-            }
+            allowHost(Config.PROD_ENDPOINT, schemes = listOf("http", "https"))
         }
     }
 

@@ -6,12 +6,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.francescobottino.thehubproject.network.Api
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import thehubproject.composeapp.generated.resources.Res
@@ -20,12 +24,17 @@ import thehubproject.composeapp.generated.resources.compose_multiplatform
 @Composable
 @Preview
 fun App() {
+    val scope = rememberCoroutineScope()
+    val api = remember { Api() }
+
     MaterialTheme {
         var showContent by remember { mutableStateOf(false) }
+        var getResult by remember { mutableStateOf<String?>(null) }
         Column(
             modifier = Modifier
                 .safeContentPadding()
-                .fillMaxSize(),
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Button(onClick = { showContent = !showContent }) {
@@ -38,6 +47,17 @@ fun App() {
                     Text("Compose: $greeting")
                 }
             }
+
+
+            Button(onClick = {
+                scope.launch {
+                    getResult = api.getGreeting().getOrThrow()
+                }
+            }) {
+                Text("Test get from ${Config.httpUrl}")
+            }
+
+            Text(text = getResult ?: "Waiting",)
         }
     }
 }
