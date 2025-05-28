@@ -4,10 +4,10 @@ plugins {
     application
 }
 
-group = "com.francescobottino.hexchessgame"
+group = "com.francescobottino.thehubproject"
 version = "1.0.0"
 application {
-    mainClass.set("com.francescobottino.hexchessgame.ApplicationKt")
+    mainClass.set("com.francescobottino.thehubproject.ApplicationKt")
 
     val isDevelopment: Boolean = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")

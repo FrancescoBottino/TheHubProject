@@ -50,7 +50,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.francescobottino.hexchessgame.shared"
+    namespace = "com.francescobottino.thehubproject.shared"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

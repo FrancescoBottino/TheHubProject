@@ -82,11 +82,11 @@ kotlin {
 }
 
 android {
-    namespace = "com.francescobottino.hexchessgame"
+    namespace = "com.francescobottino.thehubproject"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.francescobottino.hexchessgame"
+        applicationId = "com.francescobottino.thehubproject"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
@@ -114,11 +114,11 @@ dependencies {
 
 compose.desktop {
     application {
-        mainClass = "com.francescobottino.hexchessgame.MainKt"
+        mainClass = "com.francescobottino.thehubproject.MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.francescobottino.hexchessgame"
+            packageName = "com.francescobottino.thehubproject"
             packageVersion = "1.0.0"
         }
     }

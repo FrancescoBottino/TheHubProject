@@ -1,4 +1,4 @@
-rootProject.name = "HexChess"
+rootProject.name = "TheHubProject"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
