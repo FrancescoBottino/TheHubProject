@@ -14,18 +14,30 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.francescobottino.thehubproject.network.Api
+import com.francescobottino.thehubproject.di.DIProvider
+import com.francescobottino.thehubproject.network.ApiService
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.kodein.di.compose.localDI
+import org.kodein.di.compose.withDI
+import org.kodein.di.instance
 import thehubproject.composeapp.generated.resources.Res
 import thehubproject.composeapp.generated.resources.compose_multiplatform
 
 @Composable
 @Preview
 fun App() {
+    withDI(DIProvider.di) {
+        ApiTestScreen()
+    }
+}
+
+@Composable
+private fun DebugScreen() {
     val scope = rememberCoroutineScope()
-    val api = remember { Api() }
+    val di = localDI()
+    val api by di.instance<ApiService>()
 
     MaterialTheme {
         var showContent by remember { mutableStateOf(false) }
@@ -57,7 +69,7 @@ fun App() {
                 Text("Test get from ${Config.httpUrl}")
             }
 
-            Text(text = getResult ?: "Waiting",)
+            Text(text = getResult ?: "Waiting")
         }
     }
 }

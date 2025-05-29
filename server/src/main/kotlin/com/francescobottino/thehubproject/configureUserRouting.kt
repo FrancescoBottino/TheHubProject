@@ -8,6 +8,7 @@ import com.francescobottino.thehubproject.model.AuthRequest
 import com.francescobottino.thehubproject.model.AuthResponse
 import com.francescobottino.thehubproject.model.ErrorResponse
 import com.francescobottino.thehubproject.model.User
+import com.francescobottino.thehubproject.model.UserProfile
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -20,7 +21,6 @@ import org.kodein.di.ktor.closestDI
 import java.util.*
 
 fun Application.configureUserRouting() {
-
     routing {
         post("/auth/register") {
             try {
@@ -89,7 +89,7 @@ fun Application.configureUserRouting() {
 
                 if (user != null) {
                     // Don't send password hash to client! Create a DTO or select fields.
-                    call.respond(HttpStatusCode.OK, mapOf("id" to user.id, "username" to user.username))
+                    call.respond(HttpStatusCode.OK, UserProfile(user.id, user.username))
                 } else {
                     call.respond(HttpStatusCode.Unauthorized, ErrorResponse("User not found or invalid token"))
                 }
