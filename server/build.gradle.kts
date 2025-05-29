@@ -35,4 +35,5 @@ dependencies {
     implementation(libs.kotlinx.datetime)
     implementation(libs.kodein)
     implementation(libs.kodein.ktorServer)
+    implementation(libs.dotenv)
 }

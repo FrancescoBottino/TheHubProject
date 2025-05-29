@@ -165,23 +165,6 @@ fun ApiTestScreen() {
 
         HorizontalDivider()
 
-        // --- Public API ---
-        Text("Public API", style = MaterialTheme.typography.titleMedium)
-        Button(onClick = {
-            isLoading = true
-            coroutineScope.launch {
-                val result = apiService.getGreeting()
-                result.onSuccess {
-                    apiResponse = "Greeting: $it"
-                }.onFailure {
-                    apiResponse = "Greeting Error: ${it.message}"
-                }
-                isLoading = false
-            }
-        }, enabled = !isLoading) { Text("Get Greeting") }
-
-        HorizontalDivider()
-
         // --- Protected API ---
         Text("Protected API", style = MaterialTheme.typography.titleMedium)
         Button(onClick = {

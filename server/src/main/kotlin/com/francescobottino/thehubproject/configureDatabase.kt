@@ -6,18 +6,15 @@ import org.jetbrains.exposed.sql.Database
 
 fun Application.configureDatabase(): Database? {
     val dbUrl = environment.config.propertyOrNull("ktor.database.url")?.getString()
-        ?: System.getenv("DATABASE_URL") // Render provides DATABASE_URL
-        ?: "jdbc:postgresql://localhost:5432/thehubprojectdb_dev" // Local fallback
+        ?: System.getenv("DB_URL")
 
     val dbUser = environment.config.propertyOrNull("ktor.database.user")?.getString()
         ?: System.getenv("DB_USER")
-        ?: "postgres" // Local fallback
 
     val dbPassword = environment.config.propertyOrNull("ktor.database.password")?.getString()
         ?: System.getenv("DB_PASSWORD")
-        ?: "password" // Local fallback
 
-    val useInMemoryDb = (System.getenv("USE_IN_MEMORY_DB") == "true") || (dbUrl.contains("localhost"))
+    val useInMemoryDb = dbUrl == null || dbUser == null || dbPassword == null || (System.getenv("USE_IN_MEMORY_DB") == "true")
 
     if (useInMemoryDb) {
         log.info("Using InMemory database")
