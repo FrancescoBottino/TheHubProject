@@ -1,20 +1,23 @@
 package com.francescobottino.thehubproject
 
-import io.ktor.serialization.kotlinx.json.json
+import com.francescobottino.thehubproject.auth.configureSecurity
+import com.francescobottino.thehubproject.data.UserRepository
+import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.server.plugins.cors.routing.CORS
+import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.WebSockets
 import io.ktor.server.websocket.pingPeriod
 import io.ktor.server.websocket.timeout
 import io.ktor.server.websocket.webSocket
-import io.ktor.websocket.Frame
-import io.ktor.websocket.readText
+import io.ktor.websocket.*
 import kotlinx.serialization.json.Json
+import org.kodein.di.bindSingleton
+import org.kodein.di.ktor.di
 import kotlin.time.Duration.Companion.seconds
 
 fun main() {
@@ -62,6 +65,18 @@ fun Application.module() {
         }
     }
 
+
+    val database = configureDatabase()
+
+    di {
+        bindSingleton<UserRepository> { configureUserRepository(database) }
+    }
+
+    configureSecurity()
+    configureUserRouting()
+
+    // debug routing,
+    // todo remove
     routing {
         get("/") {
             call.respondText("Ktor: ${Greeting().greet()}")
