@@ -37,3 +37,30 @@ dependencies {
     implementation(libs.kodein.ktorServer)
     implementation(libs.dotenv)
 }
+
+// Reference the composeApp project
+val composeAppProject = project(":composeApp") // Adjust if your module name is different
+
+tasks.register<Copy>("copyWasmJsBrowserDistribution") {
+    group = "build"
+    description = "Copies the WasmJs browser distribution to the server's static resources."
+
+    // Depends on the WasmJs build task from the composeApp module
+    dependsOn(composeAppProject.tasks.named("wasmJsBrowserProductionWebpack"))
+
+    // Source directory: output of the WasmJs build
+    from(composeAppProject.layout.buildDirectory.dir("dist/wasmJs/productionExecutable"))
+
+    // Destination directory: within the server's resources
+    // This will place files in 'build/resources/main/static/' which Ktor can serve.
+    into(layout.buildDirectory.dir("resources/main/static"))
+}
+
+// Make sure the 'processResources' task depends on this copy task
+tasks.named("processResources") {
+    dependsOn("copyWasmJsBrowserDistribution")
+}
+
+tasks.named("buildFatJar") { // Or your specific packaging task like shadowJar
+    dependsOn("copyWasmJsBrowserDistribution")
+}
