@@ -1,5 +1,6 @@
 package com.francescobottino.thehubproject.screens.login
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -11,6 +12,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import cafe.adriel.voyager.core.model.rememberScreenModel
@@ -19,6 +21,9 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.francescobottino.thehubproject.screens.main_host.MainHostScreen
 import com.francescobottino.thehubproject.screens.manageEvents
+import compose.icons.FeatherIcons
+import compose.icons.feathericons.Eye
+import compose.icons.feathericons.EyeOff
 import org.kodein.di.compose.localDI
 
 object LoginScreen: Screen {
@@ -35,24 +40,6 @@ object LoginScreen: Screen {
             onEvent = screenModel::onEvent,
             modifier = Modifier.fillMaxSize(),
         )
-
-        if(state.isLoading) {
-            Surface(
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Box(
-                        modifier = Modifier.requiredSize(64.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
-            }
-        }
 
         if(dialogMessagesQueue.isNotEmpty()) {
             val dialogMessage = dialogMessagesQueue.first()
@@ -100,22 +87,39 @@ private fun LoginScreenContent(
     onEvent: (LoginScreenEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var passwordVisible by remember { mutableStateOf(false) }
+
+    val passwordTrailingIcon = if(passwordVisible) {
+        FeatherIcons.EyeOff
+    } else {
+        FeatherIcons.Eye
+    }
+
+    val passwordVisualTransformation = if(passwordVisible) {
+        VisualTransformation.None
+    } else {
+        PasswordVisualTransformation()
+    }
+
     Box(
         modifier = modifier,
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.TopCenter,
     ) {
         Column(
             modifier = Modifier.width(300.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
+            Spacer(modifier = Modifier.height(80.dp))
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 value = state.username,
                 onValueChange = { onEvent(LoginScreenEvent.OnUsernameChanged(it)) },
                 label = { Text("Username") },
+                maxLines = 1,
                 isError = state.usernameError != null,
                 supportingText = state.usernameError?.let { { Text(it) } },
+                enabled = !state.isLoading,
             )
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
@@ -123,9 +127,21 @@ private fun LoginScreenContent(
                 onValueChange = { onEvent(LoginScreenEvent.OnPasswordChanged(it)) },
                 label = { Text("Password") },
                 isError = state.passwordError != null,
+                maxLines = 1,
                 supportingText = state.passwordError?.let { { Text(it) } },
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                visualTransformation = passwordVisualTransformation,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                trailingIcon = {
+                    IconButton(
+                        onClick = { passwordVisible = !passwordVisible },
+                    ) {
+                        Icon(
+                            imageVector = passwordTrailingIcon,
+                            contentDescription = null,
+                        )
+                    }
+                },
+                enabled = !state.isLoading,
             )
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -134,7 +150,7 @@ private fun LoginScreenContent(
             ) {
                 Button(
                     enabled = !state.isLoading,
-                    onClick = { onEvent(LoginScreenEvent.OnLogIn) }
+                    onClick = { onEvent(LoginScreenEvent.OnLogIn) },
                 ) {
                     Text("Log In")
                 }
@@ -149,6 +165,14 @@ private fun LoginScreenContent(
                 text = state.errorMessage.orEmpty(),
                 color = MaterialTheme.colorScheme.error,
             )
+
+            AnimatedVisibility(
+                visible = state.isLoading,
+            ) {
+                CircularProgressIndicator()
+            }
+
+            Spacer(modifier = Modifier.height(80.dp))
         }
     }
 }

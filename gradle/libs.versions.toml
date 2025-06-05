@@ -20,7 +20,7 @@ exposed = "0.49.0"
 postgresqlDriver = "42.7.3"
 dotenvKotlin = "6.4.1"
 voyager = "1.1.0-beta03"
-featherIcons = "1.1.1"
+composeIcons = "1.1.1"
 arrow = "2.1.2"
 
 [libraries]
@@ -65,7 +65,7 @@ postgresql-driver = { module = "org.postgresql:postgresql", version.ref = "postg
 dotenv = { module = "io.github.cdimascio:dotenv-kotlin", version.ref = "dotenvKotlin" }
 voyager-navigator = { module = "cafe.adriel.voyager:voyager-navigator", version.ref = "voyager"}
 voyager-screenmodel = { module = "cafe.adriel.voyager:voyager-screenmodel", version.ref = "voyager"}
-composeIcons-feather = { module = "br.com.devsrsouza.compose.icons:feather", version.ref = "featherIcons"}
+composeIcons-feather = { module = "br.com.devsrsouza.compose.icons:feather", version.ref = "composeIcons"}
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
 
 [plugins]
