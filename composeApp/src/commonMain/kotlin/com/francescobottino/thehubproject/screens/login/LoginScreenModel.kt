@@ -9,13 +9,11 @@ import com.francescobottino.thehubproject.auth.TokenStorage
 import com.francescobottino.thehubproject.model.User
 import com.francescobottino.thehubproject.repo.UserRepository
 import com.francescobottino.thehubproject.screens.StatefulScreenModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.kodein.di.DI
 import org.kodein.di.DIAware
 import org.kodein.di.instance
-import kotlin.time.Duration.Companion.seconds
 
 class LoginScreenModel(override val di: DI): StatefulScreenModel<LoginScreenState, LoginScreenEvent, LoginScreenModelEvent>(LoginScreenState()), DIAware {
     private val authApi by di.instance<AuthApi>()
@@ -34,7 +32,6 @@ class LoginScreenModel(override val di: DI): StatefulScreenModel<LoginScreenStat
     private fun performAuth(endpoint: suspend (AuthRequest) -> Either<AuthResponse.Error, AuthResponse.Success>) {
         _state.update { it.copy(isLoading = true, usernameError = null, passwordError = null, errorMessage = null) }
         screenModelScope.launch {
-            delay(5.seconds)
             val username = _state.value.username
             val password = _state.value.password
 

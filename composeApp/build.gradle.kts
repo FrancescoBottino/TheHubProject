@@ -82,7 +82,7 @@ kotlin {
             implementation(libs.voyager.navigator)
             implementation(libs.voyager.screenmodel)
             implementation(libs.composeIcons.feather)
-            implementation(libs.arrow.core) //todo
+            implementation(libs.arrow.core)
 
             implementation(projects.shared)
             implementation(projects.clientShared)
