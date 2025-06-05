@@ -13,6 +13,8 @@ import org.kodein.di.DI
 import org.kodein.di.DIAware
 import org.kodein.di.instance
 
+//TODO refactor
+
 class SplashScreenModel(override val di: DI) : ScreenModel, DIAware {
     private val tokenStorage by di.instance<TokenStorage>()
     private val userApi by di.instance<UserApi>()
