@@ -16,7 +16,6 @@ import io.ktor.server.websocket.pingPeriod
 import io.ktor.server.websocket.timeout
 import io.ktor.server.websocket.webSocket
 import io.ktor.websocket.*
-import kotlinx.serialization.json.Json
 import org.kodein.di.bindSingleton
 import org.kodein.di.ktor.di
 import kotlin.time.Duration.Companion.seconds
@@ -37,11 +36,7 @@ fun main() {
 
 fun Application.module() {
     install(ContentNegotiation) {
-        json(Json {
-            prettyPrint = true
-            isLenient = true
-            ignoreUnknownKeys = true
-        })
+        json(mainJson)
     }
 
     install(WebSockets) {
@@ -77,6 +72,8 @@ fun Application.module() {
 
     configureSecurity()
     configureUserRouting()
+
+    configureGames()
 
     // debug routing,
     // todo remove

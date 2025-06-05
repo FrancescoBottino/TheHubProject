@@ -3,8 +3,9 @@ package com.francescobottino.thehubproject
 
 object Config {
     const val IS_DEBUG = true
-    const val DEBUG_PORT = 8080
+    const val DEBUG_PORT = 9090
     const val DEBUG_IP = "localhost"
+    const val DEBUG_IP_ANDROID = "10.0.2.2"
     const val DEBUG_ENDPOINT = "$DEBUG_IP:$DEBUG_PORT"
     const val PROD_ENDPOINT = "thehub-8su2.onrender.com"
 
@@ -14,6 +15,6 @@ object Config {
     private val httpSchema = if(secure) "https" else "http"
     private val wsSchema = if(secure) "wss" else "ws"
 
-    val httpUrl = "$httpSchema://$ENDPOINT/"
-    val wsUrl = "$wsSchema://$ENDPOINT/"
+    val httpUrl = "$httpSchema://$ENDPOINT"
+    val wsUrl = "$wsSchema://$ENDPOINT"
 }

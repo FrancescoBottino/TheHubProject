@@ -12,7 +12,6 @@ application {
 }
 
 dependencies {
-    implementation(projects.shared)
     implementation(libs.logback)
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.netty)
@@ -27,10 +26,14 @@ dependencies {
     implementation(libs.exposed.dao)
     implementation(libs.exposed.jdbc)
     implementation(libs.postgresql.driver)
+    implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.datetime)
     implementation(libs.kodein)
     implementation(libs.kodein.ktorServer)
     implementation(libs.dotenv)
+
+    implementation(projects.shared)
+    implementation(projects.serverShared)
 }

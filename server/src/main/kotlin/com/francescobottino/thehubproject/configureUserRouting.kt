@@ -4,15 +4,10 @@ package com.francescobottino.thehubproject// In server/src/main/kotlin/your_pack
 import com.francescobottino.thehubproject.auth.HashingService
 import com.francescobottino.thehubproject.auth.JwtConfig
 import com.francescobottino.thehubproject.data.UserRepository
-import com.francescobottino.thehubproject.model.AuthRequest
-import com.francescobottino.thehubproject.model.AuthResponse
-import com.francescobottino.thehubproject.model.ErrorResponse
-import com.francescobottino.thehubproject.model.User
-import com.francescobottino.thehubproject.model.UserProfile
+import com.francescobottino.thehubproject.model.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
-import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -32,7 +27,7 @@ fun Application.configureUserRouting() {
                     return@post
                 }
 
-                //todo expand username and password checks. (possibly use ktor plugins
+                //todo expand username and password checks. (possibly use ktor plugins)
                 if (request.username.length < 3 || !request.username.matches(Regex("[a-zA-Z0-9_]+"))) {
                     call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid username format"))
                     return@post
@@ -78,27 +73,16 @@ fun Application.configureUserRouting() {
                 call.respond(HttpStatusCode.InternalServerError, ErrorResponse("Login failed: ${e.message}"))
             }
         }
-        authenticate("auth-jwt") { // This block requires JWT authentication
+        authenticate("auth-jwt") {
             get("/me") {
-                val userRepository by closestDI().instance<UserRepository>()
-
-                val principal = call.principal<JWTPrincipal>()
-                val userId = principal?.payload?.getClaim(JwtConfig.USER_ID_CLAIM)?.asString()
-                // You could fetch user details from UserRepository using userId
-                val user = userId?.let { userRepository.findById(it) }
-
-                if (user != null) {
-                    // Don't send password hash to client! Create a DTO or select fields.
-                    call.respond(HttpStatusCode.OK, UserProfile(user.id, user.username))
-                } else {
-                    call.respond(HttpStatusCode.Unauthorized, ErrorResponse("User not found or invalid token"))
+                requireUser {
+                    call.respond(HttpStatusCode.OK, UserProfile(it.id, it.username))
                 }
             }
 
             get("/hello-protected") {
-                val principal = call.principal<JWTPrincipal>()
-                val username = principal?.payload?.getClaim(JwtConfig.USER_ID_CLAIM)?.asString() ?: "Anonymous"
-                call.respondText("Hello, $username! This is a protected resource.")
+                val userId = call.getAuthUserId()
+                call.respondText("Hello, ${userId ?: "Anonymous"}! This is a protected resource.")
             }
         }
     }
