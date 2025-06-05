@@ -18,7 +18,6 @@ slf4j = "2.0.13"
 jbcrypt = "0.4"
 exposed = "0.49.0"
 postgresqlDriver = "42.7.3"
-androidxCrypto = "1.1.0-alpha07"
 dotenvKotlin = "6.4.1"
 
 [libraries]
@@ -57,7 +56,6 @@ exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "e
 exposed-dao = { module = "org.jetbrains.exposed:exposed-dao", version.ref = "exposed" }
 exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
 postgresql-driver = { module = "org.postgresql:postgresql", version.ref = "postgresqlDriver" }
-androidxCrypto = { module = "androidx.security:security-crypto", version.ref = "androidxCrypto" }
 dotenv = { module = "io.github.cdimascio:dotenv-kotlin", version.ref = "dotenvKotlin" }
 
 [plugins]
