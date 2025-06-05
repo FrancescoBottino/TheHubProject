@@ -2,10 +2,10 @@ package com.francescobottino.thehubproject.data
 
 import org.jetbrains.exposed.sql.Table
 
-object UsersTable: Table("users") { // Table name in PostgreSQL
-    val id = varchar("id", 36) // UUID length
+object UsersTable: Table("users") {
+    val id = varchar("id", 36)
     val username = varchar("username", 256).uniqueIndex()
-    val passwordHash = varchar("password_hash", 256) // BCrypt hashes can be long
+    val passwordHash = varchar("password_hash", 256)
 
     override val primaryKey = PrimaryKey(id)
 }

@@ -1,14 +1,17 @@
 package com.francescobottino.thehubproject
 
+import com.francescobottino.thehubproject.auth.configureRoutingAuth
 import com.francescobottino.thehubproject.auth.configureSecurity
 import com.francescobottino.thehubproject.data.UserRepository
 import io.github.cdimascio.dotenv.dotenv
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
+import io.ktor.server.resources.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.WebSockets
@@ -46,7 +49,6 @@ fun Application.module() {
         masking = false
     }
 
-    // Install CORS
     install(CORS) {
         allowMethod(io.ktor.http.HttpMethod.Options)
         allowMethod(io.ktor.http.HttpMethod.Put)
@@ -60,26 +62,36 @@ fun Application.module() {
         if(Config.IS_DEBUG) {
             anyHost()
         } else {
-            allowHost(Config.PROD_ENDPOINT, schemes = listOf("http", "https"))
+            allowHost(Config.PROD_ENDPOINT, schemes = listOf("https"))
         }
     }
 
-    val database = configureDatabase()
+    install(Resources)
 
+    val database = configureDatabase()
     di {
         bindSingleton<UserRepository> { configureUserRepository(database) }
     }
 
     configureSecurity()
-    configureUserRouting()
 
-    configureGames()
-
-    // debug routing,
-    // todo remove
     routing {
+        configureRoutingAuth()
+        configureRoutingUser()
+        configureRoutingGames()
+
+        // debug routing,
+        // todo remove
+
         get("/") {
             call.respondText("Ktor: ${Greeting().greet()}")
+        }
+
+        authenticate("auth-jwt") {
+            get("/hello-protected") {
+                val userId = call.getAuthUserId()
+                call.respondText("Hello, ${userId ?: "Anonymous"}! This is a protected resource.")
+            }
         }
 
         webSocket("/ws/echo") {

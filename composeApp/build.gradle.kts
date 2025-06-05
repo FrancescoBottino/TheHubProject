@@ -72,6 +72,7 @@ kotlin {
             implementation(libs.ktor.client.logging)
             implementation(libs.ktor.client.websockets)
             implementation(libs.ktor.client.auth)
+            implementation(libs.ktor.client.resources)
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.kotlinx.serialization.core)
             implementation(libs.kotlinx.serialization.json)
@@ -80,8 +81,8 @@ kotlin {
             implementation(libs.kodein.compose)
             implementation(libs.voyager.navigator)
             implementation(libs.voyager.screenmodel)
-
-            implementation("br.com.devsrsouza.compose.icons:feather:1.1.1") //todo
+            implementation(libs.composeIcons.feather)
+            implementation(libs.arrow.core) //todo
 
             implementation(projects.shared)
             implementation(projects.clientShared)

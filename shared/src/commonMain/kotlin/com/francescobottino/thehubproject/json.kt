@@ -7,4 +7,6 @@ val mainJson = Json {
     isLenient = true
     ignoreUnknownKeys = true
     allowStructuredMapKeys = true
+    encodeDefaults = true
+    classDiscriminator = "_type"
 }

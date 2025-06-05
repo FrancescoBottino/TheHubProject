@@ -3,7 +3,9 @@ package com.francescobottino.thehubproject.screens.splash
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import com.francescobottino.thehubproject.auth.TokenStorage
-import com.francescobottino.thehubproject.network.ApiService
+import com.francescobottino.thehubproject.model.User
+import com.francescobottino.thehubproject.network.UnauthorizedError
+import com.francescobottino.thehubproject.network.UserApi
 import com.francescobottino.thehubproject.repo.UserRepository
 import com.francescobottino.thehubproject.screens.login.LoginScreen
 import com.francescobottino.thehubproject.screens.main_host.MainHostScreen
@@ -13,7 +15,7 @@ import org.kodein.di.instance
 
 class SplashScreenModel(override val di: DI) : ScreenModel, DIAware {
     private val tokenStorage by di.instance<TokenStorage>()
-    private val api by di.instance<ApiService>()
+    private val userApi by di.instance<UserApi>()
     private val userRepo by di.instance<UserRepository>()
 
     suspend fun getFirstScreen(): Screen {
@@ -23,14 +25,17 @@ class SplashScreenModel(override val di: DI) : ScreenModel, DIAware {
             return LoginScreen
         }
 
-        val user = api.getMyProfile().getOrNull()
+        val user = userApi.me()
+            .onFailure {
+                if(it is UnauthorizedError) {
+                    return LoginScreen
+                } else {
+                    // todo Handle error.
+                }
+            }
+            .getOrThrow()
 
-        if(user?.username == null) {
-            //todo
-            return LoginScreen
-        }
-
-        userRepo.setCurrentUser(user)
+        userRepo.setCurrentUser(User(user.id, user.username))
 
         return MainHostScreen
     }

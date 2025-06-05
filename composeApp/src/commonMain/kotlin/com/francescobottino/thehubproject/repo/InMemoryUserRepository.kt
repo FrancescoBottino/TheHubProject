@@ -1,21 +1,21 @@
 package com.francescobottino.thehubproject.repo
 
-import com.francescobottino.thehubproject.model.UserProfile
+import com.francescobottino.thehubproject.model.User
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class InMemoryUserRepository: UserRepository {
-    private val currentUserStateFloat = MutableStateFlow<UserProfile?>(null)
-    override fun getCurrentUserFlow(): StateFlow<UserProfile?> {
+    private val currentUserStateFloat = MutableStateFlow<User?>(null)
+    override fun getCurrentUserFlow(): StateFlow<User?> {
         return currentUserStateFloat.asStateFlow()
     }
 
-    override fun getCurrentUser(): UserProfile? {
+    override fun getCurrentUser(): User? {
         return currentUserStateFloat.value
     }
 
-    override fun setCurrentUser(userProfile: UserProfile?) {
+    override fun setCurrentUser(userProfile: User?) {
         currentUserStateFloat.value = userProfile
     }
 }

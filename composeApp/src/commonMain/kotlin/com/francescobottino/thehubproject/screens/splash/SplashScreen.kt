@@ -1,9 +1,6 @@
 package com.francescobottino.thehubproject.screens.splash
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -36,13 +33,21 @@ object SplashScreen: Screen {
                 style = MaterialTheme.typography.titleMedium,
             )
 
-            CircularProgressIndicator(
-                modifier = Modifier.requiredSize(64.dp)
-            )
+            Box(
+                modifier = Modifier.requiredSize(64.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator()
+            }
         }
 
         LaunchedEffect(Unit) {
-            navigator.replace(screenModel.getFirstScreen())
+            try {
+                navigator.replace(screenModel.getFirstScreen())
+            } catch (e: Exception) {
+                //todo handle errors
+                throw e
+            }
         }
     }
 }

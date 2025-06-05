@@ -1,8 +1,10 @@
 package com.francescobottino.thehubproject.di
 
 import com.francescobottino.thehubproject.GameModule
+import com.francescobottino.thehubproject.auth.AuthApi
 import com.francescobottino.thehubproject.auth.TokenStorage
-import com.francescobottino.thehubproject.network.ApiService
+import com.francescobottino.thehubproject.network.TestApiService
+import com.francescobottino.thehubproject.network.UserApi
 import com.francescobottino.thehubproject.network.makeHttpClient
 import com.francescobottino.thehubproject.repo.InMemoryUserRepository
 import com.francescobottino.thehubproject.repo.UserRepository
@@ -15,7 +17,9 @@ import org.kodein.di.instance
 val commonModule = DI.Module("commonModule") {
     bindSingleton<TokenStorage> { TokenStorage(instance()) }
     bindSingleton<HttpClient> { makeHttpClient(instance()) }
-    bindSingleton<ApiService> { ApiService(instance(), instance()) }
+    bindSingleton<AuthApi> { AuthApi(instance()) }
+    bindSingleton<UserApi> { UserApi(instance()) }
+    bindSingleton<TestApiService> { TestApiService(instance()) }
     bindSingleton<UserRepository> { InMemoryUserRepository() }
 
     bindSet<GameModule>()

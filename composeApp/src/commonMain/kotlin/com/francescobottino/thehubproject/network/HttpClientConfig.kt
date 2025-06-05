@@ -1,26 +1,26 @@
 package com.francescobottino.thehubproject.network
 
+import com.francescobottino.thehubproject.Config
 import com.francescobottino.thehubproject.auth.TokenStorage
+import com.francescobottino.thehubproject.mainJson
 import io.ktor.client.*
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.auth.*
 import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
+import io.ktor.client.plugins.resources.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.serialization.kotlinx.json.*
-import kotlinx.serialization.json.Json
 
 fun makeHttpClient(
     tokenStorage: TokenStorage
 ): HttpClient {
     return HttpClient {
         expectSuccess = false
+        install(Resources)
         install(ContentNegotiation) {
-            json(Json {
-                prettyPrint = true
-                isLenient = true
-                ignoreUnknownKeys = true
-            })
+            json(mainJson)
         }
         install(Logging) {
             logger = Logger.DEFAULT
@@ -46,5 +46,19 @@ fun makeHttpClient(
                 // sendWithoutRequest { request -> request.url.host == Url(baseUrl).host }
             }
         }
+        defaultRequest {
+            url(Config.httpUrl)
+        }
+
+        /*
+        HttpResponseValidator {
+            handleResponseExceptionWithRequest { exception, request ->
+                val clientException = exception as? ClientRequestException ?: return@handleResponseExceptionWithRequest
+                val exceptionResponse = clientException.response
+                throw HttpException(request, exceptionResponse, exception)
+            }
+        }
+
+         */
     }
 }

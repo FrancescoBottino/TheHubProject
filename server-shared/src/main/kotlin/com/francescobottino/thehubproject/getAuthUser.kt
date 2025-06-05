@@ -2,7 +2,6 @@ package com.francescobottino.thehubproject
 
 import com.francescobottino.thehubproject.auth.JwtConfig
 import com.francescobottino.thehubproject.data.UserRepository
-import com.francescobottino.thehubproject.model.ErrorResponse
 import com.francescobottino.thehubproject.model.User
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -26,7 +25,7 @@ suspend fun ApplicationCall.getAuthUser(): User? {
 
 suspend fun RoutingContext.requireUserId(
     onNotAuthenticated: suspend () -> Unit = {
-        call.respond(HttpStatusCode.Unauthorized, ErrorResponse("User not found or invalid token"))
+        call.respond(HttpStatusCode.Unauthorized, "User not found or invalid token")
     },
     onAuthenticated: suspend (String) -> Unit,
 ) {
@@ -37,7 +36,7 @@ suspend fun RoutingContext.requireUserId(
 
 suspend fun RoutingContext.requireUser(
     onNotAuthenticated: suspend () -> Unit = {
-        call.respond(HttpStatusCode.Unauthorized, ErrorResponse("User not found or invalid token"))
+        call.respond(HttpStatusCode.Unauthorized, "User not found or invalid token")
     },
     onAuthenticated: suspend (User) -> Unit,
 ) {
@@ -48,7 +47,7 @@ suspend fun RoutingContext.requireUser(
 
 suspend fun DefaultWebSocketServerSession.requireUserId(
     onNotAuthenticated: suspend () -> Unit = {
-        call.respond(HttpStatusCode.Unauthorized, ErrorResponse("User not found or invalid token"))
+        call.respond(HttpStatusCode.Unauthorized, "User not found or invalid token")
     },
     onAuthenticated: suspend (String) -> Unit,
 ) {
@@ -59,7 +58,7 @@ suspend fun DefaultWebSocketServerSession.requireUserId(
 
 suspend fun DefaultWebSocketServerSession.requireUser(
     onNotAuthenticated: suspend () -> Unit = {
-        call.respond(HttpStatusCode.Unauthorized, ErrorResponse("User not found or invalid token"))
+        call.respond(HttpStatusCode.Unauthorized, "User not found or invalid token")
     },
     onAuthenticated: suspend (User) -> Unit,
 ) {

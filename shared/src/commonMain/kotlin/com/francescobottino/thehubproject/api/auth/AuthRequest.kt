@@ -1,4 +1,4 @@
-package com.francescobottino.thehubproject.model // Adjust package
+package com.francescobottino.thehubproject.api.auth
 
 import kotlinx.serialization.Serializable
 
