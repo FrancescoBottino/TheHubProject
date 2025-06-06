@@ -1,6 +1,6 @@
 package com.francescobottino.thehubproject.games.tictactoe.network
 
-import com.francescobottino.thehubproject.Config
+import com.francescobottino.thehubproject.config.PlatformConfig
 import com.francescobottino.thehubproject.games.tictactoe.api.TicTacToeMakeMoveRequest
 import com.francescobottino.thehubproject.games.tictactoe.api.TicTacToeMakeRoomRequest
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeGameRoom
@@ -38,7 +38,7 @@ class TicTacToeApi(
     @OptIn(ExperimentalCoroutinesApi::class)
     fun joinRoomWebSocket(roomId: String): Flow<TicTacToeGameRoom> {
         return flow {
-            val ws = client.webSocketSession("${Config.wsUrl}/games/tictactoe/room/$roomId/updates")
+            val ws = client.webSocketSession("${PlatformConfig.wsUrl}/games/tictactoe/room/$roomId/updates")
 
             for (frame in ws.incoming) {
                 if (frame is Frame.Text) {

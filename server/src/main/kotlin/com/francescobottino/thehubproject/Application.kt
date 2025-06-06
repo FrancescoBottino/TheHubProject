@@ -2,6 +2,7 @@ package com.francescobottino.thehubproject
 
 import com.francescobottino.thehubproject.auth.configureRoutingAuth
 import com.francescobottino.thehubproject.auth.configureSecurity
+import com.francescobottino.thehubproject.config.PlatformConfig
 import com.francescobottino.thehubproject.data.UserRepository
 import io.github.cdimascio.dotenv.dotenv
 import io.ktor.serialization.kotlinx.json.*
@@ -29,9 +30,12 @@ fun main() {
         systemProperties = true // Also load into system properties (optional)
     }
 
+    val port = System.getenv("PORT")?.toIntOrNull()
+        ?: if(PlatformConfig.isDebug) 8080 else throw Exception("PORT environment variable not set.")
+
     embeddedServer(
         factory = Netty,
-        port = System.getenv("PORT")?.toIntOrNull() ?: Config.DEBUG_PORT,
+        port = port,
         host = System.getenv("HOST") ?: "0.0.0.0",
         module = Application::module
     ).start(wait = true)
@@ -59,10 +63,10 @@ fun Application.module() {
 
         allowCredentials = false
 
-        if(Config.IS_DEBUG) {
+        if(PlatformConfig.isDebug) {
             anyHost()
         } else {
-            allowHost(Config.PROD_ENDPOINT, schemes = listOf("https"))
+            allowHost(PlatformConfig.serverEndpoint, schemes = listOf("https"))
         }
     }
 
