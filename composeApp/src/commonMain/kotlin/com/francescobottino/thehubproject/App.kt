@@ -4,7 +4,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import cafe.adriel.voyager.navigator.Navigator
 import com.francescobottino.thehubproject.di.DIProvider
-import com.francescobottino.thehubproject.screens.splash.SplashScreen
+import com.francescobottino.thehubproject.screens.main_host.MainHostScreen
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.kodein.di.compose.withDI
 
@@ -13,7 +13,8 @@ import org.kodein.di.compose.withDI
 fun App() {
     withDI(DIProvider.di) {
         MaterialTheme {
-            Navigator(SplashScreen)
+            //Navigator(SplashScreen)
+            Navigator(MainHostScreen)
         }
     }
 }

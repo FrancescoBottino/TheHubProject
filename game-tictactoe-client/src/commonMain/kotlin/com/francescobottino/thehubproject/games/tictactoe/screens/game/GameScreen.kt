@@ -4,11 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -19,11 +17,16 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.francescobottino.thehubproject.games.tictactoe.api.TicTacToeMakeMoveRequest
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeBoardCell
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeGameRoom
+import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToePlayerSign
 import com.francescobottino.thehubproject.games.tictactoe.network.TicTacToeApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.painterResource
 import org.kodein.di.compose.localDI
 import org.kodein.di.instance
+import thehubproject.game_tictactoe_client.generated.resources.Res
+import thehubproject.game_tictactoe_client.generated.resources.tic_tac_toe_circle
+import thehubproject.game_tictactoe_client.generated.resources.tic_tac_toe_cross
 
 class GameScreen(private val roomId: String): Screen {
     @Composable
@@ -99,12 +102,21 @@ private fun Board(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight()
-                            .clickable(enabled = sign == null) { onMove(cell) },
+                            .clickable(enabled = sign == null && state.roomState is TicTacToeGameRoom.State.InProgress) { onMove(cell) },
+                        contentAlignment = Alignment.Center,
                     ) {
                         sign?.let {
-                            Text(
-                                text = it.name,
-                                modifier = Modifier.fillMaxWidth().fillMaxHeight(),
+                            val signDrawable = when (it) {
+                                TicTacToePlayerSign.O -> Res.drawable.tic_tac_toe_circle
+                                TicTacToePlayerSign.X -> Res.drawable.tic_tac_toe_cross
+                            }
+                            Icon(
+                                painter = painterResource(signDrawable),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .aspectRatio(1f)
+                                    .padding(8.dp),
                             )
                         }
                     }

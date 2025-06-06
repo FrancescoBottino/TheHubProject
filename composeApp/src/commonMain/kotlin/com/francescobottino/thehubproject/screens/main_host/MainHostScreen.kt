@@ -1,5 +1,6 @@
 package com.francescobottino.thehubproject.screens.main_host
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -45,39 +46,44 @@ object MainHostScreen: Screen {
                             modifier = Modifier
                                 .requiredHeight(height = 40.dp)
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp),
+                                .padding(vertical = 2.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            IconButton(
-                                onClick = { navigator.pop() },
-                                modifier = Modifier.fillMaxHeight(),
+                            AnimatedVisibility(
+                                visible = navigator.canPop,
                             ) {
-                                Icon(
-                                    FeatherIcons.ArrowLeft,
-                                    contentDescription = "Back"
-                                )
+                                IconButton(
+                                    onClick = { navigator.pop() },
+                                    modifier = Modifier.fillMaxHeight().padding(start = 4.dp),
+                                ) {
+                                    Icon(
+                                        FeatherIcons.ArrowLeft,
+                                        contentDescription = "Back"
+                                    )
+                                }
                             }
 
                             Box(
                                 modifier = Modifier.weight(1f).fillMaxHeight()
                             ) {
-                                //todo
+                                //todo main content, title maybe?
                             }
 
-                            Box(
-                                modifier = Modifier.requiredWidthIn(min = 120.dp).fillMaxHeight()
+                            Text(
+                                text = user?.username ?: "Anonymous",
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .wrapContentWidth()
+                                    .padding(end = 4.dp)
                                     .clickable {
                                         scope.launch {
                                             tokenStorage.clearToken()
                                             parentNavigator.replace(LoginScreen)
                                         }
-                                    }
-                            ) {
-                                Text(
-                                    text = user?.username ?: ""
-                                )
-                            }
+                                    },
+                            )
                         }
                     }
                 }

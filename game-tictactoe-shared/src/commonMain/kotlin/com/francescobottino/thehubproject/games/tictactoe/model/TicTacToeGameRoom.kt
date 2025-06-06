@@ -7,7 +7,7 @@ data class TicTacToeGameRoom(
     val id: String,
     val hostPlayer: TicTacToePlayer,
     val opponentPlayer: TicTacToePlayer? = null,
-    val gameState: TicTacToeGameState = emptyMap(),
+    val gameState: TicTacToeGameState = mapOf(TicTacToeBoardCell(1,1) to TicTacToePlayerSign.X),// emptyMap(),
     val pastGamesWinners: List<TicTacToePlayer?> = emptyList(),
     val currentPlayerSign: TicTacToePlayerSign,
     val roomState: State = State.WaitingForOpponent,

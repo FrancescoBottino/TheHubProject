@@ -99,7 +99,7 @@ kotlin {
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
-            implementation(libs.ktor.client.cio)
+            implementation(libs.ktor.client.java)
             implementation(libs.slf4j)
         }
         wasmJsMain.dependencies {

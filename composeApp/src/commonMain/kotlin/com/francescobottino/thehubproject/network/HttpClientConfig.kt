@@ -49,16 +49,5 @@ fun makeHttpClient(
         defaultRequest {
             url(Config.httpUrl)
         }
-
-        /*
-        HttpResponseValidator {
-            handleResponseExceptionWithRequest { exception, request ->
-                val clientException = exception as? ClientRequestException ?: return@handleResponseExceptionWithRequest
-                val exceptionResponse = clientException.response
-                throw HttpException(request, exceptionResponse, exception)
-            }
-        }
-
-         */
     }
 }
