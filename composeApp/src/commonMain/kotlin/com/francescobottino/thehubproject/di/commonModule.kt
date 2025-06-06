@@ -3,6 +3,7 @@ package com.francescobottino.thehubproject.di
 import com.francescobottino.thehubproject.GameModule
 import com.francescobottino.thehubproject.auth.AuthApi
 import com.francescobottino.thehubproject.auth.TokenStorage
+import com.francescobottino.thehubproject.games.tictactoe.di.tictactoeModule
 import com.francescobottino.thehubproject.network.TestApiService
 import com.francescobottino.thehubproject.network.UserApi
 import com.francescobottino.thehubproject.network.makeHttpClient
@@ -24,11 +25,8 @@ val commonModule = DI.Module("commonModule") {
 
     bindSet<GameModule>()
 
-    /*
     importAll(
         tictactoeModule,
 
     )
-
-     */
 }

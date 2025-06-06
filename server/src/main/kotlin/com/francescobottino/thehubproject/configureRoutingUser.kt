@@ -15,7 +15,9 @@ fun Routing.configureRoutingUser() {
 }
 
 private suspend fun RoutingContext.getMe(route: UserResource.Me) {
-    requireUser {
-        call.respond(HttpStatusCode.OK, UserResponse(it.id, it.username))
+    val user = call.getAuthUser() ?: run {
+        call.respond(HttpStatusCode.Unauthorized)
+        return
     }
+    call.respond(HttpStatusCode.OK, UserResponse(user.id, user.username))
 }
