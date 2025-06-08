@@ -22,7 +22,6 @@ dotenvKotlin = "6.4.1"
 voyager = "1.1.0-beta03"
 composeIcons = "1.1.1"
 arrow = "2.1.2"
-coil = "3.2.0"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }

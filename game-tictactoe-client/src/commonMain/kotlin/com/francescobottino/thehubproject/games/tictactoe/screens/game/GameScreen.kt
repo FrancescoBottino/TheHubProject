@@ -19,14 +19,12 @@ import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeBoardCe
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeGameRoom
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToePlayerSign
 import com.francescobottino.thehubproject.games.tictactoe.network.TicTacToeApi
+import com.francescobottino.thehubproject.games.tictactoe.presentation.TicTacToeCircle
+import com.francescobottino.thehubproject.games.tictactoe.presentation.TicTacToeCross
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.painterResource
 import org.kodein.di.compose.localDI
 import org.kodein.di.instance
-import thehubproject.game_tictactoe_client.generated.resources.Res
-import thehubproject.game_tictactoe_client.generated.resources.tic_tac_toe_circle
-import thehubproject.game_tictactoe_client.generated.resources.tic_tac_toe_cross
 
 class GameScreen(private val roomId: String): Screen {
     @Composable
@@ -107,11 +105,11 @@ private fun Board(
                     ) {
                         sign?.let {
                             val signDrawable = when (it) {
-                                TicTacToePlayerSign.O -> Res.drawable.tic_tac_toe_circle
-                                TicTacToePlayerSign.X -> Res.drawable.tic_tac_toe_cross
+                                TicTacToePlayerSign.O -> TicTacToeCircle
+                                TicTacToePlayerSign.X -> TicTacToeCross
                             }
                             Icon(
-                                painter = painterResource(signDrawable),
+                                imageVector = signDrawable,
                                 contentDescription = null,
                                 modifier = Modifier
                                     .fillMaxSize()
