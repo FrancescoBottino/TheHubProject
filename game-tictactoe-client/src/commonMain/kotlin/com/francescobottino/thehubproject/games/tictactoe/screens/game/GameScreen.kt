@@ -14,9 +14,9 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import com.francescobottino.thehubproject.games.tictactoe.api.TicTacToeMakeMoveRequest
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeBoardCell
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeGameRoom
+import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeMakeMoveRequest
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToePlayerSign
 import com.francescobottino.thehubproject.games.tictactoe.network.TicTacToeApi
 import com.francescobottino.thehubproject.games.tictactoe.presentation.TicTacToeCircle

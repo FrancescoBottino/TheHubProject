@@ -10,9 +10,7 @@ class TicTacToeInMemoryGameRoomRepository: TicTacToeGameRoomRepository {
     private val memoryStateFlow = MutableStateFlow<Map<String, TicTacToeGameRoom>>(emptyMap())
 
     override fun storeRoom(room: TicTacToeGameRoom) {
-        memoryStateFlow.update { memory ->
-            memory + (room.id to room)
-        }
+        memoryStateFlow.update { memory -> memory + (room.id to room) }
     }
     override fun getRoom(id: String): TicTacToeGameRoom? {
         return memoryStateFlow.value[id]

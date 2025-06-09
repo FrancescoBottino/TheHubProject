@@ -5,4 +5,5 @@ sealed interface LoginScreenEvent {
     data class OnPasswordChanged(val password: String): LoginScreenEvent
     data object OnLogIn: LoginScreenEvent
     data object OnRegister: LoginScreenEvent
+    data object OnDialogClosed: LoginScreenEvent
 }

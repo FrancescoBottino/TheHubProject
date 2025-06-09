@@ -3,7 +3,8 @@ package com.francescobottino.thehubproject.screens.login
 import arrow.core.Either
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.francescobottino.thehubproject.api.auth.AuthRequest
-import com.francescobottino.thehubproject.api.auth.AuthResponse
+import com.francescobottino.thehubproject.api.auth.AuthResponseError
+import com.francescobottino.thehubproject.api.auth.AuthResponseSuccess
 import com.francescobottino.thehubproject.auth.AuthApi
 import com.francescobottino.thehubproject.auth.TokenStorage
 import com.francescobottino.thehubproject.model.User
@@ -26,33 +27,33 @@ class LoginScreenModel(override val di: DI): StatefulScreenModel<LoginScreenStat
             is LoginScreenEvent.OnPasswordChanged -> _state.update { it.copy(password = event.password) }
             is LoginScreenEvent.OnLogIn -> performAuth(endpoint = authApi::login)
             is LoginScreenEvent.OnRegister -> performAuth(endpoint = authApi::register)
+            is LoginScreenEvent.OnDialogClosed -> _state.update { it.copy(dialogMessagesQueue = it.dialogMessagesQueue.drop(1)) }
         }
     }
 
-    private fun performAuth(endpoint: suspend (AuthRequest) -> Either<AuthResponse.Error, AuthResponse.Success>) {
+    private fun performAuth(endpoint: suspend (AuthRequest) -> Either<AuthResponseError, AuthResponseSuccess>) {
         _state.update { it.copy(isLoading = true, usernameError = null, passwordError = null, errorMessage = null) }
         screenModelScope.launch {
             val username = _state.value.username
             val password = _state.value.password
 
-            runCatching {
-                endpoint(AuthRequest(username, password))
-                    .onLeft { error ->
+            runCatching { endpoint(AuthRequest(username, password)) }
+                .onFailure { error ->
+                    _state.update { it.copy(dialogMessagesQueue = it.dialogMessagesQueue + (error.message ?: "Unknown error")) }
+                }
+                .onSuccess { response ->
+                    response.onLeft { error ->
                         when(error) {
-                            is AuthResponse.UserAlreadyExists,
-                            is AuthResponse.UserNotFound -> _state.update { it.copy(usernameError = error.message) }
-                            is AuthResponse.IncorrectPassword -> _state.update { it.copy(passwordError = error.message) }
-                            else -> _state.update { it.copy(errorMessage = error.message) }
+                            AuthResponseError.USER_ALREADY_EXISTS -> _state.update { it.copy(usernameError = "Username already in use.") }
+                            AuthResponseError.USER_NOT_FOUND -> _state.update { it.copy(usernameError = "Username not found.") }
+                            AuthResponseError.INCORRECT_PASSWORD -> _state.update { it.copy(passwordError = "Password is incorrect") }
                         }
-                    }
-                    .onRight { response ->
-                        tokenStorage.saveToken(response.token)
-                        userRepository.setCurrentUser(User(id = response.userId, username = response.username))
+                    }.onRight { successResponse ->
+                        tokenStorage.saveToken(successResponse.token)
+                        userRepository.setCurrentUser(User(id = successResponse.userId, username = successResponse.username))
                         _screenModelEventsFlow.tryEmit(LoginScreenModelEvent.OnLoggedIn)
                     }
-            }.onFailure { error ->
-                _screenModelEventsFlow.tryEmit(LoginScreenModelEvent.ErrorPopup(error.message ?: "Unknown error"))
-            }
+                }
         }.invokeOnCompletion {
             _state.update { it.copy(isLoading = false) }
         }

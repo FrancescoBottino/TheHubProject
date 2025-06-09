@@ -33,7 +33,6 @@ object LoginScreen: Screen {
         val navigator = LocalNavigator.currentOrThrow
         val screenModel = rememberScreenModel { LoginScreenModel(di) }
         val state by screenModel.state.collectAsState()
-        var dialogMessagesQueue by remember { mutableStateOf<List<String>>(emptyList()) }
 
         LoginScreenContent(
             state = state,
@@ -41,40 +40,10 @@ object LoginScreen: Screen {
             modifier = Modifier.fillMaxSize(),
         )
 
-        if(dialogMessagesQueue.isNotEmpty()) {
-            val dialogMessage = dialogMessagesQueue.first()
-
-            Dialog(
-                onDismissRequest = { dialogMessagesQueue = dialogMessagesQueue.drop(1) }
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
-                        modifier = Modifier
-                            .shadow(elevation = 12.dp)
-                            .background(color = Color.White)
-                            .padding(16.dp),
-                    ) {
-                        Text(dialogMessage)
-                        Button(onClick = { dialogMessagesQueue = dialogMessagesQueue.drop(1) }) {
-                            Text("OK")
-                        }
-                    }
-                }
-            }
-        }
-
         screenModel.manageEvents { event ->
             when(event) {
                 is LoginScreenModelEvent.OnLoggedIn -> {
                     navigator.replace(MainHostScreen)
-                }
-                is LoginScreenModelEvent.ErrorPopup -> {
-                    dialogMessagesQueue += event.message
                 }
             }
         }
@@ -173,6 +142,33 @@ private fun LoginScreenContent(
             }
 
             Spacer(modifier = Modifier.height(80.dp))
+        }
+    }
+
+    if(state.dialogMessagesQueue.isNotEmpty()) {
+        val dialogMessage = state.dialogMessagesQueue.first()
+
+        Dialog(
+            onDismissRequest = { onEvent(LoginScreenEvent.OnDialogClosed) }
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
+                    modifier = Modifier
+                        .shadow(elevation = 12.dp)
+                        .background(color = Color.White)
+                        .padding(16.dp),
+                ) {
+                    Text(dialogMessage)
+                    Button(onClick = { onEvent(LoginScreenEvent.OnDialogClosed) }) {
+                        Text("OK")
+                    }
+                }
+            }
         }
     }
 }

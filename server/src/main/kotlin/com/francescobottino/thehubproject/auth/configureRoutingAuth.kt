@@ -2,7 +2,8 @@ package com.francescobottino.thehubproject.auth
 
 import com.francescobottino.thehubproject.api.auth.AuthRequest
 import com.francescobottino.thehubproject.api.auth.AuthResource
-import com.francescobottino.thehubproject.api.auth.AuthResponse
+import com.francescobottino.thehubproject.api.auth.AuthResponseError
+import com.francescobottino.thehubproject.api.auth.AuthResponseSuccess
 import com.francescobottino.thehubproject.data.UserRepository
 import com.francescobottino.thehubproject.model.User
 import io.ktor.http.*
@@ -12,7 +13,6 @@ import io.ktor.server.resources.post
 import io.ktor.server.response.*
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.RoutingContext
-import kotlinx.serialization.SerializationException
 import org.kodein.di.instance
 import org.kodein.di.ktor.closestDI
 import java.util.*
@@ -23,12 +23,18 @@ fun Routing.configureRoutingAuth() {
 }
 
 private suspend fun RoutingContext.register(route: AuthResource.Register) {
-    try {
-        val request = call.receive<AuthRequest>()
-        val userRepository by closestDI().instance<UserRepository>()
+    val userRepository by closestDI().instance<UserRepository>()
 
+    val request = try {
+        call.receive<AuthRequest>()
+    } catch (e: Exception) {
+        call.respond(HttpStatusCode.BadRequest, e.message ?: "Invalid request")
+        return
+    }
+
+    try {
         if (userRepository.findByUsername(request.username) != null) {
-            call.respond(HttpStatusCode.Conflict, AuthResponse.UserAlreadyExists())
+            call.respond(HttpStatusCode.Conflict, AuthResponseError.USER_ALREADY_EXISTS)
             return
         }
 
@@ -43,38 +49,40 @@ private suspend fun RoutingContext.register(route: AuthResource.Register) {
         userRepository.create(newUser)
         val token = JwtConfig.generateToken(newUser.id)
 
-        call.respond(HttpStatusCode.Created, AuthResponse.Success(token = token, userId = newUser.id, username = newUser.username))
-    } catch (e: SerializationException) {
-        call.respond(HttpStatusCode.BadRequest, AuthResponse.InvalidInput(message = "Invalid request body: ${e.localizedMessage}"))
+        call.respond(HttpStatusCode.Created, AuthResponseSuccess(token = token, userId = newUser.id, username = newUser.username))
     } catch (e: Exception) {
         call.application.log.error("Registration failed", e)
-        call.respond(HttpStatusCode.InternalServerError, AuthResponse.GenericError("An unexpected error occurred."))
+        call.respond(HttpStatusCode.InternalServerError, e.message ?: "Unknown error")
     }
 }
 
 private suspend fun RoutingContext.login(route: AuthResource.Login) {
-    try {
-        val request = call.receive<AuthRequest>()
-        val userRepository by closestDI().instance<UserRepository>()
+    val userRepository by closestDI().instance<UserRepository>()
 
+    val request = try {
+        call.receive<AuthRequest>()
+    } catch (e: Exception) {
+        call.respond(HttpStatusCode.BadRequest, e.message ?: "Invalid request")
+        return
+    }
+
+    try {
         val user = userRepository.findByUsername(request.username)
         if (user == null) {
-            call.respond(HttpStatusCode.Unauthorized, AuthResponse.UserNotFound())
+            call.respond(HttpStatusCode.Unauthorized, AuthResponseError.USER_NOT_FOUND)
             return
         }
 
         val passwordCorrect = HashingService.checkPassword(request.password, user.passwordHash)
         if(!passwordCorrect) {
-            call.respond(HttpStatusCode.Unauthorized, AuthResponse.IncorrectPassword())
+            call.respond(HttpStatusCode.Unauthorized, AuthResponseError.INCORRECT_PASSWORD)
             return
         }
 
         val token = JwtConfig.generateToken(user.id)
-        call.respond(HttpStatusCode.Created, AuthResponse.Success(token = token, userId = user.id, username = user.username))
-    } catch (e: SerializationException) {
-        call.respond(HttpStatusCode.BadRequest, AuthResponse.InvalidInput(message = "Invalid request body: ${e.localizedMessage}"))
+        call.respond(HttpStatusCode.Created, AuthResponseSuccess(token = token, userId = user.id, username = user.username))
     } catch (e: Exception) {
         call.application.log.error("Registration failed", e)
-        call.respond(HttpStatusCode.InternalServerError, AuthResponse.GenericError("An unexpected error occurred."))
+        call.respond(HttpStatusCode.InternalServerError, e.message ?: "Unknown error")
     }
 }

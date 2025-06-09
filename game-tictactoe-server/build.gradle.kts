@@ -17,6 +17,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.datetime)
+    implementation(libs.arrow.core)
 
     implementation(projects.shared)
     implementation(projects.serverShared)

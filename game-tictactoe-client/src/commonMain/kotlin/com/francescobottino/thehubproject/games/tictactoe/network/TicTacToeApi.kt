@@ -1,9 +1,11 @@
 package com.francescobottino.thehubproject.games.tictactoe.network
 
+import arrow.core.Either
 import com.francescobottino.thehubproject.config.PlatformConfig
-import com.francescobottino.thehubproject.games.tictactoe.api.TicTacToeMakeMoveRequest
-import com.francescobottino.thehubproject.games.tictactoe.api.TicTacToeMakeRoomRequest
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeGameRoom
+import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeJoinRoomResponseError
+import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeMakeMoveRequest
+import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeMakeRoomRequest
 import com.francescobottino.thehubproject.mainJson
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -26,8 +28,15 @@ class TicTacToeApi(
             setBody(request)
         }.body()
     }
-    suspend fun joinRoom(roomId: String) {
-        return client.post("/games/tictactoe/room/$roomId/join").body()
+    suspend fun joinRoom(roomId: String): Either<TicTacToeJoinRoomResponseError, Unit> {
+        return client.post("/games/tictactoe/room/$roomId/join") {
+            contentType(ContentType.Application.Json)
+        }.let {
+            when {
+                it.status.isSuccess() -> Either.Right(Unit)
+                else -> Either.Left(it.body<TicTacToeJoinRoomResponseError>())
+            }
+        }
     }
     suspend fun makeMove(roomId: String, request: TicTacToeMakeMoveRequest) {
         return client.post("/games/tictactoe/room/$roomId/move") {

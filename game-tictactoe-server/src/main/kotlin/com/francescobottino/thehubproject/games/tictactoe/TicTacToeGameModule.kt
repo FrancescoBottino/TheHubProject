@@ -1,9 +1,7 @@
 package com.francescobottino.thehubproject.games.tictactoe
 
-import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeBoardCell
-import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeGameRoom
-import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToePlayer
-import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToePlayerSign
+import arrow.core.Either
+import com.francescobottino.thehubproject.games.tictactoe.model.*
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -26,13 +24,18 @@ class TicTacToeGameModule(
         return room.id
     }
 
-    fun joinRoom(playerId: String, roomId: String) {
-        repo.updateRoom(roomId) {
-            val room = it ?: throw IllegalStateException("Room not found")
+    fun joinRoom(playerId: String, roomId: String): Either<TicTacToeJoinRoomResponseError, Unit> {
+        val room = repo.getRoom(roomId) ?: return Either.Left(TicTacToeJoinRoomResponseError.ROOM_NOT_FOUND)
 
-            require(room.opponentPlayer == null) { "Room already has an opponent" }
-            require(room.hostPlayer.id != playerId) { "Cannot join your own room" }
+        if(room.opponentPlayer != null) {
+            return Either.Left(TicTacToeJoinRoomResponseError.ROOM_ALREADY_FULL)
+        }
 
+        if(room.players.map { it.id }.contains(playerId)) {
+            return Either.Left(TicTacToeJoinRoomResponseError.PLAYER_ALREADY_IN_ROOM)
+        }
+
+        repo.storeRoom(
             room.copy(
                 opponentPlayer = TicTacToePlayer(
                     id = playerId,
@@ -40,7 +43,9 @@ class TicTacToeGameModule(
                 ),
                 roomState = TicTacToeGameRoom.State.InProgress,
             )
-        }
+        )
+
+        return Either.Right(Unit)
     }
 
     fun makeMove(playerId: String, roomId: String, cell: TicTacToeBoardCell) {

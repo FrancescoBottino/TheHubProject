@@ -1,11 +1,12 @@
 package com.francescobottino.thehubproject.games.tictactoe
 
-import com.francescobottino.thehubproject.games.tictactoe.api.TicTacToeMakeMoveRequest
-import com.francescobottino.thehubproject.games.tictactoe.api.TicTacToeMakeRoomRequest
+import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeMakeMoveRequest
+import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeMakeRoomRequest
 import com.francescobottino.thehubproject.getAuthUserId
 import com.francescobottino.thehubproject.log
 import com.francescobottino.thehubproject.mainJson
 import io.ktor.http.*
+import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -25,8 +26,8 @@ fun Route.configureTicTacToe() {
             bindSingleton { TicTacToeGameModule(instance()) }
         }
 
-        route("room") {
-            authenticate("auth-jwt") {
+        authenticate("auth-jwt") {
+            route("room") {
                 post("make") { makeRoom() }
 
                 route("{roomId}") {
@@ -47,8 +48,14 @@ private suspend fun RoutingContext.makeRoom() {
         return
     }
 
+    val request = try {
+        call.receive<TicTacToeMakeRoomRequest>()
+    } catch (e: Exception) {
+        call.respond(HttpStatusCode.BadRequest, e.message ?: "Invalid request")
+        return
+    }
+
     try {
-        val request = call.receive<TicTacToeMakeRoomRequest>()
         val roomId = module.makeRoom(
             playerId = userId,
             chosenSign = request.chosenSign,
@@ -56,7 +63,8 @@ private suspend fun RoutingContext.makeRoom() {
         )
         call.respond(HttpStatusCode.OK, message = roomId)
     } catch (e: Exception) {
-        call.respond(HttpStatusCode.BadRequest, message = e.message ?: "Invalid request")
+        call.application.log.error("makeRoom failed", e)
+        call.respond(HttpStatusCode.InternalServerError, message = e.message ?: "Unknown error occurred")
     }
 }
 
@@ -68,18 +76,35 @@ private suspend fun RoutingContext.joinRoom() {
         return
     }
 
+    val roomId = try {
+        call.parameters.getOrFail<String>("roomId")
+    } catch (e: Exception) {
+        call.respond(HttpStatusCode.BadRequest, e.message ?: "Invalid request")
+        return
+    }
+
     try {
-        val roomId = call.parameters.getOrFail<String>("roomId")
-        module.joinRoom(
+        log.debug("user $userId is attempting to join room $roomId")
+
+        val result = module.joinRoom(
             playerId = userId,
             roomId = roomId,
         )
-        call.respond(HttpStatusCode.OK)
+
+        log.debug("result $result")
+
+        result.onRight {
+            call.respond(HttpStatusCode.OK)
+        }.onLeft {
+            call.respond(HttpStatusCode.BadRequest, it)
+        }
     } catch (e: Exception) {
-        call.respond(HttpStatusCode.BadRequest, message = e.message ?: "Invalid request")
+        call.application.log.error("joinRoom failed", e)
+        call.respond(HttpStatusCode.InternalServerError, message = e.message ?: "Unknown error occurred")
     }
 }
 
+//todo handle errors
 private suspend fun RoutingContext.makeMove() {
     val module by closestDI().instance<TicTacToeGameModule>()
 
@@ -88,9 +113,21 @@ private suspend fun RoutingContext.makeMove() {
         return
     }
 
+    val roomId = try {
+        call.parameters.getOrFail<String>("roomId")
+    } catch (e: Exception) {
+        call.respond(HttpStatusCode.BadRequest, e.message ?: "Invalid request")
+        return
+    }
+
+    val request = try {
+        call.receive<TicTacToeMakeMoveRequest>()
+    } catch (e: Exception) {
+        call.respond(HttpStatusCode.BadRequest, e.message ?: "Invalid request")
+        return
+    }
+
     try {
-        val roomId = call.parameters.getOrFail<String>("roomId")
-        val request = call.receive<TicTacToeMakeMoveRequest>()
         module.makeMove(
             playerId = userId,
             roomId = roomId,
@@ -98,7 +135,8 @@ private suspend fun RoutingContext.makeMove() {
         )
         call.respond(HttpStatusCode.OK)
     } catch (e: Exception) {
-        call.respond(HttpStatusCode.BadRequest, message = e.message ?: "Invalid request")
+        call.application.log.error("makeMove failed", e)
+        call.respond(HttpStatusCode.InternalServerError, message = e.message ?: "Invalid request")
     }
 }
 

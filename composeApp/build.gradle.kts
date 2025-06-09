@@ -92,6 +92,8 @@ kotlin {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.ktor.client.okhttp)
+            implementation(libs.slf4j.api)
+            implementation(libs.slf4j.android)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
