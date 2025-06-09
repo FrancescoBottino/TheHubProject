@@ -6,6 +6,7 @@ import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeMakeRoo
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToePlayerSign
 import com.francescobottino.thehubproject.games.tictactoe.network.TicTacToeApi
 import com.francescobottino.thehubproject.games.tictactoe.screens.game.GameScreen
+import com.francescobottino.thehubproject.games.tictactoe.screens.user_games.UserGamesScreen
 import com.francescobottino.thehubproject.screens.StatefulScreenModel
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -23,7 +24,7 @@ class MainScreenModel(
             is MainScreenEvent.OnSearchedRoomIdChanged -> _state.update { it.copy(searchedRoomId = event.newSearchedRoomId) }
             is MainScreenEvent.OnCreateRoom -> createRoom()
             is MainScreenEvent.OnJoinRoom -> joinRoom()
-            is MainScreenEvent.OnSeeMyGames -> _screenModelEventsFlow.tryEmit(MainScreenModelEvent.Navigate(TODO()))
+            is MainScreenEvent.OnSeeMyGames -> _screenModelEventsFlow.tryEmit(MainScreenModelEvent.Navigate(UserGamesScreen))
             is MainScreenEvent.OnDialogClosed -> _state.update { it.copy(dialogMessagesQueue = it.dialogMessagesQueue.drop(1)) }
         }
     }
