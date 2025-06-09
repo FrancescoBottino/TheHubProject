@@ -101,7 +101,7 @@ private fun MainScreenContent(
         val dialogMessage = state.dialogMessagesQueue.first()
 
         Dialog(
-            onDismissRequest = { onEvent(MainScreenEvent.OnDialogClosed) }
+            onDismissRequest = {},
         ) {
             Box(
                 contentAlignment = Alignment.Center,

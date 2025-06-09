@@ -48,29 +48,35 @@ class TicTacToeGameModule(
         return Either.Right(Unit)
     }
 
-    fun makeMove(playerId: String, roomId: String, cell: TicTacToeBoardCell) {
-        repo.updateRoom(roomId) {
-            var room = it ?: throw IllegalStateException("Room not found")
+    fun makeMove(playerId: String, roomId: String, cell: TicTacToeBoardCell): Either<TicTacToeMakeMoveResponseError, Unit> {
+        var room = repo.getRoom(roomId) ?: return Either.Left(TicTacToeMakeMoveResponseError.ROOM_NOT_FOUND)
 
-            val player = room.players.singleOrNull { it.id == playerId }
-            require(player != null) { "Player not found" }
-            require(room.currentPlayerSign == player.sign) { "Not your turn" }
+        val player = room.players.singleOrNull { it.id == playerId }
 
-            require(room.roomState is TicTacToeGameRoom.State.InProgress) { "Game not in progress" }
-
-            val newGameState = room.gameState + (cell to player.sign)
-
-            room = room.copy(
-                gameState = newGameState,
-                currentPlayerSign = player.sign.otherSign(),
-            )
-
-            room = room.copy(
-                roomState = room.isGameOver() ?: TicTacToeGameRoom.State.InProgress
-            )
-
-            room
+        if(player == null) {
+            return Either.Left(TicTacToeMakeMoveResponseError.PLAYER_NOT_IN_ROOM)
         }
+        if(room.currentPlayerSign != player.sign) {
+            return Either.Left(TicTacToeMakeMoveResponseError.NOT_YOUR_TURN)
+        }
+        if(room.roomState !is TicTacToeGameRoom.State.InProgress) {
+            return Either.Left(TicTacToeMakeMoveResponseError.GAME_NOT_IN_PROGRESS)
+        }
+
+        val newGameState = room.gameState + (cell to player.sign)
+
+        room = room.copy(
+            gameState = newGameState,
+            currentPlayerSign = player.sign.otherSign(),
+        )
+
+        room = room.copy(
+            roomState = room.isGameOver() ?: TicTacToeGameRoom.State.InProgress
+        )
+
+        repo.storeRoom(room)
+
+        return Either.Right(Unit)
     }
 
     fun restartGame(playerId: String, roomId: String) {

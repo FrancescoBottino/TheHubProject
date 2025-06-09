@@ -8,6 +8,8 @@ import com.francescobottino.thehubproject.games.tictactoe.network.TicTacToeApi
 import com.francescobottino.thehubproject.games.tictactoe.screens.game.GameScreen
 import com.francescobottino.thehubproject.games.tictactoe.screens.user_games.UserGamesScreen
 import com.francescobottino.thehubproject.screens.StatefulScreenModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.kodein.di.DI
@@ -16,8 +18,11 @@ import org.kodein.di.instance
 
 class MainScreenModel(
     override val di: DI,
-): StatefulScreenModel<MainScreenState, MainScreenEvent, MainScreenModelEvent>(MainScreenState()), DIAware {
+): StatefulScreenModel<MainScreenState, MainScreenEvent, MainScreenModelEvent>(), DIAware {
     val api by di.instance<TicTacToeApi>()
+
+    private val _state = MutableStateFlow(MainScreenState())
+    override val state = _state.asStateFlow()
 
     override fun onEvent(event: MainScreenEvent) {
         when (event) {

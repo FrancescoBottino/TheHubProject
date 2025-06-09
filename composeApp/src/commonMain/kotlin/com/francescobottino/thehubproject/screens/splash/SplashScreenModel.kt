@@ -9,6 +9,8 @@ import com.francescobottino.thehubproject.screens.StatefulScreenModel
 import com.francescobottino.thehubproject.screens.login.LoginScreen
 import com.francescobottino.thehubproject.screens.main_host.MainHostScreen
 import io.ktor.http.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.kodein.di.DI
@@ -16,10 +18,13 @@ import org.kodein.di.DIAware
 import org.kodein.di.instance
 
 
-class SplashScreenModel(override val di: DI): StatefulScreenModel<SplashScreenState, SplashScreenEvent, SplashScreenModelEvent>(SplashScreenState()), DIAware {
+class SplashScreenModel(override val di: DI): StatefulScreenModel<SplashScreenState, SplashScreenEvent, SplashScreenModelEvent>(), DIAware {
     private val tokenStorage by di.instance<TokenStorage>()
     private val userApi by di.instance<UserApi>()
     private val userRepo by di.instance<UserRepository>()
+
+    private val _state = MutableStateFlow(SplashScreenState())
+    override val state = _state.asStateFlow()
 
     override fun onEvent(event: SplashScreenEvent) {
         when(event) {
@@ -27,7 +32,6 @@ class SplashScreenModel(override val di: DI): StatefulScreenModel<SplashScreenSt
                 _state.update { it.copy(error = null) }
                 screenModelScope.launch { tryInit() }
             }
-            is SplashScreenEvent.OnDialogClosed -> _state.update { it.copy(error = null) }
         }
     }
 

@@ -79,7 +79,7 @@ private fun SplashScreenContent(
 
         if(state.error != null) {
             Dialog(
-                onDismissRequest = { onEvent(SplashScreenEvent.OnDialogClosed) }
+                onDismissRequest = {}
             ) {
                 Box(
                     contentAlignment = Alignment.Center,

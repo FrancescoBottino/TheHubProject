@@ -128,12 +128,17 @@ private suspend fun RoutingContext.makeMove() {
     }
 
     try {
-        module.makeMove(
+        val result = module.makeMove(
             playerId = userId,
             roomId = roomId,
             cell = request.cell,
         )
-        call.respond(HttpStatusCode.OK)
+
+        result.onRight {
+            call.respond(HttpStatusCode.OK)
+        }.onLeft {
+            call.respond(HttpStatusCode.BadRequest, it)
+        }
     } catch (e: Exception) {
         call.application.log.error("makeMove failed", e)
         call.respond(HttpStatusCode.InternalServerError, message = e.message ?: "Invalid request")

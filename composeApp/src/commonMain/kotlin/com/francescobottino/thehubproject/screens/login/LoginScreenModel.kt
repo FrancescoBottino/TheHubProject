@@ -10,16 +10,21 @@ import com.francescobottino.thehubproject.model.AuthResponseSuccess
 import com.francescobottino.thehubproject.model.User
 import com.francescobottino.thehubproject.repo.UserRepository
 import com.francescobottino.thehubproject.screens.StatefulScreenModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.kodein.di.DI
 import org.kodein.di.DIAware
 import org.kodein.di.instance
 
-class LoginScreenModel(override val di: DI): StatefulScreenModel<LoginScreenState, LoginScreenEvent, LoginScreenModelEvent>(LoginScreenState()), DIAware {
+class LoginScreenModel(override val di: DI): StatefulScreenModel<LoginScreenState, LoginScreenEvent, LoginScreenModelEvent>(), DIAware {
     private val authApi by di.instance<AuthApi>()
     private val tokenStorage by di.instance<TokenStorage>()
     private val userRepository by di.instance<UserRepository>()
+
+    private val _state = MutableStateFlow(LoginScreenState())
+    override val state = _state.asStateFlow()
 
     override fun onEvent(event: LoginScreenEvent) {
         when(event) {
