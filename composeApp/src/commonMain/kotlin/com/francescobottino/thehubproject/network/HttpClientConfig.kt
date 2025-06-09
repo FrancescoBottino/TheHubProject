@@ -9,7 +9,6 @@ import io.ktor.client.plugins.auth.*
 import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
-import io.ktor.client.plugins.resources.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.serialization.kotlinx.json.*
 
@@ -18,7 +17,6 @@ fun makeHttpClient(
 ): HttpClient {
     return HttpClient {
         expectSuccess = false
-        install(Resources)
         install(ContentNegotiation) {
             json(mainJson)
         }

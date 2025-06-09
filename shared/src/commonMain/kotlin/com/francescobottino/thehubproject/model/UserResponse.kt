@@ -1,4 +1,4 @@
-package com.francescobottino.thehubproject.api.user
+package com.francescobottino.thehubproject.model
 
 import kotlinx.serialization.Serializable
 

@@ -1,28 +1,27 @@
 package com.francescobottino.thehubproject.auth
 
-import com.francescobottino.thehubproject.api.auth.AuthRequest
-import com.francescobottino.thehubproject.api.auth.AuthResource
-import com.francescobottino.thehubproject.api.auth.AuthResponseError
-import com.francescobottino.thehubproject.api.auth.AuthResponseSuccess
 import com.francescobottino.thehubproject.data.UserRepository
+import com.francescobottino.thehubproject.model.AuthRequest
+import com.francescobottino.thehubproject.model.AuthResponseError
+import com.francescobottino.thehubproject.model.AuthResponseSuccess
 import com.francescobottino.thehubproject.model.User
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
-import io.ktor.server.resources.post
 import io.ktor.server.response.*
-import io.ktor.server.routing.Routing
-import io.ktor.server.routing.RoutingContext
+import io.ktor.server.routing.*
 import org.kodein.di.instance
 import org.kodein.di.ktor.closestDI
 import java.util.*
 
 fun Routing.configureRoutingAuth() {
-    post<AuthResource.Register> { register(it) }
-    post<AuthResource.Login> { login(it) }
+    route("auth") {
+        post("register") { register() }
+        post("login") { login() }
+    }
 }
 
-private suspend fun RoutingContext.register(route: AuthResource.Register) {
+private suspend fun RoutingContext.register() {
     val userRepository by closestDI().instance<UserRepository>()
 
     val request = try {
@@ -56,7 +55,7 @@ private suspend fun RoutingContext.register(route: AuthResource.Register) {
     }
 }
 
-private suspend fun RoutingContext.login(route: AuthResource.Login) {
+private suspend fun RoutingContext.login() {
     val userRepository by closestDI().instance<UserRepository>()
 
     val request = try {

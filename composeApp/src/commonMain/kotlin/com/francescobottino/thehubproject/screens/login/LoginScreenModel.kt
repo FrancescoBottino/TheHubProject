@@ -2,11 +2,11 @@ package com.francescobottino.thehubproject.screens.login
 
 import arrow.core.Either
 import cafe.adriel.voyager.core.model.screenModelScope
-import com.francescobottino.thehubproject.api.auth.AuthRequest
-import com.francescobottino.thehubproject.api.auth.AuthResponseError
-import com.francescobottino.thehubproject.api.auth.AuthResponseSuccess
 import com.francescobottino.thehubproject.auth.AuthApi
 import com.francescobottino.thehubproject.auth.TokenStorage
+import com.francescobottino.thehubproject.model.AuthRequest
+import com.francescobottino.thehubproject.model.AuthResponseError
+import com.francescobottino.thehubproject.model.AuthResponseSuccess
 import com.francescobottino.thehubproject.model.User
 import com.francescobottino.thehubproject.repo.UserRepository
 import com.francescobottino.thehubproject.screens.StatefulScreenModel
