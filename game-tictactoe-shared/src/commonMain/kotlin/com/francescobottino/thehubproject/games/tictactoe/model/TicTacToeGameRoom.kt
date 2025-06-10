@@ -1,5 +1,7 @@
 package com.francescobottino.thehubproject.games.tictactoe.model
 
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -12,6 +14,7 @@ data class TicTacToeGameRoom(
     val currentPlayerSign: TicTacToePlayerSign,
     val roomState: State = State.WaitingForOpponent,
     val connectedPlayerIds: List<String> = emptyList(),
+    val lastUpdate: Instant = Clock.System.now(),
 ) {
     val players: List<TicTacToePlayer> = listOfNotNull(hostPlayer, opponentPlayer)
 

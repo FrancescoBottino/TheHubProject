@@ -26,11 +26,11 @@ fun TicTacToeGameState.isBoardFull(): Boolean {
     return size == 9
 }
 
-fun TicTacToeGameRoom.isGameOver(): State.Finished? {
+fun TicTacToeGameRoom.updateWinner(): TicTacToeGameRoom {
     val winner = getWinnerPlayer()
     return when {
-        winner != null -> State.Finished(winner)
-        gameState.isBoardFull() -> State.Finished(null)
-        else -> null
+        winner != null -> copy(roomState = State.Finished(winner))
+        gameState.isBoardFull() -> copy(roomState = State.Finished(null))
+        else -> this
     }
 }

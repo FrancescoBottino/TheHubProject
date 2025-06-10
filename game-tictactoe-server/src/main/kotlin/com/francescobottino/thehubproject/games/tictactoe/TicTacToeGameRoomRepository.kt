@@ -9,4 +9,5 @@ interface TicTacToeGameRoomRepository {
     fun updateRoom(roomId: String, updater: (TicTacToeGameRoom?) -> TicTacToeGameRoom?)
     fun getRoomUpdates(id: String): Flow<TicTacToeGameRoom>
     fun deleteRoom(id: String)
+    fun getRoomsOfUser(userId: String): List<TicTacToeGameRoom>
 }

@@ -34,4 +34,9 @@ class TicTacToeInMemoryGameRoomRepository: TicTacToeGameRoomRepository {
     override fun deleteRoom(id: String) {
         memoryStateFlow.update { memory -> memory - id }
     }
+    override fun getRoomsOfUser(userId: String): List<TicTacToeGameRoom> {
+        return memoryStateFlow.value.values
+            .filter { it.players.any { player -> player.id == userId } }
+            .sortedByDescending { it.lastUpdate }
+    }
 }

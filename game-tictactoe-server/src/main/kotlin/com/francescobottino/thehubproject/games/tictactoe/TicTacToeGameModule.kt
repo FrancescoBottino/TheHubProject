@@ -2,6 +2,7 @@ package com.francescobottino.thehubproject.games.tictactoe
 
 import arrow.core.Either
 import com.francescobottino.thehubproject.games.tictactoe.model.*
+import kotlinx.datetime.Clock
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -9,6 +10,10 @@ import kotlin.uuid.Uuid
 class TicTacToeGameModule(
     private val repo: TicTacToeGameRoomRepository,
 ) {
+    fun getMyRooms(userId: String): List<TicTacToeGameRoom> {
+        return repo.getRoomsOfUser(userId)
+    }
+
     fun makeRoom(playerId: String, chosenSign: TicTacToePlayerSign, startingSign: TicTacToePlayerSign): String {
         val room = TicTacToeGameRoom(
             id = Uuid.random().toString(),
@@ -42,6 +47,7 @@ class TicTacToeGameModule(
                     sign = room.hostPlayer.sign.otherSign(),
                 ),
                 roomState = TicTacToeGameRoom.State.InProgress,
+                lastUpdate = Clock.System.now(),
             )
         )
 
@@ -49,7 +55,7 @@ class TicTacToeGameModule(
     }
 
     fun makeMove(playerId: String, roomId: String, cell: TicTacToeBoardCell): Either<TicTacToeMakeMoveResponseError, Unit> {
-        var room = repo.getRoom(roomId) ?: return Either.Left(TicTacToeMakeMoveResponseError.ROOM_NOT_FOUND)
+        val room = repo.getRoom(roomId) ?: return Either.Left(TicTacToeMakeMoveResponseError.ROOM_NOT_FOUND)
 
         val player = room.players.singleOrNull { it.id == playerId }
 
@@ -63,18 +69,13 @@ class TicTacToeGameModule(
             return Either.Left(TicTacToeMakeMoveResponseError.GAME_NOT_IN_PROGRESS)
         }
 
-        val newGameState = room.gameState + (cell to player.sign)
-
-        room = room.copy(
-            gameState = newGameState,
-            currentPlayerSign = player.sign.otherSign(),
+        repo.storeRoom(
+            room.copy(
+                gameState = room.gameState + (cell to player.sign),
+                currentPlayerSign = player.sign.otherSign(),
+                lastUpdate = Clock.System.now(),
+            ).updateWinner()
         )
-
-        room = room.copy(
-            roomState = room.isGameOver() ?: TicTacToeGameRoom.State.InProgress
-        )
-
-        repo.storeRoom(room)
 
         return Either.Right(Unit)
     }
@@ -90,7 +91,8 @@ class TicTacToeGameModule(
             room.copy(
                 gameState = emptyMap(),
                 roomState = TicTacToeGameRoom.State.InProgress,
-                pastGamesWinners = room.pastGamesWinners + roomState.winner
+                pastGamesWinners = room.pastGamesWinners + roomState.winner,
+                lastUpdate = Clock.System.now(),
             )
         }
     }
@@ -104,6 +106,7 @@ class TicTacToeGameModule(
 
             room.copy(
                 roomState = TicTacToeGameRoom.State.Closed(player),
+                lastUpdate = Clock.System.now(),
             )
         }
     }

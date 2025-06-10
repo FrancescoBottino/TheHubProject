@@ -19,6 +19,11 @@ import kotlinx.coroutines.flow.mapNotNull
 class TicTacToeApi(
     private val client: HttpClient
 ) {
+    suspend fun myRooms(): List<TicTacToeGameRoom> {
+        return client.get("/games/tictactoe/my-rooms") {
+            contentType(ContentType.Application.Json)
+        }.body()
+    }
     suspend fun makeRoom(request: TicTacToeMakeRoomRequest): String {
         return client.post("/games/tictactoe/room/make") {
             contentType(ContentType.Application.Json)

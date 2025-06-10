@@ -27,6 +27,7 @@ fun Route.configureTicTacToe() {
         }
 
         authenticate("auth-jwt") {
+            get("my-rooms") { myRooms() }
             route("room") {
                 post("make") { makeRoom() }
 
@@ -37,6 +38,23 @@ fun Route.configureTicTacToe() {
                 }
             }
         }
+    }
+}
+
+private suspend fun RoutingContext.myRooms() {
+    val module by closestDI().instance<TicTacToeGameModule>()
+
+    val userId = call.getAuthUserId() ?: run {
+        call.respond(HttpStatusCode.Unauthorized, "User not found or invalid token")
+        return
+    }
+
+    try {
+        val roomIds = module.getMyRooms(userId = userId)
+        call.respond(HttpStatusCode.OK, message = roomIds)
+    } catch (e: Exception) {
+        call.application.log.error("myRooms failed", e)
+        call.respond(HttpStatusCode.InternalServerError, message = e.message ?: "Unknown error occurred")
     }
 }
 
