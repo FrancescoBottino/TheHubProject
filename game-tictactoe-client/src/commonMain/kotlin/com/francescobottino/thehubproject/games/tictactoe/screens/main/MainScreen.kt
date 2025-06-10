@@ -21,7 +21,6 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import com.francescobottino.thehubproject.screens.manageEvents
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.kodein.di.compose.localDI
 
@@ -30,7 +29,7 @@ object MainScreen: Screen {
     override fun Content() {
         val di = localDI()
         val navigator = LocalNavigator.currentOrThrow
-        val screenModel = rememberScreenModel { MainScreenModel(di) }
+        val screenModel = rememberScreenModel { MainScreenModel(di, navigator) }
         val state by screenModel.state.collectAsState()
 
         MainScreenContent(
@@ -38,12 +37,6 @@ object MainScreen: Screen {
             onEvent = screenModel::onEvent,
             modifier = Modifier.fillMaxSize(),
         )
-
-        screenModel.manageEvents { event ->
-            when(event) {
-                is MainScreenModelEvent.Navigate -> navigator.push(event.screen)
-            }
-        }
     }
 }
 

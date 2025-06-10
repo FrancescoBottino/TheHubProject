@@ -1,6 +1,7 @@
 package com.francescobottino.thehubproject.games.tictactoe.screens.main
 
 import cafe.adriel.voyager.core.model.screenModelScope
+import cafe.adriel.voyager.navigator.Navigator
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeJoinRoomResponseError
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeMakeRoomRequest
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToePlayerSign
@@ -18,7 +19,8 @@ import org.kodein.di.instance
 
 class MainScreenModel(
     override val di: DI,
-): StatefulScreenModel<MainScreenState, MainScreenEvent, MainScreenModelEvent>(), DIAware {
+    private val navigator: Navigator,
+): StatefulScreenModel<MainScreenState, MainScreenEvent>(), DIAware {
     val api by di.instance<TicTacToeApi>()
 
     private val _state = MutableStateFlow(MainScreenState())
@@ -29,7 +31,7 @@ class MainScreenModel(
             is MainScreenEvent.OnSearchedRoomIdChanged -> _state.update { it.copy(searchedRoomId = event.newSearchedRoomId) }
             is MainScreenEvent.OnCreateRoom -> createRoom()
             is MainScreenEvent.OnJoinRoom -> joinRoom()
-            is MainScreenEvent.OnSeeMyGames -> _screenModelEventsFlow.tryEmit(MainScreenModelEvent.Navigate(UserGamesScreen))
+            is MainScreenEvent.OnSeeMyGames -> navigator.push(UserGamesScreen)
             is MainScreenEvent.OnDialogClosed -> _state.update { it.copy(dialogMessagesQueue = it.dialogMessagesQueue.drop(1)) }
         }
     }
@@ -43,7 +45,7 @@ class MainScreenModel(
                     startingSign = TicTacToePlayerSign.X,
                 )
             ).let {
-                _screenModelEventsFlow.tryEmit(MainScreenModelEvent.Navigate(GameScreen(it)))
+                navigator.push(GameScreen(it))
             }
             _state.update { it.copy(isLoading = false) }
         }
@@ -61,12 +63,12 @@ class MainScreenModel(
                 .onSuccess { response ->
                     response.onLeft { error ->
                         when(error) {
-                            TicTacToeJoinRoomResponseError.PLAYER_ALREADY_IN_ROOM -> { _screenModelEventsFlow.tryEmit(MainScreenModelEvent.Navigate(GameScreen(id))) }
+                            TicTacToeJoinRoomResponseError.PLAYER_ALREADY_IN_ROOM -> navigator.push(GameScreen(id))
                             TicTacToeJoinRoomResponseError.ROOM_NOT_FOUND -> _state.update { it.copy(dialogMessagesQueue = it.dialogMessagesQueue + "Room not found. Please try again with a valid room ID.") }
                             TicTacToeJoinRoomResponseError.ROOM_ALREADY_FULL -> _state.update { it.copy(dialogMessagesQueue = it.dialogMessagesQueue + "Room already full.") }
                         }
                     }.onRight {
-                        _screenModelEventsFlow.tryEmit(MainScreenModelEvent.Navigate(GameScreen(id)))
+                        navigator.push(GameScreen(id))
                     }
                 }
 

@@ -1,7 +1,7 @@
 package com.francescobottino.thehubproject.config
 
 object PlatformConfig {
-    const val isDebug: Boolean = false //todo integrate in build process
+    const val isDebug: Boolean = true //todo integrate in build process
     val serverEndpoint: String by lazy { if(!isDebug) "thehub-8su2.onrender.com" else internalServerDebugEndpoint }
 
     private val httpSchema by lazy { if(!isDebug) "https" else "http" }

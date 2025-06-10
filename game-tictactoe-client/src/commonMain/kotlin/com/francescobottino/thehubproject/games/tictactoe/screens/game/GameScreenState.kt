@@ -7,19 +7,26 @@ import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToePlayerS
 data class GameScreenState(
     val roomId: String = "",
     val board: TicTacToeGameState = emptyMap(),
-    val userConnection: ConnectionState = ConnectionState.Connecting,
     val userLabel: String? = null,
     val opponentConnected: Boolean = false,
     val opponentLabel: String? = null,
     val isUserTurn: Boolean = false,
     val roomState: TicTacToeGameRoom.State = TicTacToeGameRoom.State.WaitingForOpponent,
-    val errorDialogMessages: List<String> = emptyList(),
-    val isLoading: Boolean = false,
     val pastGamesWinners: List<TicTacToePlayerSign?> = emptyList(),
+
+    val isLoading: Boolean = false,
+    val dialog: Dialog? = null,
 ) {
-    sealed interface ConnectionState {
-        data object Connecting: ConnectionState
-        data object Connected: ConnectionState
-        data class Disconnected(val reason: Throwable? = null): ConnectionState
+    data class Dialog(
+        val title: String,
+        val message: String? = null,
+        val dismissable: Boolean = true,
+        val onConfirm: Action? = null,
+        val onDismiss: Action? = null,
+    ) {
+        data class Action(
+            val label: String,
+            val event: GameScreenEvent,
+        )
     }
 }

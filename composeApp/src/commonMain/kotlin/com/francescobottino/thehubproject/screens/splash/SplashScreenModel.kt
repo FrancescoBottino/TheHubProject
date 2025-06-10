@@ -1,13 +1,13 @@
 package com.francescobottino.thehubproject.screens.splash
 
 import cafe.adriel.voyager.core.model.screenModelScope
+import cafe.adriel.voyager.navigator.Navigator
 import com.francescobottino.thehubproject.auth.TokenStorage
 import com.francescobottino.thehubproject.model.User
 import com.francescobottino.thehubproject.network.UserApi
 import com.francescobottino.thehubproject.repo.UserRepository
 import com.francescobottino.thehubproject.screens.StatefulScreenModel
 import com.francescobottino.thehubproject.screens.login.LoginScreen
-import com.francescobottino.thehubproject.screens.main_host.MainHostScreen
 import io.ktor.http.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,7 +18,10 @@ import org.kodein.di.DIAware
 import org.kodein.di.instance
 
 
-class SplashScreenModel(override val di: DI): StatefulScreenModel<SplashScreenState, SplashScreenEvent, SplashScreenModelEvent>(), DIAware {
+class SplashScreenModel(
+    override val di: DI,
+    private val navigator: Navigator,
+): StatefulScreenModel<SplashScreenState, SplashScreenEvent>(), DIAware {
     private val tokenStorage by di.instance<TokenStorage>()
     private val userApi by di.instance<UserApi>()
     private val userRepo by di.instance<UserRepository>()
@@ -35,19 +38,23 @@ class SplashScreenModel(override val di: DI): StatefulScreenModel<SplashScreenSt
         }
     }
 
-    suspend fun tryInit() {
+    init {
+        screenModelScope.launch { tryInit() }
+    }
+
+    private suspend fun tryInit() {
         try {
             val token = tokenStorage.getToken()
 
             if(token == null) {
-                _screenModelEventsFlow.emit(SplashScreenModelEvent.Navigate(LoginScreen))
+                navigator.replace(LoginScreen)
                 return
             }
 
             val user = userApi.me()
                 .onLeft { errorCode ->
                     if(errorCode == HttpStatusCode.Unauthorized) {
-                        _screenModelEventsFlow.emit(SplashScreenModelEvent.Navigate(LoginScreen))
+                        navigator.replace(LoginScreen)
                         return
                     } else {
                         _state.update { it.copy(error = "Error getting user profile") }
@@ -61,7 +68,7 @@ class SplashScreenModel(override val di: DI): StatefulScreenModel<SplashScreenSt
                 }
 
             userRepo.setCurrentUser(User(user.id, user.username))
-            _screenModelEventsFlow.emit(SplashScreenModelEvent.Navigate(MainHostScreen))
+            navigator.replace(LoginScreen)
             return
         } catch (e: Exception) {
             e.printStackTrace()

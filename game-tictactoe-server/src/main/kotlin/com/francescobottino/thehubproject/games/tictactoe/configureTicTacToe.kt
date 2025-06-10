@@ -14,6 +14,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.util.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.launch
 import org.kodein.di.bindSingleton
 import org.kodein.di.instance
 import org.kodein.di.ktor.closestDI
@@ -188,20 +189,36 @@ private suspend fun DefaultWebSocketServerSession.getUpdates() {
         return
     }
 
-    log.debug("notifying player connection")
+    log.debug("updating room with player connection")
     repo.updateRoom(roomId) { roomUpdate ->
         roomUpdate?.copy(connectedPlayerIds = roomUpdate.connectedPlayerIds + userId)
     }
 
+    launch {
+        for(frame in incoming) {
+            if(frame is Frame.Close) {
+                log.debug("Client closed the connection")
+                log.debug("updating room with player disconnection")
+                repo.updateRoom(roomId) { roomUpdate ->
+                    roomUpdate?.copy(connectedPlayerIds = roomUpdate.connectedPlayerIds - userId)
+                }
+                close(CloseReason(CloseReason.Codes.NORMAL, "Client closed the connection"))
+            }
+        }
+    }
+
     runCatching {
+        log.debug("collecting room updates for player $userId in room $roomId")
         repo.getRoomUpdates(roomId).collect {
+            log.debug("on room update for player $userId in room $roomId, sending update to client")
             send(Frame.Text(mainJson.encodeToString(it)))
         }
     }.onFailure {
         log.debug("error collecting updates: $it | ${it.message} | ${it.stackTraceToString()}")
-        log.debug("notifying player disconnection")
+        log.debug("updating room with player disconnection")
         repo.updateRoom(roomId) { roomUpdate ->
             roomUpdate?.copy(connectedPlayerIds = roomUpdate.connectedPlayerIds - userId)
         }
+        close(CloseReason(CloseReason.Codes.INTERNAL_ERROR, "Error relaying updates"))
     }
 }

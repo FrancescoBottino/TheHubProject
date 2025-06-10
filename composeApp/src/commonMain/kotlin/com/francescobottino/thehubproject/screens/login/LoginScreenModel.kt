@@ -2,6 +2,7 @@ package com.francescobottino.thehubproject.screens.login
 
 import arrow.core.Either
 import cafe.adriel.voyager.core.model.screenModelScope
+import cafe.adriel.voyager.navigator.Navigator
 import com.francescobottino.thehubproject.auth.AuthApi
 import com.francescobottino.thehubproject.auth.TokenStorage
 import com.francescobottino.thehubproject.model.AuthRequest
@@ -10,6 +11,7 @@ import com.francescobottino.thehubproject.model.AuthResponseSuccess
 import com.francescobottino.thehubproject.model.User
 import com.francescobottino.thehubproject.repo.UserRepository
 import com.francescobottino.thehubproject.screens.StatefulScreenModel
+import com.francescobottino.thehubproject.screens.main_host.MainHostScreen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -18,7 +20,10 @@ import org.kodein.di.DI
 import org.kodein.di.DIAware
 import org.kodein.di.instance
 
-class LoginScreenModel(override val di: DI): StatefulScreenModel<LoginScreenState, LoginScreenEvent, LoginScreenModelEvent>(), DIAware {
+class LoginScreenModel(
+    override val di: DI,
+    private val navigator: Navigator,
+): StatefulScreenModel<LoginScreenState, LoginScreenEvent>(), DIAware {
     private val authApi by di.instance<AuthApi>()
     private val tokenStorage by di.instance<TokenStorage>()
     private val userRepository by di.instance<UserRepository>()
@@ -56,7 +61,7 @@ class LoginScreenModel(override val di: DI): StatefulScreenModel<LoginScreenStat
                     }.onRight { successResponse ->
                         tokenStorage.saveToken(successResponse.token)
                         userRepository.setCurrentUser(User(id = successResponse.userId, username = successResponse.username))
-                        _screenModelEventsFlow.tryEmit(LoginScreenModelEvent.OnLoggedIn)
+                        navigator.replace(MainHostScreen)
                     }
                 }
         }.invokeOnCompletion {

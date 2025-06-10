@@ -19,8 +19,6 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import com.francescobottino.thehubproject.screens.main_host.MainHostScreen
-import com.francescobottino.thehubproject.screens.manageEvents
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Eye
 import compose.icons.feathericons.EyeOff
@@ -31,7 +29,7 @@ object LoginScreen: Screen {
     override fun Content() {
         val di = localDI()
         val navigator = LocalNavigator.currentOrThrow
-        val screenModel = rememberScreenModel { LoginScreenModel(di) }
+        val screenModel = rememberScreenModel { LoginScreenModel(di, navigator) }
         val state by screenModel.state.collectAsState()
 
         LoginScreenContent(
@@ -39,14 +37,6 @@ object LoginScreen: Screen {
             onEvent = screenModel::onEvent,
             modifier = Modifier.fillMaxSize(),
         )
-
-        screenModel.manageEvents { event ->
-            when(event) {
-                is LoginScreenModelEvent.OnLoggedIn -> {
-                    navigator.replace(MainHostScreen)
-                }
-            }
-        }
     }
 }
 

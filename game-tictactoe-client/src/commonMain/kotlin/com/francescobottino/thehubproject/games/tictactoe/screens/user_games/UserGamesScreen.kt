@@ -8,7 +8,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -22,7 +21,6 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import com.francescobottino.thehubproject.screens.manageEvents
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -34,7 +32,7 @@ object UserGamesScreen: Screen {
     override fun Content() {
         val di = localDI()
         val navigator = LocalNavigator.currentOrThrow
-        val screenModel = rememberScreenModel { UserGamesScreenModel(di) }
+        val screenModel = rememberScreenModel { UserGamesScreenModel(di, navigator) }
         val state by screenModel.state.collectAsState()
 
         UserGamesScreenContent(
@@ -42,16 +40,6 @@ object UserGamesScreen: Screen {
             onEvent = screenModel::onEvent,
             modifier = Modifier.fillMaxSize(),
         )
-
-        screenModel.manageEvents {
-            when(it) {
-                is UserGamesScreenModelEvent.Navigate -> navigator.push(it.screen)
-            }
-        }
-
-        LaunchedEffect(Unit) {
-            screenModel.firstLoad()
-        }
     }
 }
 

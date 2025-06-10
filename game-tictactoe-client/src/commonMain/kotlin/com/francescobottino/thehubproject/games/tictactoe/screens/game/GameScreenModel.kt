@@ -1,26 +1,38 @@
 package com.francescobottino.thehubproject.games.tictactoe.screens.game
 
 import cafe.adriel.voyager.core.model.screenModelScope
+import cafe.adriel.voyager.navigator.Navigator
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeBoardCell
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeGameRoom
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeMakeMoveRequest
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeMakeMoveResponseError
 import com.francescobottino.thehubproject.games.tictactoe.network.TicTacToeApi
+import com.francescobottino.thehubproject.mainJson
 import com.francescobottino.thehubproject.model.User
 import com.francescobottino.thehubproject.repo.UserRepository
 import com.francescobottino.thehubproject.screens.StatefulScreenModel
+import io.ktor.client.plugins.websocket.*
+import io.ktor.websocket.*
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.kodein.di.DI
 import org.kodein.di.DIAware
 import org.kodein.di.instance
 
-class GameScreenModel(override val di: DI, private val roomId: String): StatefulScreenModel<GameScreenState, GameScreenEvent, GameScreenModelEvent>(), DIAware {
+class GameScreenModel(
+    override val di: DI,
+    private val navigator: Navigator,
+    private val roomId: String,
+): StatefulScreenModel<GameScreenState, GameScreenEvent>(), DIAware {
     val userRepository by instance<UserRepository>()
     val api by instance<TicTacToeApi>()
 
     private var roomUpdateJob: Job? = null
+    private var ws: DefaultClientWebSocketSession? = null
 
     private val user: User = userRepository.getCurrentUserFlow().value!!
 
@@ -29,80 +41,110 @@ class GameScreenModel(override val di: DI, private val roomId: String): Stateful
 
     override fun onEvent(event: GameScreenEvent) {
         when(event) {
-            is GameScreenEvent.OnUserClickedCell -> makeMove(event.cell)
+            is GameScreenEvent.OnBoardCellClicked -> makeMove(event.cell)
+            is GameScreenEvent.DismissDialog -> _state.update { it.copy(dialog = null) }
+            is GameScreenEvent.DialogActionConnectToRoom -> {
+                _state.update { it.copy(dialog = null) }
+                connectToRoom()
+            }
+            is GameScreenEvent.CloseScreen -> navigator.pop()
         }
     }
 
     fun connectToRoom() {
-        _state.update {
-            it.copy(
-                isLoading = true,
-                userConnection = GameScreenState.ConnectionState.Connecting,
-            )
-        }
+        _state.update { it.copy(isLoading = true) }
 
         roomUpdateJob?.cancel()
-        roomUpdateJob = api.joinRoomWebSocket(roomId)
-            .distinctUntilChanged()
-            .onEach { roomState ->
-                val me = roomState.players.single { it.id == user.id }
-                val opponent = roomState.players.singleOrNull { it.id != user.id }
-
-                val opponentConnected = roomState.roomState !is TicTacToeGameRoom.State.WaitingForOpponent
-                        && opponent != null
-                        && roomState.connectedPlayerIds.contains(opponent.id)
-
-                val opponentLabel = when {
-                    opponentConnected -> "Connected"
-                    roomState.roomState is TicTacToeGameRoom.State.WaitingForOpponent -> "Waiting for opponent"
-                    else -> null
-                }
-
-                val isUserTurn = roomState.roomState is TicTacToeGameRoom.State.InProgress
-                        && roomState.currentPlayerSign == me.sign
-
-                _state.update { screenState ->
-                    screenState.copy(
-                        roomId = roomId,
-                        board = roomState.gameState,
-                        isUserTurn = isUserTurn,
-                        roomState = roomState.roomState,
-                        userLabel = user.username,
-                        opponentConnected = opponentConnected,
-                        opponentLabel = opponentLabel
-                    )
-                }
-            }
-            .onStart {
-                _state.update { screenState ->
-                    screenState.copy(
-                        isLoading = false,
-                        userConnection = GameScreenState.ConnectionState.Connected,
-                    )
-                }
-            }
-            .catch { error ->
-                error.printStackTrace()
-                _state.update { screenState ->
-                    screenState.copy(
-                        isLoading = false,
-                        userConnection = GameScreenState.ConnectionState.Disconnected(error),
-                    )
-                }
-            }
-            .onCompletion {
-                _state.update { screenState ->
-                    if(screenState.userConnection !is GameScreenState.ConnectionState.Disconnected) {
+        roomUpdateJob = screenModelScope.launch {
+            val webSocket = runCatching { api.joinRoomWebSocket(roomId) }
+                .onFailure { error ->
+                    error.printStackTrace()
+                    _state.update { screenState ->
                         screenState.copy(
                             isLoading = false,
-                            userConnection = GameScreenState.ConnectionState.Disconnected(),
+                            dialog = GameScreenState.Dialog(
+                                title = "Error connecting to the room",
+                                message = error.message ?: "Unknown error",
+                                dismissable = false,
+                                onConfirm = GameScreenState.Dialog.Action("Retry", GameScreenEvent.DialogActionConnectToRoom),
+                                onDismiss = GameScreenState.Dialog.Action("Leave", GameScreenEvent.CloseScreen),
+                            )
                         )
-                    } else {
-                        screenState
                     }
                 }
+                .onSuccess { it ->
+                    ws = it
+                }
+                .getOrNull()
+                ?: return@launch
+
+            try {
+                for (frame in webSocket.incoming) {
+                    if (frame is Frame.Text) {
+                        val update = runCatching {
+                            mainJson.decodeFromString<TicTacToeGameRoom>(frame.readText())
+                        }.getOrNull()
+
+                        if(update != null) {
+                            val me = update.players.single { it.id == user.id }
+                            val opponent = update.players.singleOrNull { it.id != user.id }
+
+                            val opponentConnected = update.roomState !is TicTacToeGameRoom.State.WaitingForOpponent
+                                    && opponent != null
+                                    && update.connectedPlayerIds.contains(opponent.id)
+
+                            val opponentLabel = when {
+                                opponentConnected -> "Connected"
+                                update.roomState is TicTacToeGameRoom.State.WaitingForOpponent -> "Waiting for opponent"
+                                else -> null
+                            }
+
+                            val isUserTurn = update.roomState is TicTacToeGameRoom.State.InProgress
+                                    && update.currentPlayerSign == me.sign
+
+                            _state.update { screenState ->
+                                screenState.copy(
+                                    isLoading = false,
+
+                                    roomId = roomId,
+                                    board = update.gameState,
+                                    isUserTurn = isUserTurn,
+                                    roomState = update.roomState,
+                                    userLabel = user.username,
+                                    opponentConnected = opponentConnected,
+                                    opponentLabel = opponentLabel
+                                )
+                            }
+                        }
+                    } else if (frame is Frame.Close) {
+                        _state.update { screenState ->
+                            screenState.copy(
+                                isLoading = false,
+                                dialog = GameScreenState.Dialog(
+                                    title = "Disconnected",
+                                    message = "You have been disconnected from the room.",
+                                    dismissable = false,
+                                    onConfirm = GameScreenState.Dialog.Action("Close screen", GameScreenEvent.CloseScreen),
+                                )
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _state.update { screenState ->
+                    screenState.copy(
+                        isLoading = false,
+                        dialog = GameScreenState.Dialog(
+                            title = "Error",
+                            message = e.message ?: "Unknown error",
+                            dismissable = false,
+                            onConfirm = GameScreenState.Dialog.Action("Close screen", GameScreenEvent.CloseScreen),
+                        )
+                    )
+                }
             }
-            .launchIn(screenModelScope)
+        }
     }
 
     private fun makeMove(cell: TicTacToeBoardCell) {
@@ -111,7 +153,16 @@ class GameScreenModel(override val di: DI, private val roomId: String): Stateful
         screenModelScope.launch {
             runCatching { api.makeMove(roomId, TicTacToeMakeMoveRequest(cell)) }
                 .onFailure { e ->
-                    _state.update { it.copy(errorDialogMessages = it.errorDialogMessages + (e.message ?: "Unknown error")) }
+                    _state.update {
+                        it.copy(
+                            dialog = GameScreenState.Dialog(
+                                title = "Error",
+                                message = e.message ?: "Unknown error",
+                                dismissable = true,
+                                onConfirm = GameScreenState.Dialog.Action("OK", GameScreenEvent.DismissDialog),
+                            ),
+                        )
+                    }
                 }
                 .onSuccess { response ->
                     response.onLeft { error ->
@@ -126,5 +177,11 @@ class GameScreenModel(override val di: DI, private val roomId: String): Stateful
 
             _state.update { it.copy(isLoading = false) }
         }
+    }
+
+    override fun onDispose() {
+        roomUpdateJob?.cancel()
+        screenModelScope.launch(NonCancellable) { ws?.close() }
+        super.onDispose()
     }
 }

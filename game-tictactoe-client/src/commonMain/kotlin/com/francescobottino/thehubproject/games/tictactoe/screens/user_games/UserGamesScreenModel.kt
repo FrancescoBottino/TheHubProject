@@ -1,6 +1,7 @@
 package com.francescobottino.thehubproject.games.tictactoe.screens.user_games
 
 import cafe.adriel.voyager.core.model.screenModelScope
+import cafe.adriel.voyager.navigator.Navigator
 import com.francescobottino.thehubproject.games.tictactoe.network.TicTacToeApi
 import com.francescobottino.thehubproject.games.tictactoe.screens.game.GameScreen
 import com.francescobottino.thehubproject.screens.StatefulScreenModel
@@ -15,7 +16,10 @@ import org.kodein.di.DI
 import org.kodein.di.DIAware
 import org.kodein.di.instance
 
-class UserGamesScreenModel(override val di: DI): StatefulScreenModel<UserGamesScreenState, UserGamesScreenEvent, UserGamesScreenModelEvent>(), DIAware {
+class UserGamesScreenModel(
+    override val di: DI,
+    private val navigator: Navigator,
+): StatefulScreenModel<UserGamesScreenState, UserGamesScreenEvent>(), DIAware {
     private val api by instance<TicTacToeApi>()
 
     private var refreshJob: Job? = null
@@ -23,14 +27,18 @@ class UserGamesScreenModel(override val di: DI): StatefulScreenModel<UserGamesSc
     private val _state = MutableStateFlow(UserGamesScreenState())
     override val state = _state.asStateFlow()
 
+    init {
+        refresh()
+    }
+
     override fun onEvent(event: UserGamesScreenEvent) {
         when(event) {
             is UserGamesScreenEvent.OnDialogClosed -> _state.update { it.copy(error = null) }
-            is UserGamesScreenEvent.OnRoomClicked -> _screenModelEventsFlow.tryEmit(UserGamesScreenModelEvent.Navigate(GameScreen(event.room.id)))
+            is UserGamesScreenEvent.OnRoomClicked -> navigator.push(GameScreen(event.room.id))
         }
     }
 
-    fun firstLoad() {
+    private fun refresh() {
         if(refreshJob?.isActive == true) return
 
         _state.update { it.copy(isLoading = true) }

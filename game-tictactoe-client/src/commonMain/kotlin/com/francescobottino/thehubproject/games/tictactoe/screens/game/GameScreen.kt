@@ -31,8 +31,8 @@ class GameScreen(private val roomId: String): Screen {
     @Composable
     override fun Content() {
         val di = localDI()
-        val screenModel by remember { mutableStateOf(GameScreenModel(di, roomId)) }
         val navigator = LocalNavigator.currentOrThrow
+        val screenModel by remember { mutableStateOf(GameScreenModel(di, navigator, roomId)) }
 
         val state by screenModel.state.collectAsState()
 
@@ -42,25 +42,11 @@ class GameScreen(private val roomId: String): Screen {
             modifier = Modifier.fillMaxSize(),
         )
 
-        if(state.userConnection is GameScreenState.ConnectionState.Connecting || state.isLoading) {
-            //todo loading
-        }
-
-        /*
-        OnGameFinishedDialog(
-            state = state,
-            onEvent = screenModel::onEvent,
-        )
-
-         */
-
-        DisconnectionDialog(
-            state = state,
-            onDisconnectedConfirm = { navigator.pop() }
-        )
-
-        LaunchedEffect(Unit) {
+        DisposableEffect(Unit) {
             screenModel.connectToRoom()
+            onDispose {
+                screenModel.onDispose()
+            }
         }
     }
 }
@@ -94,8 +80,9 @@ private fun GameScreenContent(
         Board(
             state = state.board,
             isUserTurn = state.isUserTurn,
-            onMove = { cell -> onEvent(GameScreenEvent.OnUserClickedCell(cell))},
+            onMove = { cell -> onEvent(GameScreenEvent.OnBoardCellClicked(cell))},
             modifier = Modifier
+                .requiredWidthIn(max = 400.dp)
                 .shadow(elevation = 12.dp, shape = RoundedCornerShape(12.dp), clip = true)
                 .background(color = MaterialTheme.colorScheme.surface)
         )
@@ -127,6 +114,15 @@ private fun GameScreenContent(
         }
 
          */
+
+
+    }
+
+
+    //todo loading
+
+    state.dialog?.let {
+        ScreenDialog(it, onEvent)
     }
 }
 
@@ -276,50 +272,63 @@ private fun RoomIdCard(
 }
 
 @Composable
-private fun DisconnectionDialog(
-    state: GameScreenState,
-    onDisconnectedConfirm: () -> Unit,
+private fun ScreenDialog(
+    state: GameScreenState.Dialog,
+    onEvent: (GameScreenEvent) -> Unit,
 ) {
-    if(state.userConnection is GameScreenState.ConnectionState.Disconnected) {
-        Dialog(
-            onDismissRequest = {},
+    Dialog(
+        onDismissRequest = {
+            if(state.dismissable) {
+                onEvent(GameScreenEvent.DismissDialog)
+            }
+        },
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 32.dp),
         ) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 32.dp),
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
+                modifier = Modifier
+                    .shadow(elevation = 12.dp)
+                    .background(color = Color.White)
+                    .padding(16.dp),
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
-                    modifier = Modifier
-                        .shadow(elevation = 12.dp)
-                        .background(color = Color.White)
-                        .padding(16.dp),
-                ) {
+                Text(
+                    text = state.title,
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                )
+
+                if(state.message != null) {
                     Text(
-                        text = "Connection Lost",
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.align(Alignment.CenterHorizontally),
-                    )
-                    Text(
-                        text = "You are disconnected from the room. You will be redirected to the main screen.",
+                        text = state.message,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.align(Alignment.CenterHorizontally),
                     )
+                }
 
-                    state.userConnection.reason?.let {
-                        Text(
-                            text = "Reason: ${it.message ?: it::class.simpleName}",
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.align(Alignment.CenterHorizontally),
-                        )
-                    }
-
-                    Button(
-                        onClick = onDisconnectedConfirm,
+                if(state.onConfirm != null || state.onDismiss != null) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.align(Alignment.End),
                     ) {
-                        Text("OK")
+                        if(state.onConfirm != null) {
+                            Button(
+                                onClick = { onEvent(state.onConfirm.event) },
+                            ) {
+                                Text(state.onConfirm.label)
+                            }
+                        }
+                        if(state.onDismiss != null) {
+                            TextButton(
+                                onClick = { onEvent(state.onDismiss.event) },
+                            ) {
+                                Text(state.onDismiss.label)
+                            }
+                        }
                     }
                 }
             }
@@ -337,7 +346,6 @@ private fun GameScreenContentPreview_WaitingForOpponent() {
             GameScreenContent(
                 state = GameScreenState(
                     roomId = "2f9f6008-8b10-4d56-95ff-957d8fdf91a2",
-                    userConnection = GameScreenState.ConnectionState.Connected,
                     roomState = TicTacToeGameRoom.State.WaitingForOpponent,
                     opponentConnected = false,
                     opponentLabel = "Waiting for opponent",
@@ -359,7 +367,6 @@ private fun GameScreenContentPreview_InProgress() {
             GameScreenContent(
                 state = GameScreenState(
                     roomId = "2f9f6008-8b10-4d56-95ff-957d8fdf91a2",
-                    userConnection = GameScreenState.ConnectionState.Connected,
                     roomState = TicTacToeGameRoom.State.InProgress,
                     opponentConnected = true,
                     opponentLabel = "Connected",
