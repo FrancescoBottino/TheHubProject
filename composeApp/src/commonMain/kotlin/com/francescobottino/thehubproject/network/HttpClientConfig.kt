@@ -1,6 +1,5 @@
 package com.francescobottino.thehubproject.network
 
-import com.francescobottino.thehubproject.auth.TokenStorage
 import com.francescobottino.thehubproject.config.PlatformConfig
 import com.francescobottino.thehubproject.mainJson
 import io.ktor.client.*
@@ -13,7 +12,7 @@ import io.ktor.client.plugins.websocket.*
 import io.ktor.serialization.kotlinx.json.*
 
 fun makeHttpClient(
-    tokenStorage: TokenStorage
+    tokenProvider: suspend () -> String?
 ): HttpClient {
     return HttpClient {
         expectSuccess = false
@@ -29,7 +28,7 @@ fun makeHttpClient(
         install(Auth) {
             bearer {
                 loadTokens {
-                    val token = tokenStorage.getToken()
+                    val token = tokenProvider()
                     if (token != null) {
                         BearerTokens(token, "")
                     } else {

@@ -3,12 +3,11 @@ package com.francescobottino.thehubproject.screens.login
 import arrow.core.Either
 import cafe.adriel.voyager.core.model.screenModelScope
 import cafe.adriel.voyager.navigator.Navigator
-import com.francescobottino.thehubproject.auth.AuthApi
-import com.francescobottino.thehubproject.auth.TokenStorage
 import com.francescobottino.thehubproject.model.AuthRequest
 import com.francescobottino.thehubproject.model.AuthResponseError
 import com.francescobottino.thehubproject.model.AuthResponseSuccess
 import com.francescobottino.thehubproject.model.User
+import com.francescobottino.thehubproject.repo.AuthRepository
 import com.francescobottino.thehubproject.repo.UserRepository
 import com.francescobottino.thehubproject.screens.StatefulScreenModel
 import com.francescobottino.thehubproject.screens.main_host.MainHostScreen
@@ -24,8 +23,7 @@ class LoginScreenModel(
     override val di: DI,
     private val navigator: Navigator,
 ): StatefulScreenModel<LoginScreenState, LoginScreenEvent>(), DIAware {
-    private val authApi by di.instance<AuthApi>()
-    private val tokenStorage by di.instance<TokenStorage>()
+    private val authRepo by di.instance<AuthRepository>()
     private val userRepository by di.instance<UserRepository>()
 
     private val _state = MutableStateFlow(LoginScreenState())
@@ -35,8 +33,8 @@ class LoginScreenModel(
         when(event) {
             is LoginScreenEvent.OnUsernameChanged -> _state.update { it.copy(username = event.username) }
             is LoginScreenEvent.OnPasswordChanged -> _state.update { it.copy(password = event.password) }
-            is LoginScreenEvent.OnLogIn -> performAuth(endpoint = authApi::login)
-            is LoginScreenEvent.OnRegister -> performAuth(endpoint = authApi::register)
+            is LoginScreenEvent.OnLogIn -> performAuth(endpoint = authRepo::login)
+            is LoginScreenEvent.OnRegister -> performAuth(endpoint = authRepo::register)
             is LoginScreenEvent.OnDialogClosed -> _state.update { it.copy(dialogMessagesQueue = it.dialogMessagesQueue.drop(1)) }
         }
     }
@@ -59,7 +57,6 @@ class LoginScreenModel(
                             AuthResponseError.INCORRECT_PASSWORD -> _state.update { it.copy(passwordError = "Password is incorrect") }
                         }
                     }.onRight { successResponse ->
-                        tokenStorage.saveToken(successResponse.token)
                         userRepository.setCurrentUser(User(id = successResponse.userId, username = successResponse.username))
                         navigator.replace(MainHostScreen)
                     }

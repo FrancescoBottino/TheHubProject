@@ -1,8 +1,8 @@
-package com.francescobottino.thehubproject.auth
+package com.francescobottino.thehubproject
 
 import com.francescobottino.thehubproject.security.SecureStorage
 
-class TokenStorage(
+internal class TokenStorage(
     private val secureStorage: SecureStorage,
 ) {
     companion object {

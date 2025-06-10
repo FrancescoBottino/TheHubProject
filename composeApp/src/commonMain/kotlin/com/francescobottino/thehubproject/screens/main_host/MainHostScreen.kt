@@ -16,7 +16,7 @@ import cafe.adriel.voyager.navigator.CurrentScreen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import com.francescobottino.thehubproject.auth.TokenStorage
+import com.francescobottino.thehubproject.repo.AuthRepository
 import com.francescobottino.thehubproject.repo.UserRepository
 import com.francescobottino.thehubproject.screens.game_selection.GameSelectionScreen
 import com.francescobottino.thehubproject.screens.login.LoginScreen
@@ -31,7 +31,7 @@ object MainHostScreen: Screen {
     override fun Content() {
         val parentNavigator = LocalNavigator.currentOrThrow
         val scope = rememberCoroutineScope()
-        val tokenStorage by localDI().instance<TokenStorage>()
+        val authRepo by localDI().instance<AuthRepository>()
         val userRepository by localDI().instance<UserRepository>()
         val user by userRepository.getCurrentUserFlow().collectAsState()
 
@@ -79,7 +79,7 @@ object MainHostScreen: Screen {
                                     .padding(end = 4.dp)
                                     .clickable {
                                         scope.launch {
-                                            tokenStorage.clearToken()
+                                            authRepo.logout()
                                             parentNavigator.replace(LoginScreen)
                                         }
                                     },

@@ -85,6 +85,7 @@ kotlin {
 
             implementation(projects.shared)
             implementation(projects.clientShared)
+            implementation(projects.clientFeatureAuth)
             implementation(projects.gameTictactoeClient)
         }
         androidMain.dependencies {
