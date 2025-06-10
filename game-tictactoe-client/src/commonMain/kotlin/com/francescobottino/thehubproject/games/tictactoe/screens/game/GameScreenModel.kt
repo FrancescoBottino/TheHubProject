@@ -63,6 +63,7 @@ class GameScreenModel(override val di: DI, private val roomId: String): Stateful
 
                 _state.update { screenState ->
                     screenState.copy(
+                        roomId = roomId,
                         board = roomState.gameState,
                         isUserTurn = isUserTurn,
                         roomState = roomState.roomState,

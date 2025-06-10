@@ -2,11 +2,10 @@ package com.francescobottino.thehubproject.games.tictactoe.screens.game
 
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeGameRoom
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeGameState
+import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToePlayerSign
 
-/* todo display this info:
-    val pastGamesWinners: List<TicTacToePlayer?> = emptyList(),
-*/
 data class GameScreenState(
+    val roomId: String = "",
     val board: TicTacToeGameState = emptyMap(),
     val userConnection: ConnectionState = ConnectionState.Connecting,
     val userLabel: String? = null,
@@ -16,6 +15,7 @@ data class GameScreenState(
     val roomState: TicTacToeGameRoom.State = TicTacToeGameRoom.State.WaitingForOpponent,
     val errorDialogMessages: List<String> = emptyList(),
     val isLoading: Boolean = false,
+    val pastGamesWinners: List<TicTacToePlayerSign?> = emptyList(),
 ) {
     sealed interface ConnectionState {
         data object Connecting: ConnectionState

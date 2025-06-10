@@ -64,6 +64,7 @@ kotlin {
             implementation(libs.voyager.navigator)
             implementation(libs.voyager.screenmodel)
             implementation(libs.arrow.core)
+            implementation(libs.composeIcons.feather)
 
             implementation(projects.shared)
             implementation(projects.clientShared)

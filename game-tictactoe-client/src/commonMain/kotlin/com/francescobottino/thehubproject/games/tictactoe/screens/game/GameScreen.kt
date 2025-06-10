@@ -1,11 +1,10 @@
 package com.francescobottino.thehubproject.games.tictactoe.screens.game
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -13,16 +12,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeBoardCell
+import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeGameRoom
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeGameState
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToePlayerSign
 import com.francescobottino.thehubproject.games.tictactoe.presentation.TicTacToeCircle
 import com.francescobottino.thehubproject.games.tictactoe.presentation.TicTacToeCross
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.kodein.di.compose.localDI
 
 class GameScreen(private val roomId: String): Screen {
@@ -70,32 +72,59 @@ private fun GameScreenContent(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier,
+        modifier = modifier
+            .padding(horizontal = 12.dp)
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Row(
+        Spacer(Modifier.height(24.dp))
+
+        OpponentConnectionStatus(
+            connected = state.opponentConnected,
+            label = state.opponentLabel,
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.Top,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            OpponentConnectionStatus(
-                connected = state.opponentConnected,
-                label = state.opponentLabel,
-                modifier = Modifier.weight(1f),
-            )
-        }
+        )
+
+        Spacer(Modifier.height(30.dp))
+
+        TurnIndicator(state = state)
+
+        Spacer(Modifier.height(12.dp))
 
         Board(
             state = state.board,
             isUserTurn = state.isUserTurn,
-            onMove = { cell -> onEvent(GameScreenEvent.OnUserClickedCell(cell))}
+            onMove = { cell -> onEvent(GameScreenEvent.OnUserClickedCell(cell))},
+            modifier = Modifier
+                .shadow(elevation = 12.dp, shape = RoundedCornerShape(12.dp), clip = true)
+                .background(color = MaterialTheme.colorScheme.surface)
         )
+
+        Spacer(Modifier.height(40.dp))
+
+        RoomIdCard(state.roomId)
+
+        Spacer(Modifier.height(24.dp))
 
         /*
         Button(
             onClick = { onEvent(GameScreenEvent.OnCloseRoom)) },
             modifier = Modifier.fillMaxWidth(),
         )
+
+         */
+
+        /*
+        past winners
+         */
+
+        /*
+        when(state.roomState) {
+            is TicTacToeGameRoom.State.WaitingForOpponent -> TODO()
+            is TicTacToeGameRoom.State.InProgress -> TODO()
+            is TicTacToeGameRoom.State.Finished -> TODO()
+            is TicTacToeGameRoom.State.Closed -> TODO()
+        }
 
          */
     }
@@ -124,7 +153,7 @@ private fun OpponentConnectionStatus(
                 .clip(shape)
                 .border(width = 1.dp, color = color, shape = shape)
                 .background(color = MaterialTheme.colorScheme.surface)
-                .padding(6.dp),
+                .padding(vertical = 6.dp, horizontal = 12.dp),
         ) {
             Text(text = label ?: "")
             Box(modifier = Modifier.requiredSize(16.dp).clip(CircleShape).background(color))
@@ -133,13 +162,37 @@ private fun OpponentConnectionStatus(
 }
 
 @Composable
+fun TurnIndicator(
+    state: GameScreenState,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            when {
+                state.roomState is TicTacToeGameRoom.State.InProgress -> when {
+                    state.isUserTurn -> "Your turn"
+                    else -> "Opponent's turn"
+                }
+                else -> ""
+            }
+        )
+    }
+}
+
+@Composable
 private fun Board(
     state: TicTacToeGameState,
     isUserTurn: Boolean,
     onMove: (TicTacToeBoardCell) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = Modifier.requiredSize(400.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .aspectRatio(1f, matchHeightConstraintsFirst = false),
     ) {
         (0..2).forEach { rowIndex ->
             if(rowIndex != 0) {
@@ -169,9 +222,14 @@ private fun Board(
                                 TicTacToePlayerSign.O -> TicTacToeCircle
                                 TicTacToePlayerSign.X -> TicTacToeCross
                             }
+                            val color = when (it) {
+                                TicTacToePlayerSign.O -> Color(0xFFFF5C00)
+                                TicTacToePlayerSign.X -> Color(0xFF305CDE)
+                            }
                             Icon(
                                 imageVector = signDrawable,
                                 contentDescription = null,
+                                tint = color,
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .aspectRatio(1f)
@@ -181,6 +239,38 @@ private fun Board(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun RoomIdCard(
+    roomId: String,
+) {
+    val shape = RoundedCornerShape(20)
+    Column(
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = "You can share this room id to your opponent: ",
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        SelectionContainer(
+            modifier = Modifier
+                .wrapContentSize()
+                .shadow(elevation = 12.dp, shape = shape, clip = true)
+                .clip(shape)
+                .border(width = 1.dp, color = MaterialTheme.colorScheme.onPrimary, shape = shape)
+                .background(color = MaterialTheme.colorScheme.surface)
+                .padding(6.dp),
+        ){
+            Text(
+                text = roomId,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.labelSmall,
+            )
         }
     }
 }
@@ -235,4 +325,59 @@ private fun DisconnectionDialog(
             }
         }
     }
+}
+
+@Preview
+@Composable
+private fun GameScreenContentPreview_WaitingForOpponent() {
+    MaterialTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            GameScreenContent(
+                state = GameScreenState(
+                    roomId = "2f9f6008-8b10-4d56-95ff-957d8fdf91a2",
+                    userConnection = GameScreenState.ConnectionState.Connected,
+                    roomState = TicTacToeGameRoom.State.WaitingForOpponent,
+                    opponentConnected = false,
+                    opponentLabel = "Waiting for opponent",
+                ),
+                onEvent = {},
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun GameScreenContentPreview_InProgress() {
+    MaterialTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            GameScreenContent(
+                state = GameScreenState(
+                    roomId = "2f9f6008-8b10-4d56-95ff-957d8fdf91a2",
+                    userConnection = GameScreenState.ConnectionState.Connected,
+                    roomState = TicTacToeGameRoom.State.InProgress,
+                    opponentConnected = true,
+                    opponentLabel = "Connected",
+                    board = mapOf(
+                        TicTacToeBoardCell(0, 0) to TicTacToePlayerSign.X,
+                        TicTacToeBoardCell(0, 1) to TicTacToePlayerSign.O,
+                    ),
+                    isUserTurn = true,
+                ),
+                onEvent = {},
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun GameScreenContentPreview_Finished() {
+    //todo
 }
