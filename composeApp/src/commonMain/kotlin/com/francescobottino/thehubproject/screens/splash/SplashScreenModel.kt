@@ -8,6 +8,7 @@ import com.francescobottino.thehubproject.repo.AuthRepository
 import com.francescobottino.thehubproject.repo.UserRepository
 import com.francescobottino.thehubproject.screens.StatefulScreenModel
 import com.francescobottino.thehubproject.screens.login.LoginScreen
+import com.francescobottino.thehubproject.screens.main_host.MainHostScreen
 import io.ktor.http.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -66,7 +67,7 @@ class SplashScreenModel(
                 }
 
             userRepo.setCurrentUser(User(user.id, user.username))
-            navigator.replace(LoginScreen)
+            navigator.replace(MainHostScreen)
             return
         } catch (e: Exception) {
             e.printStackTrace()
