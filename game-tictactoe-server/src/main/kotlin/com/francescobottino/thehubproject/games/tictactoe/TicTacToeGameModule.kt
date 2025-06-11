@@ -32,12 +32,12 @@ class TicTacToeGameModule(
     fun joinRoom(playerId: String, roomId: String): Either<TicTacToeJoinRoomResponseError, Unit> {
         val room = repo.getRoom(roomId) ?: return Either.Left(TicTacToeJoinRoomResponseError.ROOM_NOT_FOUND)
 
-        if(room.opponentPlayer != null) {
-            return Either.Left(TicTacToeJoinRoomResponseError.ROOM_ALREADY_FULL)
-        }
-
         if(room.players.map { it.id }.contains(playerId)) {
             return Either.Left(TicTacToeJoinRoomResponseError.PLAYER_ALREADY_IN_ROOM)
+        }
+
+        if(room.opponentPlayer != null) {
+            return Either.Left(TicTacToeJoinRoomResponseError.ROOM_ALREADY_FULL)
         }
 
         repo.storeRoom(
