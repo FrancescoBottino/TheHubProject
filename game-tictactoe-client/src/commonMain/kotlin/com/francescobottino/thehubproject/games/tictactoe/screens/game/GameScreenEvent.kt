@@ -4,7 +4,8 @@ import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeBoardCe
 
 sealed interface GameScreenEvent {
     data class OnBoardCellClicked(val cell: TicTacToeBoardCell): GameScreenEvent
-    data object DismissDialog: GameScreenEvent
-    data object DialogActionConnectToRoom: GameScreenEvent
-    data object CloseScreen: GameScreenEvent
+    data object OnDismissDialog: GameScreenEvent
+    data object OnDialogActionConnectToRoom: GameScreenEvent
+    data object OnCloseScreen: GameScreenEvent
+    data object OnCloseRoom: GameScreenEvent
 }

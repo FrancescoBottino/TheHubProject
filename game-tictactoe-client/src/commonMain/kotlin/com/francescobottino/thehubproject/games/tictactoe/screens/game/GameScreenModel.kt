@@ -42,12 +42,13 @@ class GameScreenModel(
     override fun onEvent(event: GameScreenEvent) {
         when(event) {
             is GameScreenEvent.OnBoardCellClicked -> makeMove(event.cell)
-            is GameScreenEvent.DismissDialog -> _state.update { it.copy(dialog = null) }
-            is GameScreenEvent.DialogActionConnectToRoom -> {
+            is GameScreenEvent.OnDismissDialog -> _state.update { it.copy(dialog = null) }
+            is GameScreenEvent.OnDialogActionConnectToRoom -> {
                 _state.update { it.copy(dialog = null) }
                 connectToRoom()
             }
-            is GameScreenEvent.CloseScreen -> navigator.pop()
+            is GameScreenEvent.OnCloseScreen -> navigator.pop()
+            is GameScreenEvent.OnCloseRoom -> TODO()
         }
     }
 
@@ -66,8 +67,8 @@ class GameScreenModel(
                                 title = "Error connecting to the room",
                                 message = error.message ?: "Unknown error",
                                 dismissable = false,
-                                onConfirm = GameScreenState.Dialog.Action("Retry", GameScreenEvent.DialogActionConnectToRoom),
-                                onDismiss = GameScreenState.Dialog.Action("Leave", GameScreenEvent.CloseScreen),
+                                onConfirm = GameScreenState.Dialog.Action("Retry", GameScreenEvent.OnDialogActionConnectToRoom),
+                                onDismiss = GameScreenState.Dialog.Action("Leave", GameScreenEvent.OnCloseScreen),
                             )
                         )
                     }
@@ -89,6 +90,8 @@ class GameScreenModel(
                             val me = update.players.single { it.id == user.id }
                             val opponent = update.players.singleOrNull { it.id != user.id }
 
+                            val isUserHost = update.hostPlayer.id == user.id
+
                             val opponentConnected = update.roomState !is TicTacToeGameRoom.State.WaitingForOpponent
                                     && opponent != null
                                     && update.connectedPlayerIds.contains(opponent.id)
@@ -96,11 +99,22 @@ class GameScreenModel(
                             val opponentLabel = when {
                                 opponentConnected -> "Connected"
                                 update.roomState is TicTacToeGameRoom.State.WaitingForOpponent -> "Waiting for opponent"
-                                else -> null
+                                else -> "Disconnected"
                             }
 
                             val isUserTurn = update.roomState is TicTacToeGameRoom.State.InProgress
                                     && update.currentPlayerSign == me.sign
+
+                            val finishState = if (update.roomState is TicTacToeGameRoom.State.Finished) {
+                                val winner = (update.roomState as TicTacToeGameRoom.State.Finished).winner
+                                GameScreenState.FinishState(
+                                    winnerSign = winner?.sign,
+                                    userWon = winner?.id == me.id,
+                                    canRetry = isUserHost,
+                                )
+                            } else {
+                                null
+                            }
 
                             _state.update { screenState ->
                                 screenState.copy(
@@ -109,10 +123,12 @@ class GameScreenModel(
                                     roomId = roomId,
                                     board = update.gameState,
                                     isUserTurn = isUserTurn,
+                                    isUserHost = isUserHost,
                                     roomState = update.roomState,
                                     userLabel = user.username,
                                     opponentConnected = opponentConnected,
-                                    opponentLabel = opponentLabel
+                                    opponentLabel = opponentLabel,
+                                    finishState = finishState,
                                 )
                             }
                         }
@@ -124,7 +140,7 @@ class GameScreenModel(
                                     title = "Disconnected",
                                     message = "You have been disconnected from the room.",
                                     dismissable = false,
-                                    onConfirm = GameScreenState.Dialog.Action("Close screen", GameScreenEvent.CloseScreen),
+                                    onConfirm = GameScreenState.Dialog.Action("Close screen", GameScreenEvent.OnCloseScreen),
                                 )
                             )
                         }
@@ -139,7 +155,7 @@ class GameScreenModel(
                             title = "Error",
                             message = e.message ?: "Unknown error",
                             dismissable = false,
-                            onConfirm = GameScreenState.Dialog.Action("Close screen", GameScreenEvent.CloseScreen),
+                            onConfirm = GameScreenState.Dialog.Action("Close screen", GameScreenEvent.OnCloseScreen),
                         )
                     )
                 }
@@ -159,7 +175,7 @@ class GameScreenModel(
                                 title = "Error",
                                 message = e.message ?: "Unknown error",
                                 dismissable = true,
-                                onConfirm = GameScreenState.Dialog.Action("OK", GameScreenEvent.DismissDialog),
+                                onConfirm = GameScreenState.Dialog.Action("OK", GameScreenEvent.OnDismissDialog),
                             ),
                         )
                     }

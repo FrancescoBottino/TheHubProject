@@ -10,8 +10,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -22,8 +24,10 @@ import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeBoardCe
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeGameRoom
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeGameState
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToePlayerSign
+import com.francescobottino.thehubproject.games.tictactoe.presentation.TicTacToeCatGame
 import com.francescobottino.thehubproject.games.tictactoe.presentation.TicTacToeCircle
 import com.francescobottino.thehubproject.games.tictactoe.presentation.TicTacToeCross
+import com.francescobottino.thehubproject.games.tictactoe.presentation.TicTacToeCrown
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.kodein.di.compose.localDI
 
@@ -77,15 +81,31 @@ private fun GameScreenContent(
 
         Spacer(Modifier.height(12.dp))
 
-        Board(
-            state = state.board,
-            isUserTurn = state.isUserTurn,
-            onMove = { cell -> onEvent(GameScreenEvent.OnBoardCellClicked(cell))},
+        Box(
             modifier = Modifier
                 .requiredWidthIn(max = 400.dp)
+                .padding(horizontal = 16.dp)
                 .shadow(elevation = 12.dp, shape = RoundedCornerShape(12.dp), clip = true)
                 .background(color = MaterialTheme.colorScheme.surface)
-        )
+                .fillMaxWidth()
+                .aspectRatio(1f, matchHeightConstraintsFirst = false)
+        ) {
+            Board(
+                state = state.board,
+                isUserTurn = state.isUserTurn,
+                onMove = { cell -> onEvent(GameScreenEvent.OnBoardCellClicked(cell))},
+                modifier = Modifier.fillMaxSize()
+            )
+
+            state.finishState?.let {
+                FinishDialog(
+                    finishState = it,
+                    onEvent = onEvent,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+        }
+
 
         Spacer(Modifier.height(40.dp))
 
@@ -93,13 +113,11 @@ private fun GameScreenContent(
 
         Spacer(Modifier.height(24.dp))
 
-        /*
         Button(
-            onClick = { onEvent(GameScreenEvent.OnCloseRoom)) },
-            modifier = Modifier.fillMaxWidth(),
-        )
-
-         */
+            onClick = { onEvent(GameScreenEvent.OnCloseRoom) },
+        ) {
+            Text("Close room")
+        }
 
         /*
         past winners
@@ -158,7 +176,7 @@ private fun OpponentConnectionStatus(
 }
 
 @Composable
-fun TurnIndicator(
+private fun TurnIndicator(
     state: GameScreenState,
     modifier: Modifier = Modifier,
 ) {
@@ -186,9 +204,7 @@ private fun Board(
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .aspectRatio(1f, matchHeightConstraintsFirst = false),
+        modifier = modifier,
     ) {
         (0..2).forEach { rowIndex ->
             if(rowIndex != 0) {
@@ -214,18 +230,8 @@ private fun Board(
                         contentAlignment = Alignment.Center,
                     ) {
                         sign?.let {
-                            val signDrawable = when (it) {
-                                TicTacToePlayerSign.O -> TicTacToeCircle
-                                TicTacToePlayerSign.X -> TicTacToeCross
-                            }
-                            val color = when (it) {
-                                TicTacToePlayerSign.O -> Color(0xFFFF5C00)
-                                TicTacToePlayerSign.X -> Color(0xFF305CDE)
-                            }
-                            Icon(
-                                imageVector = signDrawable,
-                                contentDescription = null,
-                                tint = color,
+                            SignIcon(
+                                sign = it,
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .aspectRatio(1f)
@@ -237,6 +243,127 @@ private fun Board(
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FinishDialog(
+    finishState: GameScreenState.FinishState,
+    onEvent: (GameScreenEvent) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)),
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
+            modifier = Modifier
+                .padding(18.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .shadow(elevation = 12.dp, RoundedCornerShape(12.dp))
+                .background(color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(12.dp))
+                .padding(horizontal = 16.dp, vertical = 10.dp)
+                .requiredWidthIn(min = 160.dp),
+        ) {
+            Text(
+                text = "Game Over!",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+            )
+
+            Box(
+                contentAlignment = Alignment.Center,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .requiredSize(96.dp)
+                        .shadow(elevation = 6.dp, shape = CircleShape)
+                        .clip(CircleShape)
+                        .background(color = MaterialTheme.colorScheme.surface)
+                        .padding(12.dp),
+                ) {
+                    finishState.winnerSign?.let {
+                        SignIcon(
+                            sign = it,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    } ?: run {
+                        Icon(
+                            TicTacToeCatGame,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
+                }
+
+                if(finishState.winnerSign != null) {
+                    Box(
+                        modifier = Modifier.requiredSize(32.dp),
+                    ) {
+                        Image(
+                            TicTacToeCrown,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .rotate(12f)
+                                .offset(y = (-40).dp),
+                        )
+                    }
+                }
+            }
+
+            Text(
+                text = when {
+                    finishState.winnerSign == null -> "It's a tie"
+                    finishState.userWon -> "You won!"
+                    else -> "You lost..."
+                }
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            if(finishState.canRetry) {
+                Button(
+                    onClick = {
+
+                    },
+                    modifier = Modifier.align(Alignment.End),
+                ) {
+                    Text("Retry")
+                }
+            } else {
+                Text(
+                    text = "You can now wait for the host to restart the match or close the room.",
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SignIcon(
+    sign: TicTacToePlayerSign,
+    modifier: Modifier = Modifier,
+) {
+    val signDrawable = when (sign) {
+        TicTacToePlayerSign.O -> TicTacToeCircle
+        TicTacToePlayerSign.X -> TicTacToeCross
+    }
+    val color = when (sign) {
+        TicTacToePlayerSign.O -> Color(0xFFFF5C00)
+        TicTacToePlayerSign.X -> Color(0xFF305CDE)
+    }
+    Icon(
+        imageVector = signDrawable,
+        contentDescription = null,
+        tint = color,
+        modifier = modifier,
+    )
 }
 
 @Composable
@@ -279,7 +406,7 @@ private fun ScreenDialog(
     Dialog(
         onDismissRequest = {
             if(state.dismissable) {
-                onEvent(GameScreenEvent.DismissDialog)
+                onEvent(GameScreenEvent.OnDismissDialog)
             }
         },
     ) {
@@ -386,5 +513,30 @@ private fun GameScreenContentPreview_InProgress() {
 @Preview
 @Composable
 private fun GameScreenContentPreview_Finished() {
-    //todo
+    MaterialTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            GameScreenContent(
+                state = GameScreenState(
+                    roomId = "2f9f6008-8b10-4d56-95ff-957d8fdf91a2",
+                    roomState = TicTacToeGameRoom.State.InProgress,
+                    opponentConnected = true,
+                    opponentLabel = "Connected",
+                    board = mapOf(
+                        TicTacToeBoardCell(0, 0) to TicTacToePlayerSign.X,
+                        TicTacToeBoardCell(0, 1) to TicTacToePlayerSign.O,
+                    ),
+                    isUserTurn = true,
+                    finishState = GameScreenState.FinishState(
+                        winnerSign = TicTacToePlayerSign.X,
+                        userWon = true,
+                        canRetry = false,
+                    )
+                ),
+                onEvent = {},
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
+    }
 }

@@ -11,8 +11,10 @@ data class GameScreenState(
     val opponentConnected: Boolean = false,
     val opponentLabel: String? = null,
     val isUserTurn: Boolean = false,
+    val isUserHost: Boolean = false,
     val roomState: TicTacToeGameRoom.State = TicTacToeGameRoom.State.WaitingForOpponent,
     val pastGamesWinners: List<TicTacToePlayerSign?> = emptyList(),
+    val finishState: FinishState? = null,
 
     val isLoading: Boolean = false,
     val dialog: Dialog? = null,
@@ -29,4 +31,10 @@ data class GameScreenState(
             val event: GameScreenEvent,
         )
     }
+
+    data class FinishState(
+        val winnerSign: TicTacToePlayerSign? = null,
+        val userWon: Boolean = false,
+        val canRetry: Boolean = true,
+    )
 }
