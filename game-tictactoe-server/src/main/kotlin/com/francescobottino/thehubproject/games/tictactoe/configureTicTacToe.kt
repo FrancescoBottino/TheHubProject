@@ -123,7 +123,6 @@ private suspend fun RoutingContext.joinRoom() {
     }
 }
 
-//todo handle errors
 private suspend fun RoutingContext.makeMove() {
     val module by closestDI().instance<TicTacToeGameModule>()
 
