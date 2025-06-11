@@ -328,9 +328,7 @@ private fun FinishDialog(
 
             if(finishState.canRetry) {
                 Button(
-                    onClick = {
-
-                    },
+                    onClick = { onEvent(GameScreenEvent.OnRetry) },
                     modifier = Modifier.align(Alignment.End),
                 ) {
                     Text("Retry")

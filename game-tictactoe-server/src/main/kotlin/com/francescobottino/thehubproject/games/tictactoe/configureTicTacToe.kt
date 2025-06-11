@@ -35,6 +35,7 @@ fun Route.configureTicTacToe() {
                 route("{roomId}") {
                     post("join") { joinRoom() }
                     post("move") { makeMove() }
+                    post("restart") { restart() }
                     webSocket("updates") { getUpdates() }
                 }
             }
@@ -159,6 +160,38 @@ private suspend fun RoutingContext.makeMove() {
         }
     } catch (e: Exception) {
         call.application.log.error("makeMove failed", e)
+        call.respond(HttpStatusCode.InternalServerError, message = e.message ?: "Invalid request")
+    }
+}
+
+private suspend fun RoutingContext.restart() {
+    val module by closestDI().instance<TicTacToeGameModule>()
+
+    val userId = call.getAuthUserId() ?: run {
+        call.respond(HttpStatusCode.Unauthorized, "User not found or invalid token")
+        return
+    }
+
+    val roomId = try {
+        call.parameters.getOrFail<String>("roomId")
+    } catch (e: Exception) {
+        call.respond(HttpStatusCode.BadRequest, e.message ?: "Invalid request")
+        return
+    }
+
+    try {
+        val result = module.restartGame(
+            playerId = userId,
+            roomId = roomId,
+        )
+
+        result.onRight {
+            call.respond(HttpStatusCode.OK)
+        }.onLeft {
+            call.respond(HttpStatusCode.BadRequest, it)
+        }
+    } catch (e: Exception) {
+        call.application.log.error("restart failed", e)
         call.respond(HttpStatusCode.InternalServerError, message = e.message ?: "Invalid request")
     }
 }

@@ -80,21 +80,27 @@ class TicTacToeGameModule(
         return Either.Right(Unit)
     }
 
-    fun restartGame(playerId: String, roomId: String) {
-        repo.updateRoom(roomId) {
-            val room = it ?: throw IllegalStateException("Room not found")
+    fun restartGame(playerId: String, roomId: String): Either<TicTacToeRestartGameResponseError, Unit> {
+        val room = repo.getRoom(roomId) ?: return Either.Left(TicTacToeRestartGameResponseError.ROOM_NOT_FOUND)
 
-            val roomState = room.roomState
-            require(roomState is TicTacToeGameRoom.State.Finished) { "Game not finished" }
-            require(playerId == room.hostPlayer.id) { "Only the host can restart the game" }
+        val roomState = room.roomState
+        if(roomState !is TicTacToeGameRoom.State.Finished) {
+            return Either.Left(TicTacToeRestartGameResponseError.GAME_NOT_FINISHED)
+        }
+        if(playerId != room.hostPlayer.id) {
+            return Either.Left(TicTacToeRestartGameResponseError.NOT_THE_HOST)
+        }
 
+        repo.storeRoom(
             room.copy(
                 gameState = emptyMap(),
                 roomState = TicTacToeGameRoom.State.InProgress,
                 pastGamesWinners = room.pastGamesWinners + roomState.winner,
                 lastUpdate = Clock.System.now(),
             )
-        }
+        )
+
+        return Either.Right(Unit)
     }
 
     fun close(playerId: String, roomId: String) {

@@ -8,4 +8,5 @@ sealed interface GameScreenEvent {
     data object OnDialogActionConnectToRoom: GameScreenEvent
     data object OnCloseScreen: GameScreenEvent
     data object OnCloseRoom: GameScreenEvent
+    data object OnRetry: GameScreenEvent
 }

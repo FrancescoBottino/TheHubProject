@@ -2,10 +2,7 @@ package com.francescobottino.thehubproject.games.tictactoe.screens.game
 
 import cafe.adriel.voyager.core.model.screenModelScope
 import cafe.adriel.voyager.navigator.Navigator
-import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeBoardCell
-import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeGameRoom
-import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeMakeMoveRequest
-import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeMakeMoveResponseError
+import com.francescobottino.thehubproject.games.tictactoe.model.*
 import com.francescobottino.thehubproject.games.tictactoe.network.TicTacToeApi
 import com.francescobottino.thehubproject.mainJson
 import com.francescobottino.thehubproject.model.User
@@ -49,6 +46,7 @@ class GameScreenModel(
             }
             is GameScreenEvent.OnCloseScreen -> navigator.pop()
             is GameScreenEvent.OnCloseRoom -> TODO()
+            is GameScreenEvent.OnRetry -> restart()
         }
     }
 
@@ -187,6 +185,37 @@ class GameScreenModel(
                             TicTacToeMakeMoveResponseError.ROOM_NOT_FOUND -> TODO()
                             TicTacToeMakeMoveResponseError.PLAYER_NOT_IN_ROOM -> TODO()
                             TicTacToeMakeMoveResponseError.GAME_NOT_IN_PROGRESS -> TODO()
+                        }
+                    }
+                }
+
+            _state.update { it.copy(isLoading = false) }
+        }
+    }
+
+    private fun restart() {
+        _state.update { it.copy(isLoading = true) }
+
+        screenModelScope.launch {
+            runCatching { api.restart(roomId) }
+                .onFailure { e ->
+                    _state.update {
+                        it.copy(
+                            dialog = GameScreenState.Dialog(
+                                title = "Error",
+                                message = e.message ?: "Unknown error",
+                                dismissable = true,
+                                onConfirm = GameScreenState.Dialog.Action("OK", GameScreenEvent.OnDismissDialog),
+                            ),
+                        )
+                    }
+                }
+                .onSuccess { response ->
+                    response.onLeft { error ->
+                        when(error) {
+                            TicTacToeRestartGameResponseError.ROOM_NOT_FOUND -> TODO()
+                            TicTacToeRestartGameResponseError.NOT_THE_HOST -> TODO()
+                            TicTacToeRestartGameResponseError.GAME_NOT_FINISHED -> TODO()
                         }
                     }
                 }

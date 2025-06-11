@@ -45,6 +45,16 @@ class TicTacToeApi(
             }
         }
     }
+    suspend fun restart(roomId: String): Either<TicTacToeRestartGameResponseError, Unit> {
+        return client.post("/games/tictactoe/room/$roomId/restart") {
+            contentType(ContentType.Application.Json)
+        }.let {
+            when {
+                it.status.isSuccess() -> Either.Right(Unit)
+                else -> Either.Left(it.body<TicTacToeRestartGameResponseError>())
+            }
+        }
+    }
     @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun joinRoomWebSocket(roomId: String): DefaultClientWebSocketSession {
         return client.webSocketSession("${PlatformConfig.wsUrl}/games/tictactoe/room/$roomId/updates")
