@@ -195,16 +195,16 @@ private suspend fun DefaultWebSocketServerSession.getUpdates() {
     }
 
     launch {
-        for(frame in incoming) {
-            if(frame is Frame.Close) {
-                log.debug("Client closed the connection")
-                log.debug("updating room with player disconnection")
-                repo.updateRoom(roomId) { roomUpdate ->
-                    roomUpdate?.copy(connectedPlayerIds = roomUpdate.connectedPlayerIds - userId)
-                }
-                close(CloseReason(CloseReason.Codes.NORMAL, "Client closed the connection"))
-            }
+        for(frame in incoming) { /*nothing*/ }
+
+        log.debug("Client closed the connection")
+        log.debug("updating room with player disconnection")
+        repo.updateRoom(roomId) { roomUpdate ->
+            roomUpdate?.copy(connectedPlayerIds = roomUpdate.connectedPlayerIds - userId)
         }
+        close(CloseReason(CloseReason.Codes.NORMAL, "Client closed the connection"))
+
+        log.debug("stopped reading")
     }
 
     runCatching {
