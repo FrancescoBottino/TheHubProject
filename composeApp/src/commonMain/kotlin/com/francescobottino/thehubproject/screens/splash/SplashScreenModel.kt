@@ -1,5 +1,6 @@
 package com.francescobottino.thehubproject.screens.splash
 
+import arrow.core.getOrElse
 import cafe.adriel.voyager.core.model.screenModelScope
 import cafe.adriel.voyager.navigator.Navigator
 import com.francescobottino.thehubproject.model.User
@@ -50,21 +51,15 @@ class SplashScreenModel(
                 return
             }
 
-            val user = userApi.me()
-                .onLeft { errorCode ->
-                    if(errorCode == HttpStatusCode.Unauthorized) {
-                        navigator.replace(LoginScreen)
-                        return
-                    } else {
-                        _state.update { it.copy(error = "Error getting user profile") }
-                        return
-                    }
-                }
-                .getOrNull()
-                ?: run {
-                    _state.update { it.copy(error = "Unknown error") }
+            val user = userApi.me().getOrElse { errorCode ->
+                if(errorCode == HttpStatusCode.Unauthorized) {
+                    navigator.replace(LoginScreen)
+                    return
+                } else {
+                    _state.update { it.copy(error = "Error getting user profile") }
                     return
                 }
+            }
 
             userRepo.setCurrentUser(User(user.id, user.username))
             navigator.replace(MainHostScreen)
