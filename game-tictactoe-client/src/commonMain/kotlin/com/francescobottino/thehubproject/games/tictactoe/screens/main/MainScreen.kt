@@ -46,6 +46,8 @@ private fun MainScreenContent(
     onEvent: (MainScreenEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    //todo handle loading
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.Top),

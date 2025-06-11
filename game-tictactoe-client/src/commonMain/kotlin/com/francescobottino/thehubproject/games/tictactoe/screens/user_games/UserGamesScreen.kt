@@ -92,6 +92,7 @@ private fun UserGamesScreenContent(
         }
     }
 
+    //todo better loading, dont use dialog
     if(state.isLoading) {
         Dialog(
             onDismissRequest = {},
