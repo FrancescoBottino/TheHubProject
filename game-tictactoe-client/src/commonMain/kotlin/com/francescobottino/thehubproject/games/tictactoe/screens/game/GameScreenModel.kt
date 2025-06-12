@@ -86,14 +86,14 @@ class GameScreenModel(
                         }.getOrNull()
 
                         if(update != null) {
-                            val me = update.players.single { it.id == user.id }
-                            val opponent = update.players.singleOrNull { it.id != user.id }
+                            val me = update.players.single { it.user.id == user.id }
+                            val opponent = update.players.singleOrNull { it.user.id != user.id }
 
-                            val isUserHost = update.hostPlayer.id == user.id
+                            val isUserHost = update.hostPlayer.user.id == user.id
 
                             val opponentConnected = update.roomState !is TicTacToeGameRoom.State.WaitingForOpponent
                                     && opponent != null
-                                    && update.connectedPlayerIds.contains(opponent.id)
+                                    && update.connectedPlayerIds.contains(opponent.user.id)
 
                             val opponentLabel = when {
                                 opponentConnected -> "Connected"
@@ -108,7 +108,7 @@ class GameScreenModel(
                                 val winner = (update.roomState as TicTacToeGameRoom.State.Finished).winner
                                 GameScreenState.FinishState(
                                     winnerSign = winner?.sign,
-                                    userWon = winner?.id == me.id,
+                                    userWon = winner?.user?.id == me.user.id,
                                     canRetry = isUserHost,
                                 )
                             } else {

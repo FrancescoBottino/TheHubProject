@@ -1,11 +1,9 @@
 package com.francescobottino.thehubproject.games.tictactoe
 
-import com.francescobottino.thehubproject.GameModule
+import com.francescobottino.thehubproject.*
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeMakeMoveRequest
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeMakeRoomRequest
-import com.francescobottino.thehubproject.getAuthUserId
-import com.francescobottino.thehubproject.log
-import com.francescobottino.thehubproject.mainJson
+import com.francescobottino.thehubproject.model.safe
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -42,7 +40,7 @@ object TicTacToeGameModule: GameModule {
 }
 
 private suspend fun RoutingContext.myRooms() {
-    val module by call.inject<TicTacToeUseCases>()
+    val useCase by call.inject<TicTacToeUseCases>()
 
     val userId = call.getAuthUserId() ?: run {
         call.respond(HttpStatusCode.Unauthorized, "User not found or invalid token")
@@ -50,7 +48,7 @@ private suspend fun RoutingContext.myRooms() {
     }
 
     try {
-        val roomIds = module.getMyRooms(userId = userId)
+        val roomIds = useCase.getMyRooms(userId = userId)
         call.respond(HttpStatusCode.OK, message = roomIds)
     } catch (e: Exception) {
         call.application.log.error("myRooms failed", e)
@@ -59,9 +57,9 @@ private suspend fun RoutingContext.myRooms() {
 }
 
 private suspend fun RoutingContext.makeRoom() {
-    val module by call.inject<TicTacToeUseCases>()
+    val useCase by call.inject<TicTacToeUseCases>()
 
-    val userId = call.getAuthUserId() ?: run {
+    val user = call.getAuthUser()?.safe() ?: run {
         call.respond(HttpStatusCode.Unauthorized, "User not found or invalid token")
         return
     }
@@ -74,8 +72,8 @@ private suspend fun RoutingContext.makeRoom() {
     }
 
     try {
-        val roomId = module.makeRoom(
-            playerId = userId,
+        val roomId = useCase.makeRoom(
+            player = user,
             chosenSign = request.chosenSign,
             startingSign = request.startingSign,
         )
@@ -87,9 +85,9 @@ private suspend fun RoutingContext.makeRoom() {
 }
 
 private suspend fun RoutingContext.joinRoom() {
-    val module by call.inject<TicTacToeUseCases>()
+    val useCase by call.inject<TicTacToeUseCases>()
 
-    val userId = call.getAuthUserId() ?: run {
+    val user = call.getAuthUser()?.safe() ?: run {
         call.respond(HttpStatusCode.Unauthorized, "User not found or invalid token")
         return
     }
@@ -102,10 +100,10 @@ private suspend fun RoutingContext.joinRoom() {
     }
 
     try {
-        log.debug("user $userId is attempting to join room $roomId")
+        log.debug("user $user is attempting to join room $roomId")
 
-        val result = module.joinRoom(
-            playerId = userId,
+        val result = useCase.joinRoom(
+            player = user,
             roomId = roomId,
         )
 
@@ -123,7 +121,7 @@ private suspend fun RoutingContext.joinRoom() {
 }
 
 private suspend fun RoutingContext.makeMove() {
-    val module by call.inject<TicTacToeUseCases>()
+    val useCase by call.inject<TicTacToeUseCases>()
 
     val userId = call.getAuthUserId() ?: run {
         call.respond(HttpStatusCode.Unauthorized, "User not found or invalid token")
@@ -145,7 +143,7 @@ private suspend fun RoutingContext.makeMove() {
     }
 
     try {
-        val result = module.makeMove(
+        val result = useCase.makeMove(
             playerId = userId,
             roomId = roomId,
             cell = request.cell,
@@ -163,7 +161,7 @@ private suspend fun RoutingContext.makeMove() {
 }
 
 private suspend fun RoutingContext.restart() {
-    val module by call.inject<TicTacToeUseCases>()
+    val useCase by call.inject<TicTacToeUseCases>()
 
     val userId = call.getAuthUserId() ?: run {
         call.respond(HttpStatusCode.Unauthorized, "User not found or invalid token")
@@ -178,7 +176,7 @@ private suspend fun RoutingContext.restart() {
     }
 
     try {
-        val result = module.restartGame(
+        val result = useCase.restartGame(
             playerId = userId,
             roomId = roomId,
         )
@@ -213,7 +211,7 @@ private suspend fun DefaultWebSocketServerSession.getUpdates() {
         return
     }
 
-    if (!room.players.map { it.id }.contains(userId)) {
+    if (!room.players.map { it.user.id }.contains(userId)) {
         log.debug("player is not in room")
         call.respond(HttpStatusCode.BadRequest, "Invalid request, player is not in room")
         return

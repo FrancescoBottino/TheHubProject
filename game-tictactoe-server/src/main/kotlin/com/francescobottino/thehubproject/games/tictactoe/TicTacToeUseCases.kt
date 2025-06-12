@@ -2,6 +2,7 @@ package com.francescobottino.thehubproject.games.tictactoe
 
 import arrow.core.Either
 import com.francescobottino.thehubproject.games.tictactoe.model.*
+import com.francescobottino.thehubproject.model.UserResponse
 import kotlinx.datetime.Clock
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -14,11 +15,11 @@ class TicTacToeUseCases(
         return repo.getRoomsOfUser(userId)
     }
 
-    fun makeRoom(playerId: String, chosenSign: TicTacToePlayerSign, startingSign: TicTacToePlayerSign): String {
+    fun makeRoom(player: UserResponse, chosenSign: TicTacToePlayerSign, startingSign: TicTacToePlayerSign): String {
         val room = TicTacToeGameRoom(
             id = Uuid.random().toString(),
             hostPlayer = TicTacToePlayer(
-                id = playerId,
+                user = player,
                 sign = chosenSign,
             ),
             currentPlayerSign = startingSign
@@ -29,10 +30,10 @@ class TicTacToeUseCases(
         return room.id
     }
 
-    fun joinRoom(playerId: String, roomId: String): Either<TicTacToeJoinRoomResponseError, Unit> {
+    fun joinRoom(player: UserResponse, roomId: String): Either<TicTacToeJoinRoomResponseError, Unit> {
         val room = repo.getRoom(roomId) ?: return Either.Left(TicTacToeJoinRoomResponseError.ROOM_NOT_FOUND)
 
-        if(room.players.map { it.id }.contains(playerId)) {
+        if(room.players.map { it.user.id }.contains(player.id)) {
             return Either.Left(TicTacToeJoinRoomResponseError.PLAYER_ALREADY_IN_ROOM)
         }
 
@@ -43,7 +44,7 @@ class TicTacToeUseCases(
         repo.storeRoom(
             room.copy(
                 opponentPlayer = TicTacToePlayer(
-                    id = playerId,
+                    player,
                     sign = room.hostPlayer.sign.otherSign(),
                 ),
                 roomState = TicTacToeGameRoom.State.InProgress,
@@ -57,7 +58,7 @@ class TicTacToeUseCases(
     fun makeMove(playerId: String, roomId: String, cell: TicTacToeBoardCell): Either<TicTacToeMakeMoveResponseError, Unit> {
         val room = repo.getRoom(roomId) ?: return Either.Left(TicTacToeMakeMoveResponseError.ROOM_NOT_FOUND)
 
-        val player = room.players.singleOrNull { it.id == playerId }
+        val player = room.players.singleOrNull { it.user.id == playerId }
 
         if(player == null) {
             return Either.Left(TicTacToeMakeMoveResponseError.PLAYER_NOT_IN_ROOM)
@@ -87,7 +88,7 @@ class TicTacToeUseCases(
         if(roomState !is TicTacToeGameRoom.State.Finished) {
             return Either.Left(TicTacToeRestartGameResponseError.GAME_NOT_FINISHED)
         }
-        if(playerId != room.hostPlayer.id) {
+        if(playerId != room.hostPlayer.user.id) {
             return Either.Left(TicTacToeRestartGameResponseError.NOT_THE_HOST)
         }
 
@@ -107,7 +108,7 @@ class TicTacToeUseCases(
         repo.updateRoom(roomId) {
             val room = it ?: throw IllegalStateException("Room not found")
 
-            val player = room.players.singleOrNull { it.id == playerId }
+            val player = room.players.singleOrNull { it.user.id == playerId }
             require(player != null) { "Player not found" }
 
             room.copy(

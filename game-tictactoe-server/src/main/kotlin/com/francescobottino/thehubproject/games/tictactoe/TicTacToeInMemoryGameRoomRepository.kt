@@ -36,7 +36,7 @@ class TicTacToeInMemoryGameRoomRepository: TicTacToeGameRoomRepository {
     }
     override fun getRoomsOfUser(userId: String): List<TicTacToeGameRoom> {
         return memoryStateFlow.value.values
-            .filter { it.players.any { player -> player.id == userId } }
+            .filter { it.players.any { player -> player.user.id == userId } }
             .sortedByDescending { it.lastUpdate }
     }
 }

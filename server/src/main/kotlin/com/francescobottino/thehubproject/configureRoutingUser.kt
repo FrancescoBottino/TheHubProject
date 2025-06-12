@@ -1,6 +1,6 @@
 package com.francescobottino.thehubproject
 
-import com.francescobottino.thehubproject.model.UserResponse
+import com.francescobottino.thehubproject.model.safe
 import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
@@ -15,9 +15,9 @@ fun Routing.configureRoutingUser() {
 }
 
 private suspend fun RoutingContext.getMe() {
-    val user = call.getAuthUser() ?: run {
+    val user = call.getAuthUser()?.safe() ?: run {
         call.respond(HttpStatusCode.Unauthorized, "User not found or invalid token")
         return
     }
-    call.respond(HttpStatusCode.OK, UserResponse(user.id, user.username))
+    call.respond(HttpStatusCode.OK, user)
 }
