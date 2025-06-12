@@ -23,7 +23,7 @@ fun makeHttpClient(
             logger = Logger.DEFAULT
             level = LogLevel.ALL
         }
-        install(WebSockets) {}
+        install(WebSockets)
 
         install(Auth) {
             bearer {
