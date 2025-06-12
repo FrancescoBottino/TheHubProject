@@ -4,9 +4,10 @@ import com.francescobottino.thehubproject.BuildConfig
 
 object Config {
     val isProduction: Boolean by lazy { BuildConfig.ENVIRONMENT != "dev" }
+    private const val PRODUCTION_ENDPOINT = "thehub-8su2.onrender.com"
     private val serverEndpoint: String by lazy {
         if(isProduction)
-            BuildConfig.PRODUCTION_ENDPOINT
+            PRODUCTION_ENDPOINT
         else
             "${internalServerDebugIp(BuildConfig.DEV_SERVER_IP)}:${BuildConfig.DEV_SERVER_PORT}"
     }

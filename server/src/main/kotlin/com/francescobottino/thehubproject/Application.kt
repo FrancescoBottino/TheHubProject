@@ -9,7 +9,6 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
@@ -45,23 +44,6 @@ fun Application.module() {
         timeout = 15.seconds
         maxFrameSize = Long.MAX_VALUE
         masking = false
-    }
-
-    install(CORS) {
-        allowMethod(io.ktor.http.HttpMethod.Options)
-        allowMethod(io.ktor.http.HttpMethod.Put)
-        allowMethod(io.ktor.http.HttpMethod.Delete)
-        allowMethod(io.ktor.http.HttpMethod.Patch)
-        allowHeader(io.ktor.http.HttpHeaders.Authorization)
-        allowHeader(io.ktor.http.HttpHeaders.ContentType)
-
-        allowCredentials = false
-
-        if (ServerConfig.isProduction) {
-            allowHost(ServerConfig.productionEndpoint, schemes = listOf("https"))
-        } else {
-            anyHost()
-        }
     }
 
     val database = configureDatabase()

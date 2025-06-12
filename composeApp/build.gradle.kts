@@ -170,7 +170,6 @@ buildConfig {
     packageName("com.francescobottino.thehubproject")
     useKotlinOutput()
 
-    buildConfigField<String>("PRODUCTION_ENDPOINT", envVariables["PRODUCTION_ENDPOINT"]!!.removeSurrounding("\""))
     buildConfigField<String>("ENVIRONMENT", envVariables["ENVIRONMENT"]!!.removeSurrounding("\""))
     buildConfigField<String>("DEV_SERVER_IP", (localProperties["dev_server_ip"] as? String)!!)
     buildConfigField<Int>("DEV_SERVER_PORT", envVariables["PORT"]!!.toInt())
