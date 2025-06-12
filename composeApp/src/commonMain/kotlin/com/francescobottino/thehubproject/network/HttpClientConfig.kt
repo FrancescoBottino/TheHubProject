@@ -1,6 +1,6 @@
 package com.francescobottino.thehubproject.network
 
-import com.francescobottino.thehubproject.config.PlatformConfig
+import com.francescobottino.thehubproject.config.Config
 import com.francescobottino.thehubproject.mainJson
 import io.ktor.client.*
 import io.ktor.client.plugins.*
@@ -44,7 +44,7 @@ fun makeHttpClient(
             }
         }
         defaultRequest {
-            url(PlatformConfig.httpUrl)
+            url(Config.httpUrl)
         }
     }
 }

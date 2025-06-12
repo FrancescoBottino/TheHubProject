@@ -1,7 +1,6 @@
 package com.francescobottino.thehubproject.games.tictactoe.network
 
 import arrow.core.Either
-import com.francescobottino.thehubproject.config.PlatformConfig
 import com.francescobottino.thehubproject.games.tictactoe.model.*
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -11,7 +10,8 @@ import io.ktor.http.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 class TicTacToeApi(
-    private val client: HttpClient
+    private val client: HttpClient,
+    private val wsUrl: String,
 ) {
     suspend fun myRooms(): List<TicTacToeGameRoom> {
         return client.get("/games/tictactoe/my-rooms") {
@@ -57,6 +57,6 @@ class TicTacToeApi(
     }
     @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun joinRoomWebSocket(roomId: String): DefaultClientWebSocketSession {
-        return client.webSocketSession("${PlatformConfig.wsUrl}/games/tictactoe/room/$roomId/updates")
+        return client.webSocketSession("$wsUrl/games/tictactoe/room/$roomId/updates")
     }
 }

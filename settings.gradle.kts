@@ -1,5 +1,58 @@
+import java.util.*
+
 rootProject.name = "TheHubProject"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
+// Helper function to read .env file
+fun readDotEnv(projectDir: File): Map<String, String> {
+    val envFile = File(projectDir, ".env")
+    if (!envFile.exists()) {
+        println("Warning: .env file not found at ${envFile.absolutePath}")
+        return emptyMap()
+    }
+
+    val envMap = mutableMapOf<String, String>()
+    envFile.readLines().forEach { line ->
+        val trimmedLine = line.trim()
+        if (trimmedLine.isNotEmpty() && !trimmedLine.startsWith("#")) {
+            val parts = trimmedLine.split("=", limit = 2)
+            if (parts.size == 2) {
+                envMap[parts[0].trim()] = parts[1].trim()
+            }
+        }
+    }
+    return envMap
+}
+
+// Helper function to read local.properties
+fun readLocalProperties(projectDir: File): Properties {
+    val properties = Properties()
+    val propertiesFile = File(projectDir, "local.properties")
+    if (propertiesFile.exists()) {
+        propertiesFile.inputStream().use { input ->
+            properties.load(input)
+        }
+    } else {
+        println("Warning: local.properties file not found at ${propertiesFile.absolutePath}")
+    }
+    return properties
+}
+
+// Load variables globally for all projects
+gradle.beforeProject {
+    if(project == rootProject) { // Only execute once for the root project
+        val envVariables = readDotEnv(rootProject.projectDir)
+        val localProperties = readLocalProperties(rootProject.projectDir)
+
+        // Store them in rootProject.extra so any module can access them
+        rootProject.extra.set("envVariables", envVariables)
+        rootProject.extra.set("localProperties", localProperties)
+
+        println("Loaded variables into rootProject.extra:")
+        println("  Env variables: ${envVariables.keys}")
+        println("  Local properties: ${localProperties.stringPropertyNames()}")
+    }
+}
 
 pluginManagement {
     repositories {

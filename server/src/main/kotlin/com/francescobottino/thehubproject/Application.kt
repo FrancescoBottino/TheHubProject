@@ -2,7 +2,6 @@ package com.francescobottino.thehubproject
 
 import com.francescobottino.thehubproject.auth.configureRoutingAuth
 import com.francescobottino.thehubproject.auth.configureSecurity
-import com.francescobottino.thehubproject.config.PlatformConfig
 import com.francescobottino.thehubproject.data.UserRepository
 import io.github.cdimascio.dotenv.dotenv
 import io.ktor.serialization.kotlinx.json.*
@@ -11,6 +10,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import org.koin.dsl.module
@@ -24,18 +24,18 @@ fun main() {
         systemProperties = true // Also load into system properties (optional)
     }
 
-    val port = System.getenv("PORT")?.toIntOrNull()
-        ?: if(PlatformConfig.isDebug) 8080 else throw Exception("PORT environment variable not set.")
-
     embeddedServer(
         factory = Netty,
-        port = port,
-        host = System.getenv("HOST") ?: "0.0.0.0",
+        port = ServerConfig.port,
+        host = ServerConfig.host,
         module = Application::module
     ).start(wait = true)
 }
 
 fun Application.module() {
+    log.info("Starting TheHubProject...")
+    log.info("isProduction: ${ServerConfig.isProduction}")
+
     install(ContentNegotiation) {
         json(mainJson)
     }
@@ -57,10 +57,10 @@ fun Application.module() {
 
         allowCredentials = false
 
-        if(PlatformConfig.isDebug) {
-            anyHost()
+        if (ServerConfig.isProduction) {
+            allowHost(ServerConfig.productionEndpoint, schemes = listOf("https"))
         } else {
-            allowHost(PlatformConfig.serverEndpoint, schemes = listOf("https"))
+            anyHost()
         }
     }
 
@@ -81,5 +81,7 @@ fun Application.module() {
         configureRoutingAuth()
         configureRoutingUser()
         configureRoutingGames()
+
+        get("/") { call.respondText("Hello World!") }
     }
 }

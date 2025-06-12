@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
+import java.util.*
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -11,6 +12,7 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
+    alias(libs.plugins.buildconfig)
 }
 
 kotlin {
@@ -159,4 +161,17 @@ compose.desktop {
             packageVersion = "1.0.0"
         }
     }
+}
+
+val envVariables: Map<String, String> by rootProject.extra
+val localProperties: Properties by rootProject.extra
+
+buildConfig {
+    packageName("com.francescobottino.thehubproject")
+    useKotlinOutput()
+
+    buildConfigField<String>("PRODUCTION_ENDPOINT", envVariables["PRODUCTION_ENDPOINT"]!!.removeSurrounding("\""))
+    buildConfigField<String>("ENVIRONMENT", envVariables["ENVIRONMENT"]!!.removeSurrounding("\""))
+    buildConfigField<String>("DEV_SERVER_IP", (localProperties["dev_server_ip"] as? String)!!)
+    buildConfigField<Int>("DEV_SERVER_PORT", envVariables["PORT"]!!.toInt())
 }

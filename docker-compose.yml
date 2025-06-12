@@ -25,6 +25,8 @@ services:
     depends_on:
       - db
     environment:
+      PRODUCTION_ENDPOINT: ${PRODUCTION_ENDPOINT}
+      ENVIRONMENT: ${ENVIRONMENT}
       JWT_SECRET: ${JWT_SECRET}
       JWT_ISSUER: ${JWT_ISSUER}
       JWT_AUDIENCE: ${JWT_AUDIENCE}
