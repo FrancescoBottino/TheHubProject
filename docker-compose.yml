@@ -1,8 +1,7 @@
-# docker-compose.yml
 services:
-  the_hub_project:
+  db:
     image: postgres:15
-    container_name: db_dev
+    container_name: db
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${DB_USER}
@@ -12,6 +11,35 @@ services:
       - "5432:5432"
     volumes:
       - db_dev_data:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: server
+    restart: unless-stopped
+    ports:
+      - "${PORT}:${PORT}"
+    depends_on:
+      - db
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ISSUER: ${JWT_ISSUER}
+      JWT_AUDIENCE: ${JWT_AUDIENCE}
+      USE_IN_MEMORY_DB: ${USE_IN_MEMORY_DB}
+      DB_URL: jdbc:postgresql://db:5432/${DB_NAME}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      PORT: ${PORT}
+      HOST: ${HOST}
+    networks:
+      - backend
 
 volumes:
   db_dev_data:
+
+networks:
+  backend:
