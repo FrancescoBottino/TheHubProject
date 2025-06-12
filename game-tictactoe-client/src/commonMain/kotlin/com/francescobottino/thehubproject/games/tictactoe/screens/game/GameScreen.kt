@@ -70,8 +70,7 @@ private fun GameScreenContent(
         Spacer(Modifier.height(24.dp))
 
         OpponentConnectionStatus(
-            connected = state.opponentConnected,
-            label = state.opponentLabel,
+            opponentState = state.opponentState,
             modifier = Modifier.fillMaxWidth(),
         )
 
@@ -149,14 +148,20 @@ private fun GameScreenContent(
 
 @Composable
 private fun OpponentConnectionStatus(
-    connected: Boolean,
-    label: String?,
+    opponentState: GameScreenState.OpponentState,
     modifier: Modifier = Modifier,
 ) {
-    val color = if(connected)
-        MaterialTheme.colorScheme.primary
-    else
-        MaterialTheme.colorScheme.error
+    val color = when(opponentState) {
+        is GameScreenState.OpponentState.WaitingForOpponent -> MaterialTheme.colorScheme.onSurface
+        is GameScreenState.OpponentState.Connected -> MaterialTheme.colorScheme.primary
+        is GameScreenState.OpponentState.Disconnected -> MaterialTheme.colorScheme.onError
+    }
+
+    val label = when(opponentState) {
+        is GameScreenState.OpponentState.WaitingForOpponent -> "Waiting for opponent..."
+        is GameScreenState.OpponentState.Connected -> opponentState.username
+        is GameScreenState.OpponentState.Disconnected -> opponentState.username ?: "Disconnected"
+    }
 
     val shape = RoundedCornerShape(50)
 
@@ -172,8 +177,14 @@ private fun OpponentConnectionStatus(
                 .background(color = MaterialTheme.colorScheme.surface)
                 .padding(vertical = 6.dp, horizontal = 12.dp),
         ) {
-            Text(text = label ?: "")
-            Box(modifier = Modifier.requiredSize(16.dp).clip(CircleShape).background(color))
+            Text(text = label)
+            if(opponentState is GameScreenState.OpponentState.WaitingForOpponent) {
+                Box(modifier = Modifier.requiredSize(16.dp).clip(CircleShape).background(color)) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                Box(modifier = Modifier.requiredSize(16.dp).clip(CircleShape).background(color))
+            }
         }
     }
 }
@@ -487,8 +498,7 @@ private fun GameScreenContentPreview_WaitingForOpponent() {
                 state = GameScreenState(
                     roomId = "2f9f6008-8b10-4d56-95ff-957d8fdf91a2",
                     roomState = TicTacToeGameRoom.State.WaitingForOpponent,
-                    opponentConnected = false,
-                    opponentLabel = "Waiting for opponent",
+                    opponentState = GameScreenState.OpponentState.WaitingForOpponent,
                 ),
                 onEvent = {},
                 modifier = Modifier.fillMaxSize(),
@@ -508,8 +518,7 @@ private fun GameScreenContentPreview_InProgress() {
                 state = GameScreenState(
                     roomId = "2f9f6008-8b10-4d56-95ff-957d8fdf91a2",
                     roomState = TicTacToeGameRoom.State.InProgress,
-                    opponentConnected = true,
-                    opponentLabel = "Connected",
+                    opponentState = GameScreenState.OpponentState.Connected("User 2"),
                     board = mapOf(
                         TicTacToeBoardCell(0, 0) to TicTacToePlayerSign.X,
                         TicTacToeBoardCell(0, 1) to TicTacToePlayerSign.O,
@@ -534,8 +543,7 @@ private fun GameScreenContentPreview_Finished() {
                 state = GameScreenState(
                     roomId = "2f9f6008-8b10-4d56-95ff-957d8fdf91a2",
                     roomState = TicTacToeGameRoom.State.InProgress,
-                    opponentConnected = true,
-                    opponentLabel = "Connected",
+                    opponentState = GameScreenState.OpponentState.Disconnected("User 2"),
                     board = mapOf(
                         TicTacToeBoardCell(0, 0) to TicTacToePlayerSign.X,
                         TicTacToeBoardCell(0, 1) to TicTacToePlayerSign.O,

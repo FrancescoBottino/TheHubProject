@@ -95,10 +95,10 @@ class GameScreenModel(
                                     && opponent != null
                                     && update.connectedPlayerIds.contains(opponent.user.id)
 
-                            val opponentLabel = when {
-                                opponentConnected -> "Connected"
-                                update.roomState is TicTacToeGameRoom.State.WaitingForOpponent -> "Waiting for opponent"
-                                else -> "Disconnected"
+                            val opponentState = when {
+                                update.roomState is TicTacToeGameRoom.State.WaitingForOpponent -> GameScreenState.OpponentState.WaitingForOpponent
+                                opponentConnected -> GameScreenState.OpponentState.Connected(opponent.user.username)
+                                else -> GameScreenState.OpponentState.Disconnected(opponent?.user?.username)
                             }
 
                             val isUserTurn = update.roomState is TicTacToeGameRoom.State.InProgress
@@ -125,8 +125,7 @@ class GameScreenModel(
                                     isUserHost = isUserHost,
                                     roomState = update.roomState,
                                     userLabel = user.username,
-                                    opponentConnected = opponentConnected,
-                                    opponentLabel = opponentLabel,
+                                    opponentState = opponentState,
                                     finishState = finishState,
                                 )
                             }

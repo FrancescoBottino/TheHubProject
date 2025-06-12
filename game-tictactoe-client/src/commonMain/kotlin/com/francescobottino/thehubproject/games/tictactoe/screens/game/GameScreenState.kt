@@ -8,7 +8,7 @@ data class GameScreenState(
     val roomId: String = "",
     val board: TicTacToeGameState = emptyMap(),
     val userLabel: String? = null,
-    val opponentConnected: Boolean = false,
+    val opponentState: OpponentState = OpponentState.WaitingForOpponent,
     val opponentLabel: String? = null,
     val isUserTurn: Boolean = false,
     val isUserHost: Boolean = false,
@@ -19,6 +19,12 @@ data class GameScreenState(
     val isLoading: Boolean = false,
     val dialog: Dialog? = null,
 ) {
+    sealed interface OpponentState {
+        data object WaitingForOpponent: OpponentState
+        data class Connected(val username: String): OpponentState
+        data class Disconnected(val username: String?): OpponentState
+    }
+
     data class Dialog(
         val title: String,
         val message: String? = null,
