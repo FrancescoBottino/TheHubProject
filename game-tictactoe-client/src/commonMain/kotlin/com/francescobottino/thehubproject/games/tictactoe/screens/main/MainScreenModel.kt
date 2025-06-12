@@ -2,9 +2,9 @@ package com.francescobottino.thehubproject.games.tictactoe.screens.main
 
 import cafe.adriel.voyager.core.model.screenModelScope
 import cafe.adriel.voyager.navigator.Navigator
-import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeJoinRoomResponseError
-import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeMakeRoomRequest
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToePlayerSign
+import com.francescobottino.thehubproject.games.tictactoe.model.api.TicTacToeJoinRoomResponseError
+import com.francescobottino.thehubproject.games.tictactoe.model.api.TicTacToeMakeRoomRequest
 import com.francescobottino.thehubproject.games.tictactoe.network.TicTacToeApi
 import com.francescobottino.thehubproject.games.tictactoe.screens.game.GameScreen
 import com.francescobottino.thehubproject.games.tictactoe.screens.user_games.UserGamesScreen

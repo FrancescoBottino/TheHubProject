@@ -9,4 +9,3 @@ object UsersTable: Table("users") {
 
     override val primaryKey = PrimaryKey(id)
 }
-

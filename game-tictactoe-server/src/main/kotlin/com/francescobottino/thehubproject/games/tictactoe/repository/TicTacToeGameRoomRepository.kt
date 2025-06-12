@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.Flow
 interface TicTacToeGameRoomRepository {
     fun storeRoom(room: TicTacToeGameRoom)
     fun getRoom(id: String): TicTacToeGameRoom?
-    fun updateRoom(roomId: String, updater: (TicTacToeGameRoom?) -> TicTacToeGameRoom?)
     fun getRoomUpdates(id: String): Flow<TicTacToeGameRoom>
     fun deleteRoom(id: String)
     fun getRoomsOfUser(userId: String): List<TicTacToeGameRoom>

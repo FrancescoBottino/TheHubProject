@@ -1,7 +1,14 @@
 package com.francescobottino.thehubproject.games.tictactoe.usecase
 
 import arrow.core.Either
-import com.francescobottino.thehubproject.games.tictactoe.model.*
+import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeBoardCell
+import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeGameRoom
+import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToePlayer
+import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToePlayerSign
+import com.francescobottino.thehubproject.games.tictactoe.model.api.TicTacToeCloseGameResponseError
+import com.francescobottino.thehubproject.games.tictactoe.model.api.TicTacToeJoinRoomResponseError
+import com.francescobottino.thehubproject.games.tictactoe.model.api.TicTacToeMakeMoveResponseError
+import com.francescobottino.thehubproject.games.tictactoe.model.api.TicTacToeRestartGameResponseError
 import com.francescobottino.thehubproject.games.tictactoe.repository.TicTacToeGameRoomRepository
 import com.francescobottino.thehubproject.model.UserResponse
 import kotlinx.datetime.Clock
@@ -105,17 +112,22 @@ class TicTacToeUseCases(
         return Either.Right(Unit)
     }
 
-    fun close(playerId: String, roomId: String) {
-        repo.updateRoom(roomId) {
-            val room = it ?: throw IllegalStateException("Room not found")
+    fun close(playerId: String, roomId: String): Either<TicTacToeCloseGameResponseError, Unit> {
+        val room = repo.getRoom(roomId) ?: return Either.Left(TicTacToeCloseGameResponseError.ROOM_NOT_FOUND)
 
-            val player = room.players.singleOrNull { it.user.id == playerId }
-            require(player != null) { "Player not found" }
+        val player = room.players.singleOrNull { it.user.id == playerId }
 
+        if(player == null) {
+            return Either.Left(TicTacToeCloseGameResponseError.PLAYER_NOT_IN_ROOM)
+        }
+
+        repo.storeRoom(
             room.copy(
                 roomState = TicTacToeGameRoom.State.Closed(player),
                 lastUpdate = Clock.System.now(),
             )
-        }
+        )
+
+        return Either.Right(Unit)
     }
 }

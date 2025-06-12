@@ -1,4 +1,4 @@
-package com.francescobottino.thehubproject.games.tictactoe.model
+package com.francescobottino.thehubproject.games.tictactoe.model.api
 
 import kotlinx.serialization.Serializable
 

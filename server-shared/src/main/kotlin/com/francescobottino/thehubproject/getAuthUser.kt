@@ -1,6 +1,6 @@
 package com.francescobottino.thehubproject
 
-import com.francescobottino.thehubproject.auth.JwtConfig
+import com.francescobottino.thehubproject.auth.USER_ID_CLAIM
 import com.francescobottino.thehubproject.data.UserRepository
 import com.francescobottino.thehubproject.model.User
 import io.ktor.server.application.*
@@ -10,7 +10,7 @@ import org.koin.ktor.ext.inject
 
 fun ApplicationCall.getAuthUserId(): String? {
     val principal = principal<JWTPrincipal>()
-    return principal?.payload?.getClaim(JwtConfig.USER_ID_CLAIM)?.asString()
+    return principal?.payload?.getClaim(USER_ID_CLAIM)?.asString()
 }
 
 suspend fun ApplicationCall.getAuthUser(): User? {

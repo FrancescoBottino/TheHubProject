@@ -3,8 +3,8 @@ package com.francescobottino.thehubproject.games.tictactoe
 import com.francescobottino.thehubproject.*
 import com.francescobottino.thehubproject.auth.AUTH_JWT
 import com.francescobottino.thehubproject.games.tictactoe.di.ticTacToeModule
-import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeMakeMoveRequest
-import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeMakeRoomRequest
+import com.francescobottino.thehubproject.games.tictactoe.model.api.TicTacToeMakeMoveRequest
+import com.francescobottino.thehubproject.games.tictactoe.model.api.TicTacToeMakeRoomRequest
 import com.francescobottino.thehubproject.games.tictactoe.repository.TicTacToeGameRoomRepository
 import com.francescobottino.thehubproject.games.tictactoe.usecase.TicTacToeUseCases
 import com.francescobottino.thehubproject.model.safe
@@ -222,8 +222,10 @@ private suspend fun DefaultWebSocketServerSession.getUpdates() {
     }
 
     log.debug("updating room with player connection")
-    repo.updateRoom(roomId) { roomUpdate ->
-        roomUpdate?.copy(connectedPlayerIds = roomUpdate.connectedPlayerIds + userId)
+    repo.getRoom(roomId)?.let { roomUpdate ->
+        repo.storeRoom(
+            roomUpdate.copy(connectedPlayerIds = roomUpdate.connectedPlayerIds + userId)
+        )
     }
 
     launch {
@@ -231,8 +233,10 @@ private suspend fun DefaultWebSocketServerSession.getUpdates() {
 
         log.debug("Client closed the connection")
         log.debug("updating room with player disconnection")
-        repo.updateRoom(roomId) { roomUpdate ->
-            roomUpdate?.copy(connectedPlayerIds = roomUpdate.connectedPlayerIds - userId)
+        repo.getRoom(roomId)?.let { roomUpdate ->
+            repo.storeRoom(
+                roomUpdate.copy(connectedPlayerIds = roomUpdate.connectedPlayerIds - userId)
+            )
         }
         close(CloseReason(CloseReason.Codes.NORMAL, "Client closed the connection"))
 
@@ -248,8 +252,10 @@ private suspend fun DefaultWebSocketServerSession.getUpdates() {
     }.onFailure {
         log.debug("error collecting updates: $it | ${it.message} | ${it.stackTraceToString()}")
         log.debug("updating room with player disconnection")
-        repo.updateRoom(roomId) { roomUpdate ->
-            roomUpdate?.copy(connectedPlayerIds = roomUpdate.connectedPlayerIds - userId)
+        repo.getRoom(roomId)?.let { roomUpdate ->
+            repo.storeRoom(
+                roomUpdate.copy(connectedPlayerIds = roomUpdate.connectedPlayerIds - userId)
+            )
         }
         close(CloseReason(CloseReason.Codes.INTERNAL_ERROR, "Error relaying updates"))
     }

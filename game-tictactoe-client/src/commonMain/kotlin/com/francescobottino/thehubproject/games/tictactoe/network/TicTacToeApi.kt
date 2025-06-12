@@ -1,7 +1,8 @@
 package com.francescobottino.thehubproject.games.tictactoe.network
 
 import arrow.core.Either
-import com.francescobottino.thehubproject.games.tictactoe.model.*
+import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeGameRoom
+import com.francescobottino.thehubproject.games.tictactoe.model.api.*
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.websocket.*
