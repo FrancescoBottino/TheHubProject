@@ -10,11 +10,11 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import org.kodein.di.instance
-import org.kodein.di.ktor.closestDI
+import org.koin.ktor.ext.inject
 import java.util.*
 
 fun Routing.configureRoutingAuth() {
+
     route("auth") {
         post("register") { register() }
         post("login") { login() }
@@ -22,7 +22,7 @@ fun Routing.configureRoutingAuth() {
 }
 
 private suspend fun RoutingContext.register() {
-    val userRepository by closestDI().instance<UserRepository>()
+    val userRepository by call.inject<UserRepository>()
 
     val request = try {
         call.receive<AuthRequest>()
@@ -56,7 +56,7 @@ private suspend fun RoutingContext.register() {
 }
 
 private suspend fun RoutingContext.login() {
-    val userRepository by closestDI().instance<UserRepository>()
+    val userRepository by call.inject<UserRepository>()
 
     val request = try {
         call.receive<AuthRequest>()

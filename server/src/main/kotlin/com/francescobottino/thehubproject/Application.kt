@@ -19,8 +19,9 @@ import io.ktor.server.websocket.pingPeriod
 import io.ktor.server.websocket.timeout
 import io.ktor.server.websocket.webSocket
 import io.ktor.websocket.*
-import org.kodein.di.bindSingleton
-import org.kodein.di.ktor.di
+import org.koin.dsl.module
+import org.koin.ktor.plugin.Koin
+import org.koin.logger.slf4jLogger
 import kotlin.time.Duration.Companion.seconds
 
 fun main() {
@@ -70,8 +71,14 @@ fun Application.module() {
     }
 
     val database = configureDatabase()
-    di {
-        bindSingleton<UserRepository> { configureUserRepository(database) }
+
+    install(Koin) {
+        slf4jLogger()
+        modules(
+            module {
+                single<UserRepository> { configureUserRepository(database) }
+            },
+        )
     }
 
     configureSecurity()

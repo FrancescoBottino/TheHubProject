@@ -16,17 +16,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.kodein.di.DI
-import org.kodein.di.DIAware
-import org.kodein.di.instance
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 class GameScreenModel(
-    override val di: DI,
     private val navigator: Navigator,
     private val roomId: String,
-): StatefulScreenModel<GameScreenState, GameScreenEvent>(), DIAware {
-    val userRepository by instance<UserRepository>()
-    val api by instance<TicTacToeApi>()
+): StatefulScreenModel<GameScreenState, GameScreenEvent>(), KoinComponent {
+    val userRepository by inject<UserRepository>()
+    val api by inject<TicTacToeApi>()
 
     private var roomUpdateJob: Job? = null
     private var ws: DefaultClientWebSocketSession? = null

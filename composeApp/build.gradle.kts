@@ -36,7 +36,7 @@ kotlin {
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        moduleName = "composeApp"
+        outputModuleName = "composeApp"
         browser {
             val rootDirPath = project.rootDir.path
             val projectDirPath = project.projectDir.path
@@ -76,8 +76,9 @@ kotlin {
             implementation(libs.kotlinx.serialization.core)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.kotlinx.datetime)
-            implementation(libs.kodein)
-            implementation(libs.kodein.compose)
+            implementation(project.dependencies.platform(libs.koin.bom))
+            implementation(libs.koin.core)
+            implementation(libs.koin.compose)
             implementation(libs.voyager.navigator)
             implementation(libs.voyager.screenmodel)
             implementation(libs.composeIcons.feather)
@@ -94,6 +95,7 @@ kotlin {
             implementation(libs.ktor.client.okhttp)
             implementation(libs.slf4j.api)
             implementation(libs.slf4j.android)
+            implementation(libs.koin.android)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)

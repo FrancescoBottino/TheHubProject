@@ -12,15 +12,13 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import org.kodein.di.DI
-import org.kodein.di.DIAware
-import org.kodein.di.instance
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 class UserGamesScreenModel(
-    override val di: DI,
     private val navigator: Navigator,
-): StatefulScreenModel<UserGamesScreenState, UserGamesScreenEvent>(), DIAware {
-    private val api by instance<TicTacToeApi>()
+): StatefulScreenModel<UserGamesScreenState, UserGamesScreenEvent>(), KoinComponent {
+    private val api by inject<TicTacToeApi>()
 
     private var refreshJob: Job? = null
 

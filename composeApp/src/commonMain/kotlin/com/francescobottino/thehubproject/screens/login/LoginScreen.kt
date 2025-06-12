@@ -22,14 +22,12 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Eye
 import compose.icons.feathericons.EyeOff
-import org.kodein.di.compose.localDI
 
 object LoginScreen: Screen {
     @Composable
     override fun Content() {
-        val di = localDI()
         val navigator = LocalNavigator.currentOrThrow
-        val screenModel = rememberScreenModel { LoginScreenModel(di, navigator) }
+        val screenModel = rememberScreenModel { LoginScreenModel(navigator) }
         val state by screenModel.state.collectAsState()
 
         LoginScreenContent(

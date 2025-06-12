@@ -6,8 +6,7 @@ import com.francescobottino.thehubproject.model.User
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
-import org.kodein.di.instance
-import org.kodein.di.ktor.closestDI
+import org.koin.ktor.ext.inject
 
 fun ApplicationCall.getAuthUserId(): String? {
     val principal = principal<JWTPrincipal>()
@@ -15,6 +14,6 @@ fun ApplicationCall.getAuthUserId(): String? {
 }
 
 suspend fun ApplicationCall.getAuthUser(): User? {
-    val userRepository by closestDI().instance<UserRepository>()
+    val userRepository by inject<UserRepository>()
     return getAuthUserId()?.let { userRepository.findById(it) }
 }

@@ -25,14 +25,12 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.ui.tooling.preview.Preview
-import org.kodein.di.compose.localDI
 
 object UserGamesScreen: Screen {
     @Composable
     override fun Content() {
-        val di = localDI()
         val navigator = LocalNavigator.currentOrThrow
-        val screenModel = rememberScreenModel { UserGamesScreenModel(di, navigator) }
+        val screenModel = rememberScreenModel { UserGamesScreenModel(navigator) }
         val state by screenModel.state.collectAsState()
 
         UserGamesScreenContent(

@@ -14,16 +14,14 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.francescobottino.thehubproject.GameModule
-import org.kodein.di.compose.localDI
-import org.kodein.di.instance
+import org.koin.compose.getKoin
 
 object GameSelectionScreen: Screen {
     @Composable
     override fun Content() {
-        val di = localDI()
         val navigator = LocalNavigator.currentOrThrow
 
-        val games: Set<GameModule> by di.instance()
+        val games = getKoin().getAll<GameModule>()
 
         Column {
             games.forEach { game ->

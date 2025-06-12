@@ -30,8 +30,10 @@ dependencies {
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.datetime)
-    implementation(libs.kodein)
-    implementation(libs.kodein.ktorServer)
+    implementation(project.dependencies.platform(libs.koin.bom))
+    implementation(libs.koin.core)
+    implementation(libs.koin.ktor)
+    implementation(libs.koin.logger.slf4j)
     implementation(libs.dotenv)
 
     implementation(projects.shared)

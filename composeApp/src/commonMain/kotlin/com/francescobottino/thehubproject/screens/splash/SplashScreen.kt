@@ -19,14 +19,12 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import org.kodein.di.compose.localDI
 
 object SplashScreen: Screen {
     @Composable
     override fun Content() {
-        val di = localDI()
         val navigator = LocalNavigator.currentOrThrow
-        val screenModel = rememberScreenModel { SplashScreenModel(di, navigator) }
+        val screenModel = rememberScreenModel { SplashScreenModel(navigator) }
 
         val state by screenModel.state.collectAsState()
 

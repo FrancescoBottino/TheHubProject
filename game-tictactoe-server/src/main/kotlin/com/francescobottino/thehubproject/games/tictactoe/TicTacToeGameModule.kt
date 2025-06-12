@@ -1,119 +1,254 @@
 package com.francescobottino.thehubproject.games.tictactoe
 
-import arrow.core.Either
-import com.francescobottino.thehubproject.games.tictactoe.model.*
-import kotlinx.datetime.Clock
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
+import com.francescobottino.thehubproject.GameModule
+import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeMakeMoveRequest
+import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeMakeRoomRequest
+import com.francescobottino.thehubproject.getAuthUserId
+import com.francescobottino.thehubproject.log
+import com.francescobottino.thehubproject.mainJson
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import io.ktor.server.util.*
+import io.ktor.server.websocket.*
+import io.ktor.websocket.*
+import kotlinx.coroutines.launch
+import org.koin.core.context.loadKoinModules
+import org.koin.ktor.ext.inject
 
-@OptIn(ExperimentalUuidApi::class)
-class TicTacToeGameModule(
-    private val repo: TicTacToeGameRoomRepository,
-) {
-    fun getMyRooms(userId: String): List<TicTacToeGameRoom> {
-        return repo.getRoomsOfUser(userId)
+object TicTacToeGameModule: GameModule {
+    override fun Route.configure() {
+        route("tictactoe") {
+            loadKoinModules(ticTacToeModule)
+
+            authenticate("auth-jwt") {
+                get("my-rooms") { myRooms() }
+                route("room") {
+                    post("make") { makeRoom() }
+
+                    route("{roomId}") {
+                        post("join") { joinRoom() }
+                        post("move") { makeMove() }
+                        post("restart") { restart() }
+                        webSocket("updates") { getUpdates() }
+                    }
+                }
+            }
+        }
+    }
+}
+
+private suspend fun RoutingContext.myRooms() {
+    val module by call.inject<TicTacToeUseCases>()
+
+    val userId = call.getAuthUserId() ?: run {
+        call.respond(HttpStatusCode.Unauthorized, "User not found or invalid token")
+        return
     }
 
-    fun makeRoom(playerId: String, chosenSign: TicTacToePlayerSign, startingSign: TicTacToePlayerSign): String {
-        val room = TicTacToeGameRoom(
-            id = Uuid.random().toString(),
-            hostPlayer = TicTacToePlayer(
-                id = playerId,
-                sign = chosenSign,
-            ),
-            currentPlayerSign = startingSign
+    try {
+        val roomIds = module.getMyRooms(userId = userId)
+        call.respond(HttpStatusCode.OK, message = roomIds)
+    } catch (e: Exception) {
+        call.application.log.error("myRooms failed", e)
+        call.respond(HttpStatusCode.InternalServerError, message = e.message ?: "Unknown error occurred")
+    }
+}
+
+private suspend fun RoutingContext.makeRoom() {
+    val module by call.inject<TicTacToeUseCases>()
+
+    val userId = call.getAuthUserId() ?: run {
+        call.respond(HttpStatusCode.Unauthorized, "User not found or invalid token")
+        return
+    }
+
+    val request = try {
+        call.receive<TicTacToeMakeRoomRequest>()
+    } catch (e: Exception) {
+        call.respond(HttpStatusCode.BadRequest, e.message ?: "Invalid request")
+        return
+    }
+
+    try {
+        val roomId = module.makeRoom(
+            playerId = userId,
+            chosenSign = request.chosenSign,
+            startingSign = request.startingSign,
+        )
+        call.respond(HttpStatusCode.OK, message = roomId)
+    } catch (e: Exception) {
+        call.application.log.error("makeRoom failed", e)
+        call.respond(HttpStatusCode.InternalServerError, message = e.message ?: "Unknown error occurred")
+    }
+}
+
+private suspend fun RoutingContext.joinRoom() {
+    val module by call.inject<TicTacToeUseCases>()
+
+    val userId = call.getAuthUserId() ?: run {
+        call.respond(HttpStatusCode.Unauthorized, "User not found or invalid token")
+        return
+    }
+
+    val roomId = try {
+        call.parameters.getOrFail<String>("roomId")
+    } catch (e: Exception) {
+        call.respond(HttpStatusCode.BadRequest, e.message ?: "Invalid request")
+        return
+    }
+
+    try {
+        log.debug("user $userId is attempting to join room $roomId")
+
+        val result = module.joinRoom(
+            playerId = userId,
+            roomId = roomId,
         )
 
-        repo.storeRoom(room)
+        log.debug("result $result")
 
-        return room.id
+        result.onRight {
+            call.respond(HttpStatusCode.OK)
+        }.onLeft {
+            call.respond(HttpStatusCode.BadRequest, it)
+        }
+    } catch (e: Exception) {
+        call.application.log.error("joinRoom failed", e)
+        call.respond(HttpStatusCode.InternalServerError, message = e.message ?: "Unknown error occurred")
+    }
+}
+
+private suspend fun RoutingContext.makeMove() {
+    val module by call.inject<TicTacToeUseCases>()
+
+    val userId = call.getAuthUserId() ?: run {
+        call.respond(HttpStatusCode.Unauthorized, "User not found or invalid token")
+        return
     }
 
-    fun joinRoom(playerId: String, roomId: String): Either<TicTacToeJoinRoomResponseError, Unit> {
-        val room = repo.getRoom(roomId) ?: return Either.Left(TicTacToeJoinRoomResponseError.ROOM_NOT_FOUND)
+    val roomId = try {
+        call.parameters.getOrFail<String>("roomId")
+    } catch (e: Exception) {
+        call.respond(HttpStatusCode.BadRequest, e.message ?: "Invalid request")
+        return
+    }
 
-        if(room.players.map { it.id }.contains(playerId)) {
-            return Either.Left(TicTacToeJoinRoomResponseError.PLAYER_ALREADY_IN_ROOM)
-        }
+    val request = try {
+        call.receive<TicTacToeMakeMoveRequest>()
+    } catch (e: Exception) {
+        call.respond(HttpStatusCode.BadRequest, e.message ?: "Invalid request")
+        return
+    }
 
-        if(room.opponentPlayer != null) {
-            return Either.Left(TicTacToeJoinRoomResponseError.ROOM_ALREADY_FULL)
-        }
-
-        repo.storeRoom(
-            room.copy(
-                opponentPlayer = TicTacToePlayer(
-                    id = playerId,
-                    sign = room.hostPlayer.sign.otherSign(),
-                ),
-                roomState = TicTacToeGameRoom.State.InProgress,
-                lastUpdate = Clock.System.now(),
-            )
+    try {
+        val result = module.makeMove(
+            playerId = userId,
+            roomId = roomId,
+            cell = request.cell,
         )
 
-        return Either.Right(Unit)
+        result.onRight {
+            call.respond(HttpStatusCode.OK)
+        }.onLeft {
+            call.respond(HttpStatusCode.BadRequest, it)
+        }
+    } catch (e: Exception) {
+        call.application.log.error("makeMove failed", e)
+        call.respond(HttpStatusCode.InternalServerError, message = e.message ?: "Invalid request")
+    }
+}
+
+private suspend fun RoutingContext.restart() {
+    val module by call.inject<TicTacToeUseCases>()
+
+    val userId = call.getAuthUserId() ?: run {
+        call.respond(HttpStatusCode.Unauthorized, "User not found or invalid token")
+        return
     }
 
-    fun makeMove(playerId: String, roomId: String, cell: TicTacToeBoardCell): Either<TicTacToeMakeMoveResponseError, Unit> {
-        val room = repo.getRoom(roomId) ?: return Either.Left(TicTacToeMakeMoveResponseError.ROOM_NOT_FOUND)
+    val roomId = try {
+        call.parameters.getOrFail<String>("roomId")
+    } catch (e: Exception) {
+        call.respond(HttpStatusCode.BadRequest, e.message ?: "Invalid request")
+        return
+    }
 
-        val player = room.players.singleOrNull { it.id == playerId }
-
-        if(player == null) {
-            return Either.Left(TicTacToeMakeMoveResponseError.PLAYER_NOT_IN_ROOM)
-        }
-        if(room.currentPlayerSign != player.sign) {
-            return Either.Left(TicTacToeMakeMoveResponseError.NOT_YOUR_TURN)
-        }
-        if(room.roomState !is TicTacToeGameRoom.State.InProgress) {
-            return Either.Left(TicTacToeMakeMoveResponseError.GAME_NOT_IN_PROGRESS)
-        }
-
-        repo.storeRoom(
-            room.copy(
-                gameState = room.gameState + (cell to player.sign),
-                currentPlayerSign = player.sign.otherSign(),
-                lastUpdate = Clock.System.now(),
-            ).updateWinner()
+    try {
+        val result = module.restartGame(
+            playerId = userId,
+            roomId = roomId,
         )
 
-        return Either.Right(Unit)
+        result.onRight {
+            call.respond(HttpStatusCode.OK)
+        }.onLeft {
+            call.respond(HttpStatusCode.BadRequest, it)
+        }
+    } catch (e: Exception) {
+        call.application.log.error("restart failed", e)
+        call.respond(HttpStatusCode.InternalServerError, message = e.message ?: "Invalid request")
+    }
+}
+
+context(route: Route)
+private suspend fun DefaultWebSocketServerSession.getUpdates() {
+    val repo by call.inject<TicTacToeGameRoomRepository>()
+
+    val userId = call.getAuthUserId() ?: run {
+        call.respond(HttpStatusCode.Unauthorized, "User not found or invalid token")
+        return
+    }
+    val roomId = call.parameters["roomId"]!!
+
+    log.debug("User $userId is connected to updates")
+
+    val room = repo.getRoom(roomId)
+    if (room == null) {
+        log.debug("room $roomId does not exist")
+        call.respond(HttpStatusCode.BadRequest, "Invalid request, room does not exist")
+        return
     }
 
-    fun restartGame(playerId: String, roomId: String): Either<TicTacToeRestartGameResponseError, Unit> {
-        val room = repo.getRoom(roomId) ?: return Either.Left(TicTacToeRestartGameResponseError.ROOM_NOT_FOUND)
-
-        val roomState = room.roomState
-        if(roomState !is TicTacToeGameRoom.State.Finished) {
-            return Either.Left(TicTacToeRestartGameResponseError.GAME_NOT_FINISHED)
-        }
-        if(playerId != room.hostPlayer.id) {
-            return Either.Left(TicTacToeRestartGameResponseError.NOT_THE_HOST)
-        }
-
-        repo.storeRoom(
-            room.copy(
-                gameState = emptyMap(),
-                roomState = TicTacToeGameRoom.State.InProgress,
-                pastGamesWinners = room.pastGamesWinners + roomState.winner,
-                lastUpdate = Clock.System.now(),
-            )
-        )
-
-        return Either.Right(Unit)
+    if (!room.players.map { it.id }.contains(userId)) {
+        log.debug("player is not in room")
+        call.respond(HttpStatusCode.BadRequest, "Invalid request, player is not in room")
+        return
     }
 
-    fun close(playerId: String, roomId: String) {
-        repo.updateRoom(roomId) {
-            val room = it ?: throw IllegalStateException("Room not found")
+    log.debug("updating room with player connection")
+    repo.updateRoom(roomId) { roomUpdate ->
+        roomUpdate?.copy(connectedPlayerIds = roomUpdate.connectedPlayerIds + userId)
+    }
 
-            val player = room.players.singleOrNull { it.id == playerId }
-            require(player != null) { "Player not found" }
+    launch {
+        for(frame in incoming) { /*nothing*/ }
 
-            room.copy(
-                roomState = TicTacToeGameRoom.State.Closed(player),
-                lastUpdate = Clock.System.now(),
-            )
+        log.debug("Client closed the connection")
+        log.debug("updating room with player disconnection")
+        repo.updateRoom(roomId) { roomUpdate ->
+            roomUpdate?.copy(connectedPlayerIds = roomUpdate.connectedPlayerIds - userId)
         }
+        close(CloseReason(CloseReason.Codes.NORMAL, "Client closed the connection"))
+
+        log.debug("stopped reading")
+    }
+
+    runCatching {
+        log.debug("collecting room updates for player $userId in room $roomId")
+        repo.getRoomUpdates(roomId).collect {
+            log.debug("on room update for player $userId in room $roomId, sending update to client")
+            send(Frame.Text(mainJson.encodeToString(it)))
+        }
+    }.onFailure {
+        log.debug("error collecting updates: $it | ${it.message} | ${it.stackTraceToString()}")
+        log.debug("updating room with player disconnection")
+        repo.updateRoom(roomId) { roomUpdate ->
+            roomUpdate?.copy(connectedPlayerIds = roomUpdate.connectedPlayerIds - userId)
+        }
+        close(CloseReason(CloseReason.Codes.INTERNAL_ERROR, "Error relaying updates"))
     }
 }

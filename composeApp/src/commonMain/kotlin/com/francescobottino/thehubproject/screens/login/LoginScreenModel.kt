@@ -15,16 +15,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.kodein.di.DI
-import org.kodein.di.DIAware
-import org.kodein.di.instance
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 class LoginScreenModel(
-    override val di: DI,
     private val navigator: Navigator,
-): StatefulScreenModel<LoginScreenState, LoginScreenEvent>(), DIAware {
-    private val authRepo by di.instance<AuthRepository>()
-    private val userRepository by di.instance<UserRepository>()
+): StatefulScreenModel<LoginScreenState, LoginScreenEvent>(), KoinComponent {
+    private val authRepo by inject<AuthRepository>()
+    private val userRepository by inject<UserRepository>()
 
     private val _state = MutableStateFlow(LoginScreenState())
     override val state = _state.asStateFlow()

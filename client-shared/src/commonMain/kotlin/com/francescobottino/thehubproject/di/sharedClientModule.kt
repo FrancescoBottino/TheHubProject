@@ -2,9 +2,10 @@ package com.francescobottino.thehubproject.di
 
 import com.francescobottino.thehubproject.repo.InMemoryUserRepository
 import com.francescobottino.thehubproject.repo.UserRepository
-import org.kodein.di.DI
-import org.kodein.di.bindSingleton
+import org.koin.core.module.dsl.singleOf
+import org.koin.dsl.bind
+import org.koin.dsl.module
 
-val sharedClientModule = DI.Module("sharedClientModule") {
-    bindSingleton<UserRepository> { InMemoryUserRepository() }
+val sharedClientModule = module {
+    singleOf(::InMemoryUserRepository) bind UserRepository::class
 }

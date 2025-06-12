@@ -3,10 +3,10 @@ package com.francescobottino.thehubproject.games.tictactoe.di
 import com.francescobottino.thehubproject.GameModule
 import com.francescobottino.thehubproject.games.tictactoe.TicTacToeGameModule
 import com.francescobottino.thehubproject.games.tictactoe.network.TicTacToeApi
-import org.kodein.di.*
+import org.koin.core.module.dsl.singleOf
+import org.koin.dsl.module
 
-val tictactoeModule = DI.Module("games.tictactoe") {
-    inBindSet<GameModule> { add { singleton { TicTacToeGameModule } } }
-
-    bindSingleton { TicTacToeApi(instance()) }
+val tictactoeModule = module {
+    single<GameModule> { TicTacToeGameModule }
+    singleOf(::TicTacToeApi)
 }

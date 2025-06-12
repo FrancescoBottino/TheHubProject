@@ -15,18 +15,16 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.kodein.di.DI
-import org.kodein.di.DIAware
-import org.kodein.di.instance
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 
 class SplashScreenModel(
-    override val di: DI,
     private val navigator: Navigator,
-): StatefulScreenModel<SplashScreenState, SplashScreenEvent>(), DIAware {
-    private val authRepo by di.instance<AuthRepository>()
-    private val userApi by di.instance<UserApi>()
-    private val userRepo by di.instance<UserRepository>()
+): StatefulScreenModel<SplashScreenState, SplashScreenEvent>(), KoinComponent {
+    private val authRepo by inject<AuthRepository>()
+    private val userApi by inject<UserApi>()
+    private val userRepo by inject<UserRepository>()
 
     private val _state = MutableStateFlow(SplashScreenState())
     override val state = _state.asStateFlow()

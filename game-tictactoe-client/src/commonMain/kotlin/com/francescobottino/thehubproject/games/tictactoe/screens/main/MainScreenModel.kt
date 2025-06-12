@@ -13,15 +13,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.kodein.di.DI
-import org.kodein.di.DIAware
-import org.kodein.di.instance
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 class MainScreenModel(
-    override val di: DI,
     private val navigator: Navigator,
-): StatefulScreenModel<MainScreenState, MainScreenEvent>(), DIAware {
-    val api by di.instance<TicTacToeApi>()
+): StatefulScreenModel<MainScreenState, MainScreenEvent>(), KoinComponent {
+    val api by inject<TicTacToeApi>()
 
     private val _state = MutableStateFlow(MainScreenState())
     override val state = _state.asStateFlow()

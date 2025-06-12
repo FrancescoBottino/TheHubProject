@@ -1,6 +1,5 @@
 package com.francescobottino.thehubproject.di
 
-import com.francescobottino.thehubproject.GameModule
 import com.francescobottino.thehubproject.clientFeatureModule_Auth
 import com.francescobottino.thehubproject.games.tictactoe.di.tictactoeModule
 import com.francescobottino.thehubproject.network.TestApiService
@@ -8,20 +7,18 @@ import com.francescobottino.thehubproject.network.UserApi
 import com.francescobottino.thehubproject.network.makeHttpClient
 import com.francescobottino.thehubproject.repo.AuthRepository
 import io.ktor.client.*
-import org.kodein.di.*
+import org.koin.core.module.dsl.singleOf
+import org.koin.dsl.module
 
-val commonModule = DI.Module("commonModule") {
-    bindSingleton<HttpClient> { makeHttpClient { di.direct.instance<AuthRepository>().getToken() } }
-    bindSingleton<UserApi> { UserApi(instance()) }
-    bindSingleton<TestApiService> { TestApiService(instance()) }
+val commonModule = module {
+    single<HttpClient> { makeHttpClient { getKoin().get<AuthRepository>().getToken() } }
+    singleOf(::UserApi)
+    singleOf(::TestApiService)
 
-    import(sharedClientModule)
-    import(clientFeatureModule_Auth)
+    this.includes(
+        sharedClientModule,
+        clientFeatureModule_Auth,
 
-    bindSet<GameModule>()
-
-    importAll(
         tictactoeModule,
-
     )
 }

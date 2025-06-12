@@ -23,16 +23,15 @@ import com.francescobottino.thehubproject.screens.login.LoginScreen
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.ArrowLeft
 import kotlinx.coroutines.launch
-import org.kodein.di.compose.localDI
-import org.kodein.di.instance
+import org.koin.compose.koinInject
 
 object MainHostScreen: Screen {
     @Composable
     override fun Content() {
         val parentNavigator = LocalNavigator.currentOrThrow
         val scope = rememberCoroutineScope()
-        val authRepo by localDI().instance<AuthRepository>()
-        val userRepository by localDI().instance<UserRepository>()
+        val authRepo = koinInject<AuthRepository>()
+        val userRepository = koinInject<UserRepository>()
         val user by userRepository.getCurrentUserFlow().collectAsState()
 
         Navigator(GameSelectionScreen) { navigator ->

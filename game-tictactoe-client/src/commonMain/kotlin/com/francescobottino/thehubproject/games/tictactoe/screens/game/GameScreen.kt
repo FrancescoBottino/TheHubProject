@@ -29,14 +29,12 @@ import com.francescobottino.thehubproject.games.tictactoe.presentation.TicTacToe
 import com.francescobottino.thehubproject.games.tictactoe.presentation.TicTacToeCross
 import com.francescobottino.thehubproject.games.tictactoe.presentation.TicTacToeCrown
 import org.jetbrains.compose.ui.tooling.preview.Preview
-import org.kodein.di.compose.localDI
 
 class GameScreen(private val roomId: String): Screen {
     @Composable
     override fun Content() {
-        val di = localDI()
         val navigator = LocalNavigator.currentOrThrow
-        val screenModel by remember { mutableStateOf(GameScreenModel(di, navigator, roomId)) }
+        val screenModel by remember { mutableStateOf(GameScreenModel(navigator, roomId)) }
 
         val state by screenModel.state.collectAsState()
 

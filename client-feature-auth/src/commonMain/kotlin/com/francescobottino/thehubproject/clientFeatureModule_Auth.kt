@@ -2,10 +2,10 @@ package com.francescobottino.thehubproject
 
 import com.francescobottino.thehubproject.repo.AuthRepository
 import com.francescobottino.thehubproject.repo.AuthRepositoryImplementation
-import org.kodein.di.DI
-import org.kodein.di.bindSingleton
-import org.kodein.di.instance
+import org.koin.core.module.dsl.singleOf
+import org.koin.dsl.bind
+import org.koin.dsl.module
 
-val clientFeatureModule_Auth = DI.Module("clientFeatureModule_Auth") {
-    bindSingleton<AuthRepository> { AuthRepositoryImplementation(instance(), instance()) }
+val clientFeatureModule_Auth = module {
+    singleOf(::AuthRepositoryImplementation) bind AuthRepository::class
 }
