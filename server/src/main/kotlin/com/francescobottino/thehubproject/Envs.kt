@@ -1,7 +1,7 @@
 package com.francescobottino.thehubproject
 
 object Envs {
-    val HOST by lazy { System.getenv("PORT") ?: "0.0.0.0" }
+    val HOST by lazy { System.getenv("HOST") ?: "0.0.0.0" }
     val PORT by lazy { System.getenv("PORT")?.toIntOrNull() ?: throw Exception("PORT environment variable not set.") }
 
     val DB_URL by lazy { System.getenv("DB_URL") ?: throw RuntimeException("DB_URL environment variable not set.") }
