@@ -7,18 +7,12 @@ import com.francescobottino.thehubproject.data.UserRepository
 import io.github.cdimascio.dotenv.dotenv
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
-import io.ktor.server.auth.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
-import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.server.websocket.WebSockets
-import io.ktor.server.websocket.pingPeriod
-import io.ktor.server.websocket.timeout
-import io.ktor.server.websocket.webSocket
-import io.ktor.websocket.*
+import io.ktor.server.websocket.*
 import org.koin.dsl.module
 import org.koin.ktor.plugin.Koin
 import org.koin.logger.slf4jLogger
@@ -87,29 +81,5 @@ fun Application.module() {
         configureRoutingAuth()
         configureRoutingUser()
         configureRoutingGames()
-
-        // debug routing,
-        // todo remove
-
-        get("/") {
-            call.respondText("Ktor: ${Greeting().greet()}")
-        }
-
-        authenticate("auth-jwt") {
-            get("/hello-protected") {
-                val userId = call.getAuthUserId()
-                call.respondText("Hello, ${userId ?: "Anonymous"}! This is a protected resource.")
-            }
-        }
-
-        webSocket("/ws/echo") {
-            for (frame in incoming) {
-                if (frame is Frame.Text) {
-                    val receivedText = frame.readText()
-                    application.environment.log.info("Echo WS: Received from client: '$receivedText'")
-                    send(Frame.Text("Server echoing: $receivedText"))
-                }
-            }
-        }
     }
 }
