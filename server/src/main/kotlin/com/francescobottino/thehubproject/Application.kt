@@ -26,8 +26,8 @@ fun main() {
 
     embeddedServer(
         factory = Netty,
-        port = System.getenv("PORT")?.toIntOrNull() ?: throw Exception("PORT environment variable not set."),
-        host = System.getenv("HOST") ?: "0.0.0.0",
+        host = Envs.HOST,
+        port = Envs.PORT,
         module = Application::module
     ).start(wait = true)
 }

@@ -1,6 +1,6 @@
 package com.francescobottino.thehubproject
 
-import com.francescobottino.thehubproject.auth.JwtConfig
+import com.francescobottino.thehubproject.auth.AUTH_JWT
 import com.francescobottino.thehubproject.model.safe
 import io.ktor.http.*
 import io.ktor.server.auth.*
@@ -9,7 +9,7 @@ import io.ktor.server.routing.*
 
 fun Routing.configureRoutingUser() {
     route("user") {
-        authenticate(JwtConfig.NAME) {
+        authenticate(AUTH_JWT) {
             get("me") { getMe() }
         }
     }

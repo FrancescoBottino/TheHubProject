@@ -6,13 +6,13 @@ import io.ktor.server.auth.jwt.*
 
 fun Application.configureSecurity() {
     install(Authentication) {
-        jwt(JwtConfig.NAME) {
-            realm = JwtConfig.REALM
+        jwt(AUTH_JWT) {
+            realm = "Ktor Game Server"
             verifier(JwtConfig.getVerifier()) // Provide the verifier
             validate { credential ->
                 // This block is called when Ktor validates a token
                 // 'credential.payload' contains the JWT payload
-                val userId = credential.payload.getClaim(JwtConfig.USER_ID_CLAIM).asString()
+                val userId = credential.payload.getClaim(USER_ID_CLAIM).asString()
                 if (userId != null) {
                     // If the claim exists, create a principal.
                     // Here, we are creating a JWTPrincipal, but you can create your own custom Principal.

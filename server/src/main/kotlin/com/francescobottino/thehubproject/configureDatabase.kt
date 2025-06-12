@@ -12,22 +12,10 @@ fun Application.configureDatabase(): Database {
         throw e
     }
 
-    val dbUrl = environment.config.propertyOrNull("ktor.database.url")?.getString()
-        ?: System.getenv("DB_URL")
-        ?: throw RuntimeException("Missing DB_URL environment variable")
-
-    val dbUser = environment.config.propertyOrNull("ktor.database.user")?.getString()
-        ?: System.getenv("DB_USER")
-        ?: throw RuntimeException("Missing DB_USER environment variable")
-
-    val dbPassword = environment.config.propertyOrNull("ktor.database.password")?.getString()
-        ?: System.getenv("DB_PASSWORD")
-        ?: throw RuntimeException("Missing DB_PASSWORD environment variable")
-
     return Database.connect(
-        url = dbUrl,
         driver = "org.postgresql.Driver",
-        user = dbUser,
-        password = dbPassword,
+        url = Envs.DB_URL,
+        user = Envs.DB_USER,
+        password = Envs.DB_PASSWORD,
     )
 }
