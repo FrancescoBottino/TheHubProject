@@ -4,7 +4,7 @@ WORKDIR /home/gradle/project
 COPY --chown=gradle:gradle . .
 RUN --mount=type=cache,id=gradle-caches,target=/home/gradle/.gradle/caches \
     --mount=type=cache,id=gradle-wrapper,target=/home/gradle/.gradle/wrapper \
-    gradle :server:buildFatJar --no-daemon
+    gradle :server:buildFatJar --no-daemon --stacktrace
 
 FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
