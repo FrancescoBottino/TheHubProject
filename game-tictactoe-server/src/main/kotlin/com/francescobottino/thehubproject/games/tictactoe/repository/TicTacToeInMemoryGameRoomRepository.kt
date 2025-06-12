@@ -1,4 +1,4 @@
-package com.francescobottino.thehubproject.games.tictactoe
+package com.francescobottino.thehubproject.games.tictactoe.repository
 
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeGameRoom
 import kotlinx.coroutines.flow.Flow

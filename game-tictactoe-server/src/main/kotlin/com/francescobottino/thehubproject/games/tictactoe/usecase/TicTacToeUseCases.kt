@@ -1,7 +1,8 @@
-package com.francescobottino.thehubproject.games.tictactoe
+package com.francescobottino.thehubproject.games.tictactoe.usecase
 
 import arrow.core.Either
 import com.francescobottino.thehubproject.games.tictactoe.model.*
+import com.francescobottino.thehubproject.games.tictactoe.repository.TicTacToeGameRoomRepository
 import com.francescobottino.thehubproject.model.UserResponse
 import kotlinx.datetime.Clock
 import kotlin.uuid.ExperimentalUuidApi
@@ -17,7 +18,7 @@ class TicTacToeUseCases(
 
     fun makeRoom(player: UserResponse, chosenSign: TicTacToePlayerSign, startingSign: TicTacToePlayerSign): String {
         val room = TicTacToeGameRoom(
-            id = Uuid.random().toString(),
+            id = Uuid.Companion.random().toString(),
             hostPlayer = TicTacToePlayer(
                 user = player,
                 sign = chosenSign,

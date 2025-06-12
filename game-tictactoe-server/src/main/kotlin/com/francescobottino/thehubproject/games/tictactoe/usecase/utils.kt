@@ -1,4 +1,4 @@
-package com.francescobottino.thehubproject.games.tictactoe
+package com.francescobottino.thehubproject.games.tictactoe.usecase
 
 import com.francescobottino.thehubproject.games.tictactoe.model.*
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeGameRoom.State
