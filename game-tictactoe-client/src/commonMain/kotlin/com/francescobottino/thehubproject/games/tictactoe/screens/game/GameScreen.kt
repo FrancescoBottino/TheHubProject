@@ -28,6 +28,8 @@ import com.francescobottino.thehubproject.games.tictactoe.presentation.TicTacToe
 import com.francescobottino.thehubproject.games.tictactoe.presentation.TicTacToeCircle
 import com.francescobottino.thehubproject.games.tictactoe.presentation.TicTacToeCross
 import com.francescobottino.thehubproject.games.tictactoe.presentation.TicTacToeCrown
+import compose.icons.FeatherIcons
+import compose.icons.feathericons.Copy
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 class GameScreen(private val roomId: String): Screen {
@@ -107,7 +109,10 @@ private fun GameScreenContent(
 
         Spacer(Modifier.height(40.dp))
 
-        RoomIdCard(state.roomId)
+        RoomIdCard(
+            roomId = state.roomId,
+            onClick = { onEvent(GameScreenEvent.OnCopyRoomId) }
+        )
 
         Spacer(Modifier.height(24.dp))
 
@@ -365,6 +370,7 @@ private fun SignIcon(
 @Composable
 private fun RoomIdCard(
     roomId: String,
+    onClick: () -> Unit,
 ) {
     val shape = RoundedCornerShape(20)
     Column(
@@ -375,20 +381,31 @@ private fun RoomIdCard(
             text = "You can share this room id to your opponent: ",
             style = MaterialTheme.typography.bodyMedium,
         )
-        SelectionContainer(
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .wrapContentSize()
                 .shadow(elevation = 12.dp, shape = shape, clip = true)
                 .clip(shape)
                 .border(width = 1.dp, color = MaterialTheme.colorScheme.onPrimary, shape = shape)
                 .background(color = MaterialTheme.colorScheme.surface)
+                .clickable(onClick = onClick)
                 .padding(6.dp),
-        ){
-            Text(
-                text = roomId,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.labelSmall,
+        ) {
+            SelectionContainer {
+                Text(
+                    text = roomId,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.labelSmall,
+                )
+            }
+
+            Icon(
+                FeatherIcons.Copy,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
             )
         }
     }

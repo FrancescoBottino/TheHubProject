@@ -8,6 +8,7 @@ import com.francescobottino.thehubproject.mainJson
 import com.francescobottino.thehubproject.model.User
 import com.francescobottino.thehubproject.repo.UserRepository
 import com.francescobottino.thehubproject.screens.StatefulScreenModel
+import com.francescobottino.thehubproject.usecase.CopyToClipboardUseCase
 import io.ktor.client.plugins.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.Job
@@ -24,6 +25,7 @@ class GameScreenModel(
     private val roomId: String,
 ): StatefulScreenModel<GameScreenState, GameScreenEvent>(), KoinComponent {
     val userRepository by inject<UserRepository>()
+    val copyToClipboard by inject<CopyToClipboardUseCase>()
     val api by inject<TicTacToeApi>()
 
     private var roomUpdateJob: Job? = null
@@ -45,6 +47,7 @@ class GameScreenModel(
             is GameScreenEvent.OnCloseScreen -> navigator.pop()
             is GameScreenEvent.OnCloseRoom -> TODO()
             is GameScreenEvent.OnRetry -> restart()
+            is GameScreenEvent.OnCopyRoomId -> screenModelScope.launch { copyToClipboard(roomId) }
         }
     }
 

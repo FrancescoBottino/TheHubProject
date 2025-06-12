@@ -5,7 +5,7 @@ import kotlinx.coroutines.withContext
 import platform.Foundation.NSUserDefaults
 import platform.Foundation.setValue
 
-class IOSSecureStorage: SecureStorage {
+class IosSecureStorage: SecureStorage {
     private val userDefaults = NSUserDefaults.Companion.standardUserDefaults()
 
     override suspend fun saveSecret(key: String, secret: String) = withContext(Dispatchers.Default) {
