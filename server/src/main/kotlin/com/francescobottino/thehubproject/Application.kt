@@ -2,6 +2,7 @@ package com.francescobottino.thehubproject
 
 import com.francescobottino.thehubproject.auth.configureRoutingAuth
 import com.francescobottino.thehubproject.auth.configureSecurity
+import com.francescobottino.thehubproject.data.ExposedUserRepository
 import com.francescobottino.thehubproject.data.UserRepository
 import io.github.cdimascio.dotenv.dotenv
 import io.ktor.serialization.kotlinx.json.*
@@ -25,16 +26,13 @@ fun main() {
 
     embeddedServer(
         factory = Netty,
-        port = ServerConfig.port,
-        host = ServerConfig.host,
+        port = System.getenv("PORT")?.toIntOrNull() ?: throw Exception("PORT environment variable not set."),
+        host = System.getenv("HOST") ?: "0.0.0.0",
         module = Application::module
     ).start(wait = true)
 }
 
 fun Application.module() {
-    log.info("Starting TheHubProject...")
-    log.info("isProduction: ${ServerConfig.isProduction}")
-
     install(ContentNegotiation) {
         json(mainJson)
     }
@@ -52,7 +50,8 @@ fun Application.module() {
         slf4jLogger()
         modules(
             module {
-                single<UserRepository> { configureUserRepository(database) }
+                single { database }
+                single<UserRepository> { ExposedUserRepository(get()) }
             },
         )
     }

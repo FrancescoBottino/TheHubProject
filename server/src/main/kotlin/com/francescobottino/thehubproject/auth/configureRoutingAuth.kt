@@ -14,7 +14,6 @@ import org.koin.ktor.ext.inject
 import java.util.*
 
 fun Routing.configureRoutingAuth() {
-
     route("auth") {
         post("register") { register() }
         post("login") { login() }

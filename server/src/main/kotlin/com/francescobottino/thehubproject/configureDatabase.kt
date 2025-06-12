@@ -3,12 +3,7 @@ package com.francescobottino.thehubproject
 import io.ktor.server.application.*
 import org.jetbrains.exposed.sql.Database
 
-fun Application.configureDatabase(): Database? {
-    if (System.getenv("USE_IN_MEMORY_DB") == "true") {
-        log.info("Using InMemory database")
-        return null
-    }
-
+fun Application.configureDatabase(): Database {
     try {
         // Make sure the driver class is loaded
         Class.forName("org.postgresql.Driver")

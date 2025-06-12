@@ -3,7 +3,7 @@ package com.francescobottino.thehubproject.config
 import com.francescobottino.thehubproject.BuildConfig
 
 object Config {
-    val isProduction: Boolean by lazy { BuildConfig.ENVIRONMENT != "dev" }
+    val isProduction: Boolean by lazy { BuildConfig.ENVIRONMENT?.contains("dev") != true }
     private const val PRODUCTION_ENDPOINT = "thehub-8su2.onrender.com"
     private val serverEndpoint: String by lazy {
         if(isProduction)

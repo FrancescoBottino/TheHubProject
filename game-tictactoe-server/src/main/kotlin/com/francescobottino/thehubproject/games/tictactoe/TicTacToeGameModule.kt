@@ -1,6 +1,7 @@
 package com.francescobottino.thehubproject.games.tictactoe
 
 import com.francescobottino.thehubproject.*
+import com.francescobottino.thehubproject.auth.JwtConfig
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeMakeMoveRequest
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeMakeRoomRequest
 import com.francescobottino.thehubproject.model.safe
@@ -22,7 +23,7 @@ object TicTacToeGameModule: GameModule {
         route("tictactoe") {
             loadKoinModules(ticTacToeModule)
 
-            authenticate("auth-jwt") {
+            authenticate(JwtConfig.NAME) {
                 get("my-rooms") { myRooms() }
                 route("room") {
                     post("make") { makeRoom() }

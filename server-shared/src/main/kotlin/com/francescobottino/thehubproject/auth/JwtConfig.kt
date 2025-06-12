@@ -14,6 +14,7 @@ object JwtConfig {
     val audience: String = System.getenv("JWT_AUDIENCE") ?: throw IllegalArgumentException("JWT_AUDIENCE environment variable not set")
     const val REALM = "Ktor Game Server"
     const val USER_ID_CLAIM = "userId"
+    const val NAME = "auth-jwt"
 
     val algorithm: Algorithm = Algorithm.HMAC256(secret)
 
