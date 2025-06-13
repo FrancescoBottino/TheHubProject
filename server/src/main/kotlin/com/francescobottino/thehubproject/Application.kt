@@ -71,7 +71,7 @@ fun Application.module() {
 
         allowCredentials = false
 
-        if (SharedConfig.isProduction) {
+        if(ServerConfig.ENVIRONMENT?.contains("dev") != true) {
             System.getenv("WEBAPP_HOST")?.let { host ->
                 allowHost(host, schemes = listOf("https"))
             }

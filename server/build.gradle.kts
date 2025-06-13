@@ -1,7 +1,10 @@
+import java.util.*
+
 plugins {
     alias(libs.plugins.kotlinJvm)
     alias(libs.plugins.kotlinPluginSerialization)
     alias(libs.plugins.ktor)
+    alias(libs.plugins.buildconfig)
     application
 }
 
@@ -39,4 +42,13 @@ dependencies {
     implementation(projects.shared)
     implementation(projects.serverShared)
     implementation(projects.gameTictactoeServer)
+}
+
+val localProperties: Properties by rootProject.extra
+
+buildConfig {
+    packageName("com.francescobottino.thehubproject")
+    className("ServerConfig")
+    useKotlinOutput()
+    buildConfigField<String?>("ENVIRONMENT", (localProperties["environment"] as? String))
 }

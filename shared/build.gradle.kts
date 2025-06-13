@@ -2,13 +2,11 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
-import java.util.*
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlinPluginSerialization)
-    alias(libs.plugins.buildconfig)
 }
 
 kotlin {
@@ -64,14 +62,4 @@ android {
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
     }
-}
-
-val localProperties: Properties by rootProject.extra
-
-buildConfig {
-    packageName("com.francescobottino.thehubproject")
-    useKotlinOutput {
-        internalVisibility = false
-    }
-    buildConfigField<String?>("ENVIRONMENT", (localProperties["environment"] as? String))
 }

@@ -168,6 +168,7 @@ val localProperties: Properties by rootProject.extra
 
 buildConfig {
     packageName("com.francescobottino.thehubproject")
+    className("ClientConfig")
     useKotlinOutput()
 
     buildConfigField<String?>("ENVIRONMENT", (localProperties["environment"] as? String))
