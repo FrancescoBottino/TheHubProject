@@ -119,6 +119,7 @@ private fun GameScreenContent(
 
             Button(
                 onClick = { onEvent(GameScreenEvent.OnCloseRoom) },
+                enabled = false, //todo
             ) {
                 Text("Close room")
             }
