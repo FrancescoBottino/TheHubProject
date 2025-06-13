@@ -1,12 +1,13 @@
 package com.francescobottino.thehubproject
 
+import com.francescobottino.thehubproject.auth.configureJwt
 import com.francescobottino.thehubproject.auth.configureRoutingAuth
-import com.francescobottino.thehubproject.auth.configureSecurity
 import com.francescobottino.thehubproject.data.ExposedUserRepository
 import com.francescobottino.thehubproject.data.UserRepository
 import io.github.cdimascio.dotenv.dotenv
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
@@ -76,7 +77,9 @@ fun Application.module() {
         )
     }
 
-    configureSecurity()
+    install(Authentication) {
+        configureJwt()
+    }
 
     routing {
         configureRoutingAuth()
