@@ -1,9 +1,19 @@
 package com.francescobottino.thehubproject.games.tictactoe.repository
 
 import com.francescobottino.thehubproject.data.UsersTable
-import com.francescobottino.thehubproject.data.upsert
 import com.francescobottino.thehubproject.games.tictactoe.model.*
 import com.francescobottino.thehubproject.games.tictactoe.tables.TicTacToeGameRoomTable
+import com.francescobottino.thehubproject.games.tictactoe.tables.TicTacToeGameRoomTable.currentPlayerSign
+import com.francescobottino.thehubproject.games.tictactoe.tables.TicTacToeGameRoomTable.gameStateJson
+import com.francescobottino.thehubproject.games.tictactoe.tables.TicTacToeGameRoomTable.hostPlayerId
+import com.francescobottino.thehubproject.games.tictactoe.tables.TicTacToeGameRoomTable.hostPlayerSign
+import com.francescobottino.thehubproject.games.tictactoe.tables.TicTacToeGameRoomTable.lastUpdate
+import com.francescobottino.thehubproject.games.tictactoe.tables.TicTacToeGameRoomTable.opponentPlayerId
+import com.francescobottino.thehubproject.games.tictactoe.tables.TicTacToeGameRoomTable.opponentPlayerSign
+import com.francescobottino.thehubproject.games.tictactoe.tables.TicTacToeGameRoomTable.pastGamesWinnersJson
+import com.francescobottino.thehubproject.games.tictactoe.tables.TicTacToeGameRoomTable.roomState
+import com.francescobottino.thehubproject.games.tictactoe.tables.TicTacToeGameRoomTable.roomStateClosedById
+import com.francescobottino.thehubproject.games.tictactoe.tables.TicTacToeGameRoomTable.roomStateWinnerId
 import com.francescobottino.thehubproject.mainJson
 import com.francescobottino.thehubproject.model.UserResponse
 import kotlinx.coroutines.flow.Flow
@@ -13,6 +23,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.datetime.Instant
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.concurrent.ConcurrentHashMap
 
@@ -29,91 +40,102 @@ class TicTacToeExposedGameRoomRepository(private val database: Database) : TicTa
 
     override fun storeRoom(room: TicTacToeGameRoom) {
         transaction(database) {
-            // Store/update the room
-            TicTacToeGameRoomTable.upsert(TicTacToeGameRoomTable.id) {
-                it[id] = room.id
-                it[hostPlayerId] = room.hostPlayer.user.id
-                it[hostPlayerSign] = room.hostPlayer.sign
-                it[opponentPlayerId] = room.opponentPlayer?.user?.id
-                it[opponentPlayerSign] = room.opponentPlayer?.sign
-                it[gameStateJson] = mainJson.encodeToString(room.gameState.toSerializableMap())
-                it[pastGamesWinnersJson] = mainJson.encodeToString(room.pastGamesWinners.map { winner -> winner?.user?.id })
-                it[currentPlayerSign] = room.currentPlayerSign
-                val roomStateField = room.roomState
-                it[roomState] = when (roomStateField) {
-                    is TicTacToeGameRoom.State.WaitingForOpponent -> "WaitingForOpponent"
-                    is TicTacToeGameRoom.State.InProgress -> "InProgress"
-                    is TicTacToeGameRoom.State.Finished -> "Finished"
-                    is TicTacToeGameRoom.State.Closed -> "Closed"
-                }
-                it[roomStateWinnerId] = when (roomStateField) {
-                    is TicTacToeGameRoom.State.Finished -> roomStateField.winner?.user?.id
-                    else -> null
-                }
-                it[roomStateClosedById] = when (roomStateField) {
-                    is TicTacToeGameRoom.State.Closed -> roomStateField.byPlayer.user.id
-                    else -> null
-                }
-                it[lastUpdate] = room.lastUpdate.toEpochMilliseconds()
-            }.execute(this)
+            val existingRow = TicTacToeGameRoomTable.selectAll()
+                .where { TicTacToeGameRoomTable.id eq room.id }
+                .forUpdate()
+                .singleOrNull()
 
-            // Update in-memory connections
+            if (existingRow != null) {
+                updateRoomInternal(room)
+            } else {
+                insertRoomInternal(room)
+            }
             activeConnections[room.id] = room.connectedPlayerIds
-
-            // Notify flow subscribers
             roomUpdateFlows[room.id]?.value = room
         }
     }
 
-    override fun getRoom(id: String): TicTacToeGameRoom? {
+    override fun getRoom(roomId: String): TicTacToeGameRoom? {
         return transaction(database) {
             TicTacToeGameRoomTable.selectAll()
-                .where { TicTacToeGameRoomTable.id eq id }
+                .where { TicTacToeGameRoomTable.id eq roomId }
                 .singleOrNull()
                 ?.let { row -> reconstructRoom(row) }
         }
     }
 
-    override fun getRoomUpdates(id: String): Flow<TicTacToeGameRoom> {
+    override fun updateRoom(roomId: String, updater: (TicTacToeGameRoom?) -> TicTacToeGameRoom?) {
+        return transaction(database) {
+            val currentRoom = getRoomForUpdate(roomId)
+            val updatedRoom = updater(currentRoom)
+
+            if(updatedRoom != null) {
+                if(currentRoom == null) {
+                    insertRoomInternal(updatedRoom)
+                } else {
+                    updateRoomInternal(updatedRoom)
+                }
+
+                activeConnections[roomId] = updatedRoom.connectedPlayerIds
+                roomUpdateFlows[roomId]?.value = updatedRoom
+            }
+        }
+    }
+
+    override fun getRoomUpdates(roomId: String): Flow<TicTacToeGameRoom> {
         return roomUpdateFlows
-            .getOrPut(id) { MutableStateFlow(getRoom(id)) }
+            .getOrPut(roomId) { MutableStateFlow(getRoom(roomId)) }
             .asStateFlow()
             .filterNotNull()
     }
 
-    override fun deleteRoom(id: String) {
+    override fun deleteRoom(roomId: String) {
         transaction(database) {
-            TicTacToeGameRoomTable.deleteWhere { TicTacToeGameRoomTable.id eq id }
-        }
+            TicTacToeGameRoomTable.selectAll()
+                .where { TicTacToeGameRoomTable.id eq id }
+                .forUpdate()
+                .singleOrNull()
 
-        // Clean up in-memory data
-        activeConnections.remove(id)
-        roomUpdateFlows.remove(id)
+            deleteRoomInternal(roomId)
+        }
+        activeConnections.remove(roomId)
+        roomUpdateFlows.remove(roomId)
     }
 
     override fun getRoomsOfUser(userId: String): List<TicTacToeGameRoom> {
         return transaction(database) {
             TicTacToeGameRoomTable.selectAll()
-                .where {
-                    (TicTacToeGameRoomTable.hostPlayerId eq userId) or
-                    (TicTacToeGameRoomTable.opponentPlayerId eq userId)
-                }
+                .where { (hostPlayerId eq userId) or (opponentPlayerId eq userId) }
                 .mapNotNull { row -> reconstructRoom(row) }
         }
     }
 
-    // Helper method to update connected players without full room update
-    fun updateConnectedPlayers(roomId: String, connectedPlayerIds: List<String>) {
-        activeConnections[roomId] = connectedPlayerIds
+    private fun Transaction.getRoomForUpdate(id: String): TicTacToeGameRoom? {
+        return TicTacToeGameRoomTable.selectAll()
+            .where { TicTacToeGameRoomTable.id eq id }
+            .forUpdate()
+            .singleOrNull()
+            ?.let { row -> reconstructRoom(row) }
+    }
 
-        // Update the flow with current room state + new connections
-        getRoom(roomId)?.let { room ->
-            val updatedRoom = room.copy(connectedPlayerIds = connectedPlayerIds)
-            roomUpdateFlows[roomId]?.value = updatedRoom
+    private fun Transaction.updateRoomInternal(room: TicTacToeGameRoom) {
+        TicTacToeGameRoomTable.update({ TicTacToeGameRoomTable.id eq room.id }) {
+            prepareStatementFroRoom(it, room)
         }
     }
 
-    private fun getUserResponse(userId: String): UserResponse? {
+    private fun Transaction.insertRoomInternal(room: TicTacToeGameRoom) {
+        TicTacToeGameRoomTable.insert {
+            it[id] = room.id
+            prepareStatementFroRoom(it, room)
+        }
+    }
+
+    private fun Transaction.deleteRoomInternal(roomId: String) {
+        TicTacToeGameRoomTable.deleteWhere { TicTacToeGameRoomTable.id eq roomId }
+    }
+
+    private fun getUser(userId: String): UserResponse? {
         return UsersTable.selectAll()
             .where { UsersTable.id eq userId }
             .singleOrNull()
@@ -125,21 +147,47 @@ class TicTacToeExposedGameRoomRepository(private val database: Database) : TicTa
             }
     }
 
-    private fun reconstructRoom(row: ResultRow): TicTacToeGameRoom? {
-        val hostUser = getUserResponse(row[TicTacToeGameRoomTable.hostPlayerId]) ?: return null
-        val opponentUser = row[TicTacToeGameRoomTable.opponentPlayerId]?.let { getUserResponse(it) }
+    private fun prepareStatementFroRoom(statement: UpdateBuilder<Int>, room: TicTacToeGameRoom) {
+        statement[hostPlayerId] = room.hostPlayer.user.id
+        statement[hostPlayerSign] = room.hostPlayer.sign
+        statement[opponentPlayerId] = room.opponentPlayer?.user?.id
+        statement[opponentPlayerSign] = room.opponentPlayer?.sign
+        statement[gameStateJson] = mainJson.encodeToString(room.gameState.toSerializableMap())
+        statement[pastGamesWinnersJson] = mainJson.encodeToString(room.pastGamesWinners.map { winner -> winner?.user?.id })
+        statement[currentPlayerSign] = room.currentPlayerSign
+        val roomStateField = room.roomState
+        statement[roomState] = when (roomStateField) {
+            is TicTacToeGameRoom.State.WaitingForOpponent -> "WaitingForOpponent"
+            is TicTacToeGameRoom.State.InProgress -> "InProgress"
+            is TicTacToeGameRoom.State.Finished -> "Finished"
+            is TicTacToeGameRoom.State.Closed -> "Closed"
+        }
+        statement[roomStateWinnerId] = when (roomStateField) {
+            is TicTacToeGameRoom.State.Finished -> roomStateField.winner?.user?.id
+            else -> null
+        }
+        statement[roomStateClosedById] = when (roomStateField) {
+            is TicTacToeGameRoom.State.Closed -> roomStateField.byPlayer.user.id
+            else -> null
+        }
+        statement[lastUpdate] = room.lastUpdate.toEpochMilliseconds()
+    }
 
-        val hostPlayer = TicTacToePlayer(hostUser, row[TicTacToeGameRoomTable.hostPlayerSign])
+    private fun reconstructRoom(row: ResultRow): TicTacToeGameRoom? {
+        val hostUser = getUser(row[hostPlayerId]) ?: return null
+        val opponentUser = row[opponentPlayerId]?.let { getUser(it) }
+
+        val hostPlayer = TicTacToePlayer(hostUser, row[hostPlayerSign])
         val opponentPlayer = opponentUser?.let { user ->
-            row[TicTacToeGameRoomTable.opponentPlayerSign]?.let { sign ->
+            row[opponentPlayerSign]?.let { sign ->
                 TicTacToePlayer(user, sign)
             }
         }
 
-        val gameState = mainJson.decodeFromString<Map<String, String>>(row[TicTacToeGameRoomTable.gameStateJson])
+        val gameState = mainJson.decodeFromString<Map<String, String>>(row[gameStateJson])
             .toGameState()
 
-        val pastWinnerIds = mainJson.decodeFromString<List<String?>>(row[TicTacToeGameRoomTable.pastGamesWinnersJson])
+        val pastWinnerIds = mainJson.decodeFromString<List<String?>>(row[pastGamesWinnersJson])
         val pastGamesWinners = pastWinnerIds.map { winnerId ->
             winnerId?.let { id ->
                 if (id == hostPlayer.user.id) hostPlayer
@@ -147,11 +195,11 @@ class TicTacToeExposedGameRoomRepository(private val database: Database) : TicTa
             }
         }
 
-        val roomState = when (row[TicTacToeGameRoomTable.roomState]) {
+        val roomState = when (row[roomState]) {
             "WaitingForOpponent" -> TicTacToeGameRoom.State.WaitingForOpponent
             "InProgress" -> TicTacToeGameRoom.State.InProgress
             "Finished" -> {
-                val winnerId = row[TicTacToeGameRoomTable.roomStateWinnerId]
+                val winnerId = row[roomStateWinnerId]
                 val winner = winnerId?.let { id ->
                     if (id == hostPlayer.user.id) hostPlayer
                     else opponentPlayer?.takeIf { it.user.id == id }
@@ -159,7 +207,7 @@ class TicTacToeExposedGameRoomRepository(private val database: Database) : TicTa
                 TicTacToeGameRoom.State.Finished(winner)
             }
             "Closed" -> {
-                val closedById = row[TicTacToeGameRoomTable.roomStateClosedById]!!
+                val closedById = row[roomStateClosedById]!!
                 val byPlayer = if (closedById == hostPlayer.user.id) hostPlayer
                 else opponentPlayer!!
                 TicTacToeGameRoom.State.Closed(byPlayer)
@@ -175,10 +223,10 @@ class TicTacToeExposedGameRoomRepository(private val database: Database) : TicTa
             opponentPlayer = opponentPlayer,
             gameState = gameState,
             pastGamesWinners = pastGamesWinners,
-            currentPlayerSign = row[TicTacToeGameRoomTable.currentPlayerSign],
+            currentPlayerSign = row[currentPlayerSign],
             roomState = roomState,
             connectedPlayerIds = connectedPlayerIds,
-            lastUpdate = Instant.fromEpochMilliseconds(row[TicTacToeGameRoomTable.lastUpdate])
+            lastUpdate = Instant.fromEpochMilliseconds(row[lastUpdate])
         )
     }
 

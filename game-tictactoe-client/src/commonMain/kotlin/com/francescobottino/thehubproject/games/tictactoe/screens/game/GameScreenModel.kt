@@ -189,6 +189,7 @@ class GameScreenModel(
                             TicTacToeMakeMoveResponseError.ROOM_NOT_FOUND -> TODO()
                             TicTacToeMakeMoveResponseError.PLAYER_NOT_IN_ROOM -> TODO()
                             TicTacToeMakeMoveResponseError.GAME_NOT_IN_PROGRESS -> TODO()
+                            TicTacToeMakeMoveResponseError.CELL_ALREADY_OCCUPIED -> TODO()
                         }
                     }
                 }

@@ -222,10 +222,10 @@ private suspend fun DefaultWebSocketServerSession.getUpdates() {
     }
 
     log.debug("updating room with player connection")
-    repo.getRoom(roomId)?.let { roomUpdate ->
-        repo.storeRoom(
-            roomUpdate.copy(connectedPlayerIds = roomUpdate.connectedPlayerIds + userId)
-        )
+    repo.updateRoom(roomId) { room ->
+        room?.let {
+            room.copy(connectedPlayerIds = room.connectedPlayerIds + userId)
+        }
     }
 
     launch {
@@ -233,10 +233,10 @@ private suspend fun DefaultWebSocketServerSession.getUpdates() {
 
         log.debug("Client closed the connection")
         log.debug("updating room with player disconnection")
-        repo.getRoom(roomId)?.let { roomUpdate ->
-            repo.storeRoom(
-                roomUpdate.copy(connectedPlayerIds = roomUpdate.connectedPlayerIds - userId)
-            )
+        repo.updateRoom(roomId) { room ->
+            room?.let {
+                room.copy(connectedPlayerIds = room.connectedPlayerIds - userId)
+            }
         }
         close(CloseReason(CloseReason.Codes.NORMAL, "Client closed the connection"))
 
@@ -252,10 +252,10 @@ private suspend fun DefaultWebSocketServerSession.getUpdates() {
     }.onFailure {
         log.debug("error collecting updates: $it | ${it.message} | ${it.stackTraceToString()}")
         log.debug("updating room with player disconnection")
-        repo.getRoom(roomId)?.let { roomUpdate ->
-            repo.storeRoom(
-                roomUpdate.copy(connectedPlayerIds = roomUpdate.connectedPlayerIds - userId)
-            )
+        repo.updateRoom(roomId) { room ->
+            room?.let {
+                room.copy(connectedPlayerIds = room.connectedPlayerIds - userId)
+            }
         }
         close(CloseReason(CloseReason.Codes.INTERNAL_ERROR, "Error relaying updates"))
     }

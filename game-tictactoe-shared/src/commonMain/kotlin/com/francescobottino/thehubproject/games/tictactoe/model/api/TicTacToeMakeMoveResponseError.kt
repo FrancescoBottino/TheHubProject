@@ -7,5 +7,6 @@ enum class TicTacToeMakeMoveResponseError {
     ROOM_NOT_FOUND,
     PLAYER_NOT_IN_ROOM,
     NOT_YOUR_TURN,
-    GAME_NOT_IN_PROGRESS;
+    GAME_NOT_IN_PROGRESS,
+    CELL_ALREADY_OCCUPIED;
 }

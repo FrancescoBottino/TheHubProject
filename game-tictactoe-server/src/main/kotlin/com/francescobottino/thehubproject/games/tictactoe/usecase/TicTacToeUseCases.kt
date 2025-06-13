@@ -39,17 +39,24 @@ class TicTacToeUseCases(
     }
 
     fun joinRoom(player: UserResponse, roomId: String): Either<TicTacToeJoinRoomResponseError, Unit> {
-        val room = repo.getRoom(roomId) ?: return Either.Left(TicTacToeJoinRoomResponseError.ROOM_NOT_FOUND)
+        var validationError: TicTacToeJoinRoomResponseError? = null
 
-        if(room.players.map { it.user.id }.contains(player.id)) {
-            return Either.Left(TicTacToeJoinRoomResponseError.PLAYER_ALREADY_IN_ROOM)
-        }
+        repo.updateRoom(roomId) { room ->
+            if(room == null) {
+                validationError = TicTacToeJoinRoomResponseError.ROOM_NOT_FOUND
+                return@updateRoom null
+            }
 
-        if(room.opponentPlayer != null) {
-            return Either.Left(TicTacToeJoinRoomResponseError.ROOM_ALREADY_FULL)
-        }
+            if(room.players.map { it.user.id }.contains(player.id)) {
+                validationError = TicTacToeJoinRoomResponseError.PLAYER_ALREADY_IN_ROOM
+                return@updateRoom null
+            }
 
-        repo.storeRoom(
+            if(room.opponentPlayer != null) {
+                validationError = TicTacToeJoinRoomResponseError.ROOM_ALREADY_FULL
+                return@updateRoom null
+            }
+
             room.copy(
                 opponentPlayer = TicTacToePlayer(
                     player,
@@ -58,75 +65,117 @@ class TicTacToeUseCases(
                 roomState = TicTacToeGameRoom.State.InProgress,
                 lastUpdate = Clock.System.now(),
             )
-        )
+        }
+
+        if(validationError != null) {
+            return Either.Left(validationError)
+        }
 
         return Either.Right(Unit)
     }
 
     fun makeMove(playerId: String, roomId: String, cell: TicTacToeBoardCell): Either<TicTacToeMakeMoveResponseError, Unit> {
-        val room = repo.getRoom(roomId) ?: return Either.Left(TicTacToeMakeMoveResponseError.ROOM_NOT_FOUND)
+        var validationError: TicTacToeMakeMoveResponseError? = null
 
-        val player = room.players.singleOrNull { it.user.id == playerId }
+        repo.updateRoom(roomId) { room ->
+            if(room == null) {
+                validationError = TicTacToeMakeMoveResponseError.ROOM_NOT_FOUND
+                return@updateRoom null
+            }
 
-        if(player == null) {
-            return Either.Left(TicTacToeMakeMoveResponseError.PLAYER_NOT_IN_ROOM)
-        }
-        if(room.currentPlayerSign != player.sign) {
-            return Either.Left(TicTacToeMakeMoveResponseError.NOT_YOUR_TURN)
-        }
-        if(room.roomState !is TicTacToeGameRoom.State.InProgress) {
-            return Either.Left(TicTacToeMakeMoveResponseError.GAME_NOT_IN_PROGRESS)
-        }
+            val player = room.players.singleOrNull { it.user.id == playerId }
 
-        repo.storeRoom(
+            if(player == null) {
+                validationError = TicTacToeMakeMoveResponseError.PLAYER_NOT_IN_ROOM
+                return@updateRoom null
+            }
+            if(room.currentPlayerSign != player.sign) {
+                validationError = TicTacToeMakeMoveResponseError.NOT_YOUR_TURN
+                return@updateRoom null
+            }
+            if(room.roomState !is TicTacToeGameRoom.State.InProgress) {
+                validationError = TicTacToeMakeMoveResponseError.GAME_NOT_IN_PROGRESS
+                return@updateRoom null
+            }
+            if(room.gameState.containsKey(cell)) {
+                validationError = TicTacToeMakeMoveResponseError.CELL_ALREADY_OCCUPIED
+                return@updateRoom null
+            }
+
             room.copy(
                 gameState = room.gameState + (cell to player.sign),
                 currentPlayerSign = player.sign.otherSign(),
                 lastUpdate = Clock.System.now(),
             ).updateWinner()
-        )
+        }
+
+        if(validationError != null) {
+            return Either.Left(validationError)
+        }
 
         return Either.Right(Unit)
     }
 
     fun restartGame(playerId: String, roomId: String): Either<TicTacToeRestartGameResponseError, Unit> {
-        val room = repo.getRoom(roomId) ?: return Either.Left(TicTacToeRestartGameResponseError.ROOM_NOT_FOUND)
+        var validationError: TicTacToeRestartGameResponseError? = null
 
-        val roomState = room.roomState
-        if(roomState !is TicTacToeGameRoom.State.Finished) {
-            return Either.Left(TicTacToeRestartGameResponseError.GAME_NOT_FINISHED)
-        }
-        if(playerId != room.hostPlayer.user.id) {
-            return Either.Left(TicTacToeRestartGameResponseError.NOT_THE_HOST)
-        }
+        repo.updateRoom(roomId) { room ->
+            if(room == null) {
+                validationError = TicTacToeRestartGameResponseError.ROOM_NOT_FOUND
+                return@updateRoom null
+            }
 
-        repo.storeRoom(
+            val roomState = room.roomState
+            if(roomState !is TicTacToeGameRoom.State.Finished) {
+                validationError = TicTacToeRestartGameResponseError.GAME_NOT_FINISHED
+                return@updateRoom null
+            }
+
+            if(playerId != room.hostPlayer.user.id) {
+                validationError = TicTacToeRestartGameResponseError.NOT_THE_HOST
+                return@updateRoom null
+            }
+
             room.copy(
                 gameState = emptyMap(),
                 roomState = TicTacToeGameRoom.State.InProgress,
                 pastGamesWinners = room.pastGamesWinners + roomState.winner,
                 lastUpdate = Clock.System.now(),
             )
-        )
+        }
+
+        if(validationError != null) {
+            return Either.Left(validationError)
+        }
 
         return Either.Right(Unit)
     }
 
     fun close(playerId: String, roomId: String): Either<TicTacToeCloseGameResponseError, Unit> {
-        val room = repo.getRoom(roomId) ?: return Either.Left(TicTacToeCloseGameResponseError.ROOM_NOT_FOUND)
+        var validationError: TicTacToeCloseGameResponseError? = null
 
-        val player = room.players.singleOrNull { it.user.id == playerId }
+        repo.updateRoom(roomId) { room ->
+            if(room == null) {
+                validationError = TicTacToeCloseGameResponseError.ROOM_NOT_FOUND
+                return@updateRoom null
+            }
 
-        if(player == null) {
-            return Either.Left(TicTacToeCloseGameResponseError.PLAYER_NOT_IN_ROOM)
-        }
+            val player = room.players.singleOrNull { it.user.id == playerId }
 
-        repo.storeRoom(
+            if(player == null) {
+                validationError = TicTacToeCloseGameResponseError.PLAYER_NOT_IN_ROOM
+                return@updateRoom null
+            }
+
             room.copy(
                 roomState = TicTacToeGameRoom.State.Closed(player),
                 lastUpdate = Clock.System.now(),
             )
-        )
+        }
+
+        if(validationError != null) {
+            return Either.Left(validationError)
+        }
 
         return Either.Right(Unit)
     }
