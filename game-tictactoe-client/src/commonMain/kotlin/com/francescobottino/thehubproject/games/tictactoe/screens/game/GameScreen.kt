@@ -154,7 +154,7 @@ private fun OpponentConnectionStatus(
     val color = when(opponentState) {
         is GameScreenState.OpponentState.WaitingForOpponent -> MaterialTheme.colorScheme.onSurface
         is GameScreenState.OpponentState.Connected -> MaterialTheme.colorScheme.primary
-        is GameScreenState.OpponentState.Disconnected -> MaterialTheme.colorScheme.onError
+        is GameScreenState.OpponentState.Disconnected -> MaterialTheme.colorScheme.error
     }
 
     val label = when(opponentState) {
