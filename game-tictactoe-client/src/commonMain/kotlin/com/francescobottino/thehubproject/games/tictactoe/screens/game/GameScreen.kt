@@ -466,18 +466,18 @@ private fun ScreenDialog(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.align(Alignment.End),
                     ) {
-                        if(state.onConfirm != null) {
-                            Button(
-                                onClick = { onEvent(state.onConfirm.event) },
-                            ) {
-                                Text(state.onConfirm.label)
-                            }
-                        }
                         if(state.onDismiss != null) {
                             TextButton(
                                 onClick = { onEvent(state.onDismiss.event) },
                             ) {
                                 Text(state.onDismiss.label)
+                            }
+                        }
+                        if(state.onConfirm != null) {
+                            Button(
+                                onClick = { onEvent(state.onConfirm.event) },
+                            ) {
+                                Text(state.onConfirm.label)
                             }
                         }
                     }
