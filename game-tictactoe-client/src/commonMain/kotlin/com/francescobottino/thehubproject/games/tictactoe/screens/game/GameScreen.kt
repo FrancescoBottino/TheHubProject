@@ -28,6 +28,7 @@ import com.francescobottino.thehubproject.games.tictactoe.presentation.TicTacToe
 import com.francescobottino.thehubproject.games.tictactoe.presentation.TicTacToeCircle
 import com.francescobottino.thehubproject.games.tictactoe.presentation.TicTacToeCross
 import com.francescobottino.thehubproject.games.tictactoe.presentation.TicTacToeCrown
+import com.francescobottino.thehubproject.screens.LoadingOverlay
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Copy
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -61,85 +62,93 @@ private fun GameScreenContent(
     onEvent: (GameScreenEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier
-            .padding(horizontal = 12.dp)
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Spacer(Modifier.height(24.dp))
-
-        OpponentConnectionStatus(
-            opponentState = state.opponentState,
-            modifier = Modifier.fillMaxWidth(),
-        )
-
-        Spacer(Modifier.height(30.dp))
-
-        TurnIndicator(state = state)
-
-        Spacer(Modifier.height(12.dp))
-
-        Box(
-            modifier = Modifier
-                .requiredWidthIn(max = 400.dp)
-                .padding(horizontal = 16.dp)
-                .shadow(elevation = 12.dp, shape = RoundedCornerShape(12.dp), clip = true)
-                .background(color = MaterialTheme.colorScheme.surface)
-                .fillMaxWidth()
-                .aspectRatio(1f, matchHeightConstraintsFirst = false)
+    if(state.roomId != null) {
+        Column(
+            modifier = modifier
+                .padding(horizontal = 12.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Board(
-                state = state.board,
-                isUserTurn = state.isUserTurn,
-                onMove = { cell -> onEvent(GameScreenEvent.OnBoardCellClicked(cell))},
-                modifier = Modifier.fillMaxSize()
+            Spacer(Modifier.height(24.dp))
+
+            OpponentConnectionStatus(
+                opponentState = state.opponentState,
+                modifier = Modifier.fillMaxWidth(),
             )
 
-            state.finishState?.let {
-                FinishDialog(
-                    finishState = it,
-                    onEvent = onEvent,
-                    modifier = Modifier.fillMaxSize(),
+            Spacer(Modifier.height(30.dp))
+
+            TurnIndicator(state = state)
+
+            Spacer(Modifier.height(12.dp))
+
+            Box(
+                modifier = Modifier
+                    .requiredWidthIn(max = 400.dp)
+                    .padding(horizontal = 16.dp)
+                    .shadow(elevation = 12.dp, shape = RoundedCornerShape(12.dp), clip = true)
+                    .background(color = MaterialTheme.colorScheme.surface)
+                    .fillMaxWidth()
+                    .aspectRatio(1f, matchHeightConstraintsFirst = false)
+            ) {
+                Board(
+                    state = state.board,
+                    isUserTurn = state.isUserTurn,
+                    onMove = { cell -> onEvent(GameScreenEvent.OnBoardCellClicked(cell))},
+                    modifier = Modifier.fillMaxSize()
                 )
+
+                state.finishState?.let {
+                    FinishDialog(
+                        finishState = it,
+                        onEvent = onEvent,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
             }
+
+
+            Spacer(Modifier.height(40.dp))
+
+            RoomIdCard(
+                roomId = state.roomId,
+                onClick = { onEvent(GameScreenEvent.OnCopyRoomId) }
+            )
+
+            Spacer(Modifier.height(24.dp))
+
+            Button(
+                onClick = { onEvent(GameScreenEvent.OnCloseRoom) },
+            ) {
+                Text("Close room")
+            }
+
+            Spacer(Modifier.height(48.dp))
+
+            /*
+            past winners
+             */
+
+            /*
+            when(state.roomState) {
+                is TicTacToeGameRoom.State.WaitingForOpponent -> TODO()
+                is TicTacToeGameRoom.State.InProgress -> TODO()
+                is TicTacToeGameRoom.State.Finished -> TODO()
+                is TicTacToeGameRoom.State.Closed -> TODO()
+            }
+
+             */
         }
-
-
-        Spacer(Modifier.height(40.dp))
-
-        RoomIdCard(
-            roomId = state.roomId,
-            onClick = { onEvent(GameScreenEvent.OnCopyRoomId) }
-        )
-
-        Spacer(Modifier.height(24.dp))
-
-        Button(
-            onClick = { onEvent(GameScreenEvent.OnCloseRoom) },
-        ) {
-            Text("Close room")
-        }
-
-        /*
-        past winners
-         */
-
-        /*
-        when(state.roomState) {
-            is TicTacToeGameRoom.State.WaitingForOpponent -> TODO()
-            is TicTacToeGameRoom.State.InProgress -> TODO()
-            is TicTacToeGameRoom.State.Finished -> TODO()
-            is TicTacToeGameRoom.State.Closed -> TODO()
-        }
-
-         */
-
-
     }
 
-
-    //todo loading
+    if(state.roomId == null || state.isLoading) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            LoadingOverlay()
+        }
+    }
 
     state.dialog?.let {
         ScreenDialog(it, onEvent)
@@ -399,9 +408,9 @@ private fun RoomIdCard(
                 .wrapContentSize()
                 .shadow(elevation = 12.dp, shape = shape, clip = true)
                 .clip(shape)
+                .clickable(onClick = onClick)
                 .border(width = 1.dp, color = MaterialTheme.colorScheme.onPrimary, shape = shape)
                 .background(color = MaterialTheme.colorScheme.surface)
-                .clickable(onClick = onClick)
                 .padding(6.dp),
         ) {
             SelectionContainer {

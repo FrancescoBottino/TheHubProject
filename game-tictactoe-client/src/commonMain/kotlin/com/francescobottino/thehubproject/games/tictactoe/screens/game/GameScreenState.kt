@@ -5,7 +5,7 @@ import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToeGameSta
 import com.francescobottino.thehubproject.games.tictactoe.model.TicTacToePlayerSign
 
 data class GameScreenState(
-    val roomId: String = "",
+    val roomId: String? = null,
     val board: TicTacToeGameState = emptyMap(),
     val userLabel: String? = null,
     val opponentState: OpponentState = OpponentState.WaitingForOpponent,

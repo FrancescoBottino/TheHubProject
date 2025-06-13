@@ -37,7 +37,7 @@ class GameScreenModel(
 
     private val user: User = userRepository.getCurrentUserFlow().value!!
 
-    private val _state = MutableStateFlow(GameScreenState())
+    private val _state = MutableStateFlow(GameScreenState(isLoading = true))
     override val state = _state.asStateFlow()
 
     override fun onEvent(event: GameScreenEvent) {
