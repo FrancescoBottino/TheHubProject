@@ -1,9 +1,12 @@
 package com.francescobottino.thehubproject.config
 
 import com.francescobottino.thehubproject.BuildConfig
+import com.francescobottino.thehubproject.SharedConfig
 
 object Config {
-    val isProduction: Boolean by lazy { BuildConfig.ENVIRONMENT?.contains("dev") != true }
+    val isProduction: Boolean
+        get() = SharedConfig.isProduction
+
     private const val PRODUCTION_ENDPOINT = "thehub-8su2.onrender.com"
     private val serverEndpoint: String by lazy {
         if(isProduction)
