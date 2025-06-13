@@ -1,5 +1,7 @@
 package com.francescobottino.thehubproject
 
+import com.francescobottino.thehubproject.auth.JwtConfig
+import com.francescobottino.thehubproject.auth.JwtConfigImpl
 import com.francescobottino.thehubproject.auth.configureJwt
 import com.francescobottino.thehubproject.auth.configureRoutingAuth
 import com.francescobottino.thehubproject.data.ExposedUserRepository
@@ -35,6 +37,19 @@ fun main() {
 }
 
 fun Application.module() {
+    val database = configureDatabase()
+    val jwtConfig = JwtConfigImpl()
+    install(Koin) {
+        slf4jLogger()
+        modules(
+            module {
+                single { database }
+                single<JwtConfig> { jwtConfig }
+                single<UserRepository> { ExposedUserRepository(get()) }
+            },
+        )
+    }
+
     install(ContentNegotiation) {
         json(mainJson)
     }
@@ -65,20 +80,8 @@ fun Application.module() {
         }
     }
 
-    val database = configureDatabase()
-
-    install(Koin) {
-        slf4jLogger()
-        modules(
-            module {
-                single { database }
-                single<UserRepository> { ExposedUserRepository(get()) }
-            },
-        )
-    }
-
     install(Authentication) {
-        configureJwt()
+        configureJwt(jwtConfig)
     }
 
     routing {

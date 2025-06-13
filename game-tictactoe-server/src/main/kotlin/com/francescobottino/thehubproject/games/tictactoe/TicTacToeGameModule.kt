@@ -204,9 +204,13 @@ private suspend fun DefaultWebSocketServerSession.getUpdates() {
         call.respond(HttpStatusCode.Unauthorized, "User not found or invalid token")
         return
     }
-    val roomId = call.parameters["roomId"]!!
 
-    log.debug("User $userId is connected to updates")
+    val roomId = call.parameters["roomId"]
+    if (roomId == null) {
+        log.debug("roomId not found")
+        call.respond(HttpStatusCode.BadRequest, "Invalid request, requires room id")
+        return
+    }
 
     val room = repo.getRoom(roomId)
     if (room == null) {

@@ -21,6 +21,7 @@ fun Routing.configureRoutingAuth() {
 }
 
 private suspend fun RoutingContext.register() {
+    val jwtConfig by call.inject<JwtConfig>()
     val userRepository by call.inject<UserRepository>()
 
     val request = try {
@@ -45,7 +46,7 @@ private suspend fun RoutingContext.register() {
             passwordHash = hashedPassword
         )
         userRepository.create(newUser)
-        val token = JwtConfig.generateToken(newUser.id)
+        val token = jwtConfig.generateToken(newUser.id)
 
         call.respond(HttpStatusCode.Created, AuthResponseSuccess(token = token, userId = newUser.id, username = newUser.username))
     } catch (e: Exception) {
@@ -55,6 +56,7 @@ private suspend fun RoutingContext.register() {
 }
 
 private suspend fun RoutingContext.login() {
+    val jwtConfig by call.inject<JwtConfig>()
     val userRepository by call.inject<UserRepository>()
 
     val request = try {
@@ -77,7 +79,7 @@ private suspend fun RoutingContext.login() {
             return
         }
 
-        val token = JwtConfig.generateToken(user.id)
+        val token = jwtConfig.generateToken(user.id)
         call.respond(HttpStatusCode.Created, AuthResponseSuccess(token = token, userId = user.id, username = user.username))
     } catch (e: Exception) {
         call.application.log.error("Registration failed", e)

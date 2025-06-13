@@ -1,10 +1,10 @@
-package com.francescobottino.thehubproject.repo
+package com.francescobottino.thehubproject
 
 import arrow.core.Either
-import com.francescobottino.thehubproject.TokenStorage
 import com.francescobottino.thehubproject.model.AuthRequest
 import com.francescobottino.thehubproject.model.AuthResponseError
 import com.francescobottino.thehubproject.model.AuthResponseSuccess
+import com.francescobottino.thehubproject.repo.AuthRepository
 import com.francescobottino.thehubproject.security.SecureStorage
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -13,7 +13,7 @@ import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 
-class AuthRepositoryImplementation(
+internal class AuthRepositoryImplementation(
     private val client: HttpClient,
     private val secureStorage: SecureStorage
 ): AuthRepository {
