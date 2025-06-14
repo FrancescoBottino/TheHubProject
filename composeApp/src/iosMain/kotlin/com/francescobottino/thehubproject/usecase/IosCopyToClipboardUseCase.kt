@@ -1,5 +1,6 @@
 package com.francescobottino.thehubproject.usecase
 
+import com.francescobottino.thehubproject.client_shared.usecase.CopyToClipboardUseCase
 import platform.UIKit.UIPasteboard
 
 class IosCopyToClipboardUseCase(): CopyToClipboardUseCase {

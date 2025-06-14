@@ -1,7 +1,7 @@
 package com.francescobottino.thehubproject.network
 
 import com.francescobottino.thehubproject.config.Config
-import com.francescobottino.thehubproject.mainJson
+import com.francescobottino.thehubproject.shared.mainJson
 import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.auth.*

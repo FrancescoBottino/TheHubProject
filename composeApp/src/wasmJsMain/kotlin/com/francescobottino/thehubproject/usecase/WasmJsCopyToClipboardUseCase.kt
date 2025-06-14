@@ -1,5 +1,6 @@
 package com.francescobottino.thehubproject.usecase
 
+import com.francescobottino.thehubproject.client_shared.usecase.CopyToClipboardUseCase
 import kotlinx.browser.document
 import kotlinx.coroutines.await
 import org.w3c.dom.HTMLTextAreaElement

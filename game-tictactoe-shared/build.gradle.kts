@@ -53,7 +53,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.francescobottino.thehubproject.games.tictactoe"
+    namespace = "com.francescobottino.thehubproject.games.tictactoe.shared"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

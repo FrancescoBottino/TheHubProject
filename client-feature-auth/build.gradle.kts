@@ -58,7 +58,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.francescobottino.thehubproject.shared"
+    namespace = "com.francescobottino.thehubproject.client_feature_auth"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

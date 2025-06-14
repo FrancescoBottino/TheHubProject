@@ -8,10 +8,10 @@ plugins {
     application
 }
 
-group = "com.francescobottino.thehubproject"
+group = "com.francescobottino.thehubproject.server"
 version = "1.0.0"
 application {
-    mainClass.set("com.francescobottino.thehubproject.ApplicationKt")
+    mainClass.set("com.francescobottino.thehubproject.server.ApplicationKt")
 }
 
 dependencies {
@@ -47,7 +47,7 @@ dependencies {
 val localProperties: Properties by rootProject.extra
 
 buildConfig {
-    packageName("com.francescobottino.thehubproject")
+    packageName("com.francescobottino.thehubproject.server")
     className("ServerConfig")
     useKotlinOutput()
     buildConfigField<String?>("ENVIRONMENT", (localProperties["environment"] as? String))

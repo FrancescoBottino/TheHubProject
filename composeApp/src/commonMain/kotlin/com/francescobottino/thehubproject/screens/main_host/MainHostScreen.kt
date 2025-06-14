@@ -16,8 +16,8 @@ import cafe.adriel.voyager.navigator.CurrentScreen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import com.francescobottino.thehubproject.repo.AuthRepository
-import com.francescobottino.thehubproject.repo.UserRepository
+import com.francescobottino.thehubproject.client_shared.repo.AuthRepository
+import com.francescobottino.thehubproject.client_shared.repo.UserRepository
 import com.francescobottino.thehubproject.screens.game_selection.GameSelectionScreen
 import com.francescobottino.thehubproject.screens.login.LoginScreen
 import compose.icons.FeatherIcons

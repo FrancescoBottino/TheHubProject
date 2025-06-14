@@ -3,6 +3,7 @@ package com.francescobottino.thehubproject.usecase
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import com.francescobottino.thehubproject.client_shared.usecase.CopyToClipboardUseCase
 
 class AndroidCopyToClipboardUseCase(private val context: Context): CopyToClipboardUseCase {
     override suspend fun invoke(text: String): Result<Unit> = runCatching {

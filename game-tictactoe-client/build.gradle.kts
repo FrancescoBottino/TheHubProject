@@ -85,7 +85,7 @@ dependencies {
 }
 
 android {
-    namespace = "com.francescobottino.thehubproject.games.tictactoe"
+    namespace = "com.francescobottino.thehubproject.games.tictactoe.client"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
