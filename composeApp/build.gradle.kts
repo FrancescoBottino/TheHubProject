@@ -115,6 +115,9 @@ kotlin {
     }
 }
 
+private var mainVersionCode = 1
+private var mainVersionName = "1.0.$mainVersionCode"
+
 android {
     namespace = "com.francescobottino.thehubproject"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
@@ -146,8 +149,8 @@ android {
         applicationId = "com.francescobottino.thehubproject"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0.$versionCode"
+        versionCode = mainVersionCode
+        versionName = mainVersionName
     }
     packaging {
         resources {
@@ -187,7 +190,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "com.francescobottino.thehubproject"
-            packageVersion = "1.0.0"
+            packageVersion = mainVersionName
         }
     }
 }
