@@ -14,7 +14,7 @@ fun Application.configureDatabase(): Database {
 
     return Database.connect(
         driver = "org.postgresql.Driver",
-        url = Envs.DB_URL,
+        url = Envs.DB_URL.let { if(it.startsWith("jdbc:")) it else "jdbc:$it" },
         user = Envs.DB_USER.orEmpty(),
         password = Envs.DB_PASSWORD.orEmpty(),
     )
