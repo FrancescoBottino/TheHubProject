@@ -1,3 +1,4 @@
+import com.android.build.api.variant.impl.VariantOutputImpl
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
@@ -132,9 +133,12 @@ android {
             storePassword = keystoreProperties.getProperty("storePassword")
         }
     }
+    lint {
+        disable += "NullSafeMutableLiveData"
+    }
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = true
+            isMinifyEnabled = false
             signingConfig = signingConfigs.getByName("release")
         }
     }
@@ -143,7 +147,7 @@ android {
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.$versionCode"
     }
     packaging {
         resources {
@@ -153,6 +157,16 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+    }
+    androidComponents {
+        onVariants(selector().all()) { variant ->
+            variant.outputs.forEach { output ->
+                val newName = "TheHubProject-${variant.name}.apk"
+                (output as? VariantOutputImpl)?.let {
+                    it.outputFileName = newName
+                }
+            }
+        }
     }
 }
 
