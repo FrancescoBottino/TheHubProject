@@ -118,6 +118,26 @@ android {
     namespace = "com.francescobottino.thehubproject"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
+    val keystorePropertiesFile = rootProject.file("keystore.properties")
+    val keystoreProperties = Properties()
+    if (keystorePropertiesFile.exists()) {
+        keystoreProperties.load(keystorePropertiesFile.inputStream())
+    }
+
+    signingConfigs {
+        create("release") {
+            keyAlias = keystoreProperties.getProperty("keyAlias")
+            keyPassword = keystoreProperties.getProperty("keyPassword")
+            storeFile = file(keystoreProperties.getProperty("storeFile"))
+            storePassword = keystoreProperties.getProperty("storePassword")
+        }
+    }
+    buildTypes {
+        getByName("release") {
+            isMinifyEnabled = true
+            signingConfig = signingConfigs.getByName("release")
+        }
+    }
     defaultConfig {
         applicationId = "com.francescobottino.thehubproject"
         minSdk = libs.versions.android.minSdk.get().toInt()
@@ -128,11 +148,6 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-    }
-    buildTypes {
-        getByName("release") {
-            isMinifyEnabled = false
         }
     }
     compileOptions {
