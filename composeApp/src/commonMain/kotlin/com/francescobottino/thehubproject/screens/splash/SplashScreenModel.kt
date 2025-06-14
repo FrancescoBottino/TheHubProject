@@ -10,7 +10,6 @@ import com.francescobottino.thehubproject.repo.UserRepository
 import com.francescobottino.thehubproject.screens.StatefulScreenModel
 import com.francescobottino.thehubproject.screens.login.LoginScreen
 import com.francescobottino.thehubproject.screens.main_host.MainHostScreen
-import io.ktor.http.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -50,13 +49,8 @@ class SplashScreenModel(
             }
 
             val user = userApi.me().getOrElse { errorCode ->
-                if(errorCode == HttpStatusCode.Unauthorized) {
-                    navigator.replace(LoginScreen)
-                    return
-                } else {
-                    _state.update { it.copy(error = "Error getting user profile") }
-                    return
-                }
+                navigator.replace(LoginScreen)
+                return
             }
 
             userRepo.setCurrentUser(User(user.id, user.username))
