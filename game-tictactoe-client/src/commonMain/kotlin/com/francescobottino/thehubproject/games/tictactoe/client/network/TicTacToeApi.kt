@@ -1,6 +1,7 @@
 package com.francescobottino.thehubproject.games.tictactoe.client.network
 
 import arrow.core.Either
+import com.francescobottino.thehubproject.client_shared.network.webSocketSessionAuth
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToeGameRoom
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.api.*
 import io.ktor.client.*
@@ -58,6 +59,6 @@ class TicTacToeApi(
     }
     @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun joinRoomWebSocket(roomId: String): DefaultClientWebSocketSession {
-        return client.webSocketSession("$wsUrl/games/tictactoe/room/$roomId/updates")
+        return client.webSocketSessionAuth("$wsUrl/games/tictactoe/room/$roomId/updates")
     }
 }

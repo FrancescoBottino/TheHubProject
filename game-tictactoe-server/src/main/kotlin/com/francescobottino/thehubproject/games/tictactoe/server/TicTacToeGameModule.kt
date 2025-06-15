@@ -5,11 +5,8 @@ import com.francescobottino.thehubproject.games.tictactoe.server.repository.TicT
 import com.francescobottino.thehubproject.games.tictactoe.server.usecase.TicTacToeUseCases
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.api.TicTacToeMakeMoveRequest
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.api.TicTacToeMakeRoomRequest
-import com.francescobottino.thehubproject.server_shared.GameModule
+import com.francescobottino.thehubproject.server_shared.*
 import com.francescobottino.thehubproject.server_shared.auth.AUTH_JWT
-import com.francescobottino.thehubproject.server_shared.getAuthUser
-import com.francescobottino.thehubproject.server_shared.getAuthUserId
-import com.francescobottino.thehubproject.server_shared.log
 import com.francescobottino.thehubproject.server_shared.model.safe
 import com.francescobottino.thehubproject.shared.mainJson
 import io.ktor.http.*
@@ -32,15 +29,18 @@ object TicTacToeGameModule: GameModule {
 
             authenticate(AUTH_JWT) {
                 get("my-rooms") { myRooms() }
-                route("room") {
+            }
+            route("room") {
+                authenticate(AUTH_JWT) {
                     post("make") { makeRoom() }
-
-                    route("{roomId}") {
+                }
+                route("{roomId}") {
+                    authenticate(AUTH_JWT) {
                         post("join") { joinRoom() }
                         post("move") { makeMove() }
                         post("restart") { restart() }
-                        webSocket("updates") { getUpdates() }
                     }
+                    webSocket("updates") { getUpdates() }
                 }
             }
         }
@@ -204,7 +204,7 @@ context(route: Route)
 private suspend fun DefaultWebSocketServerSession.getUpdates() {
     val repo by call.inject<TicTacToeGameRoomRepository>()
 
-    val userId = call.getAuthUserId() ?: run {
+    val userId = getWebsocketAuthUserId() ?: run {
         call.respond(HttpStatusCode.Unauthorized, "User not found or invalid token")
         return
     }
