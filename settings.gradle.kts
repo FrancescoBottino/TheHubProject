@@ -85,12 +85,22 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
+fun includeGame(name: String) {
+    // Client module
+    include(":${name}-client")
+    project(":${name}-client").projectDir = file("games/${name}/client")
+    // Server module
+    include(":${name}-server")
+    project(":${name}-server").projectDir = file("games/${name}/server")
+    // Shared module
+    include(":${name}-shared")
+    project(":${name}-shared").projectDir = file("games/${name}/shared")
+}
+
 include(":composeApp")
 include(":server")
 include(":shared")
 include(":server-shared")
 include(":client-shared")
 include(":client-feature-auth")
-include(":game-tictactoe-shared")
-include(":game-tictactoe-server")
-include(":game-tictactoe-client")
+includeGame("tictactoe")

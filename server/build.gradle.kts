@@ -41,7 +41,7 @@ dependencies {
 
     implementation(projects.shared)
     implementation(projects.serverShared)
-    implementation(projects.gameTictactoeServer)
+    implementation(projects.tictactoeServer)
 }
 
 val localProperties: Properties by rootProject.extra

@@ -90,7 +90,7 @@ kotlin {
             implementation(projects.shared)
             implementation(projects.clientShared)
             implementation(projects.clientFeatureAuth)
-            implementation(projects.gameTictactoeClient)
+            implementation(projects.tictactoeClient)
         }
         androidMain.dependencies {
             implementation(compose.preview)
