@@ -97,10 +97,15 @@ fun includeGame(name: String) {
     project(":${name}-shared").projectDir = file("games/${name}/shared")
 }
 
+fun includeClientFeature(name: String) {
+    include(":clientFeature-${name}")
+    project(":clientFeature-${name}").projectDir = file("client-features/${name}")
+}
+
 include(":composeApp")
 include(":server")
 include(":shared")
 include(":server-shared")
 include(":client-shared")
-include(":client-feature-auth")
+includeClientFeature("auth")
 includeGame("tictactoe")
