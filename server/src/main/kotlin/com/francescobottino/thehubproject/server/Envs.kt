@@ -2,7 +2,7 @@ package com.francescobottino.thehubproject.server
 
 object Envs {
     val HOST by lazy { System.getenv("HOST") ?: "0.0.0.0" }
-    val PORT by lazy { System.getenv("PORT")?.toIntOrNull() ?: throw Exception("PORT environment variable not set.") }
+    val PORT by lazy { System.getenv("PORT")?.toIntOrNull() ?: 80 }
 
     val DB_USER by lazy { System.getenv("DB_USER") ?: throw RuntimeException("DB_USER environment variable not set.") }
     val DB_PASSWORD by lazy { System.getenv("DB_PASSWORD") ?: throw RuntimeException("DB_PASSWORD environment variable not set.") }

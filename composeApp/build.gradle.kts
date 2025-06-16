@@ -129,20 +129,19 @@ android {
     }
 
     signingConfigs {
-        create("release") {
-            keyAlias = keystoreProperties.getProperty("keyAlias")
-            keyPassword = keystoreProperties.getProperty("keyPassword")
-            storeFile = file(keystoreProperties.getProperty("storeFile"))
-            storePassword = keystoreProperties.getProperty("storePassword")
+        if (keystoreProperties.getProperty("keyAlias") != null) {
+            create("release") {
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+                storeFile = file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+            }
         }
-    }
-    lint {
-        disable += "NullSafeMutableLiveData"
     }
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = signingConfigs.findByName("release")
         }
     }
     defaultConfig {
@@ -151,6 +150,9 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = mainVersionCode
         versionName = mainVersionName
+    }
+    lint {
+        disable += "NullSafeMutableLiveData"
     }
     packaging {
         resources {
