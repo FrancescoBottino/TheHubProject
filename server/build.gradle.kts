@@ -1,5 +1,3 @@
-import java.util.*
-
 plugins {
     alias(libs.plugins.kotlinJvm)
     alias(libs.plugins.kotlinPluginSerialization)
@@ -44,11 +42,11 @@ dependencies {
     implementation(projects.tictactoeServer)
 }
 
-val localProperties: Properties by rootProject.extra
+val isProduction: Boolean by rootProject.extra
 
 buildConfig {
     packageName("com.francescobottino.thehubproject.server")
     className("ServerConfig")
     useKotlinOutput()
-    buildConfigField<String?>("ENVIRONMENT", (localProperties["environment"] as? String))
+    buildConfigField<Boolean>("IS_PRODUCTION", isProduction)
 }

@@ -13,7 +13,7 @@ TARGET_FILE="$TARGET_DIR/ktor-server.jar"
 
 # 1. Build the wasm output
 echo "🛠️ Building Compose WASM app..."
-(cd "$PROJECT_ROOT" && ./gradlew :server:buildFatJar)
+(cd "$PROJECT_ROOT" && ./gradlew :server:buildFatJar -Penvironment=prod)
 
 # 2. Clean target static folder
 echo "🧹 Cleaning $TARGET_DIR..."

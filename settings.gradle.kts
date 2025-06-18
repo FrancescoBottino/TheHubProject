@@ -42,15 +42,19 @@ fun readLocalProperties(projectDir: File): Properties {
 gradle.beforeProject {
     if(project == rootProject) { // Only execute once for the root project
         val envVariables = readDotEnv(rootProject.projectDir)
+
         val localProperties = readLocalProperties(rootProject.projectDir)
+        val environment = if(project.hasProperty("environment")) project.property("environment") else localProperties["environment"]
+        val isProduction = environment != "dev"
+        val devServerIp = localProperties["dev_server_ip"]?.toString()
+        val devServerPort = envVariables["PORT"]?.toInt() ?: 9090
 
-        // Store them in rootProject.extra so any module can access them
-        rootProject.extra.set("envVariables", envVariables)
-        rootProject.extra.set("localProperties", localProperties)
-
-        println("Loaded variables into rootProject.extra:")
-        println("  Env variables: ${envVariables.keys}")
-        println("  Local properties: ${localProperties.stringPropertyNames()}")
+        rootProject.extra.set("isProduction", isProduction)
+        println("   isProduction: $isProduction | (environment: $environment)")
+        rootProject.extra.set("devServerIp", devServerIp)
+        println("   devServerIp: $devServerIp")
+        rootProject.extra.set("devServerPort", devServerPort)
+        println("   devServerPort: $devServerPort")
     }
 }
 

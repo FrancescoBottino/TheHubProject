@@ -197,15 +197,16 @@ compose.desktop {
     }
 }
 
-val envVariables: Map<String, String> by rootProject.extra
-val localProperties: Properties by rootProject.extra
+val isProduction: Boolean by rootProject.extra
+val devServerIp: String? by rootProject.extra
+val devServerPort: Int by rootProject.extra
 
 buildConfig {
     packageName("com.francescobottino.thehubproject")
     className("ClientConfig")
     useKotlinOutput()
 
-    buildConfigField<String?>("ENVIRONMENT", (localProperties["environment"] as? String))
-    buildConfigField<String>("DEV_SERVER_IP", (localProperties["dev_server_ip"] as? String) ?: "localhost")
-    buildConfigField<Int>("DEV_SERVER_PORT", envVariables["PORT"]?.toInt() ?: 9090)
+    buildConfigField<Boolean>("IS_PRODUCTION", isProduction)
+    buildConfigField<String>("DEV_SERVER_IP", devServerIp)
+    buildConfigField<Int>("DEV_SERVER_PORT", devServerPort)
 }

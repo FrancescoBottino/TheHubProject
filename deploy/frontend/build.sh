@@ -12,7 +12,7 @@ TARGET_DIR="$SCRIPT_DIR/output"
 
 # 1. Build the wasm output
 echo "🛠️ Building Compose WASM app..."
-(cd "$PROJECT_ROOT" && ./gradlew :composeApp:wasmJsBrowserDistribution)
+(cd "$PROJECT_ROOT" && ./gradlew :composeApp:wasmJsBrowserDistribution -Penvironment=prod)
 
 # 2. Clean target static folder
 echo "🧹 Cleaning $TARGET_DIR..."
