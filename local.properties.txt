@@ -1,4 +1,0 @@
-# either prod or dev
-environment=dev
-# Local machine IP
-dev_server_ip=192.168.1.1
