@@ -20,7 +20,7 @@ import androidx.compose.ui.window.Dialog
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import com.francescobottino.thehubproject.client_shared.screens.LoadingOverlay
+import com.francescobottino.thehubproject.client_shared.screens.LoadingCardOverlay
 import com.francescobottino.thehubproject.games.tictactoe.client.presentation.TicTacToeCatGame
 import com.francescobottino.thehubproject.games.tictactoe.client.presentation.TicTacToeCircle
 import com.francescobottino.thehubproject.games.tictactoe.client.presentation.TicTacToeCross
@@ -147,7 +147,7 @@ private fun GameScreenContent(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center,
         ) {
-            LoadingOverlay()
+            LoadingCardOverlay()
         }
     }
 

@@ -1,24 +1,22 @@
 package com.francescobottino.thehubproject.screens.splash
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.francescobottino.thehubproject.client_shared.screens.SimpleErrorCardOverlay
+import com.francescobottino.thehubproject.presentation.MainIcon
+import org.jetbrains.compose.ui.tooling.preview.Preview
 
 object SplashScreen: Screen {
     @Composable
@@ -45,47 +43,106 @@ private fun SplashScreenContent(
     Box(
         modifier = modifier,
     ) {
-        Column(
+        CenterMainContent(
             modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically),
-        ) {
-            Text(
-                text = "The Hub Project",
-                style = MaterialTheme.typography.titleMedium,
-            )
-
-            Box(
-                modifier = Modifier.requiredSize(64.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                CircularProgressIndicator()
-            }
-        }
-
-        if(state.error != null) {
-            Dialog(
-                onDismissRequest = {}
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
-                        modifier = Modifier
-                            .shadow(elevation = 12.dp)
-                            .background(color = Color.White)
-                            .padding(16.dp),
+            below = {
+                if(!state.error) {
+                    Box(
+                        modifier = Modifier.requiredSize(64.dp),
+                        contentAlignment = Alignment.Center,
                     ) {
-                        Text(state.error)
-                        Button(onClick = { onEvent(SplashScreenEvent.TryAgain) }) {
-                            Text("Try again")
-                        }
+                        CircularProgressIndicator()
                     }
                 }
             }
+        ) {
+            val imageSize = 64.dp
+            val spacing = 8.dp
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(spacing, Alignment.CenterHorizontally),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Image(
+                    imageVector = MainIcon,
+                    contentDescription = "logo",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.requiredSize(imageSize)
+                )
+
+                VerticalDivider(modifier = Modifier.requiredHeight(imageSize))
+
+                Text(
+                    text = "The Hub Project",
+                    style = MaterialTheme.typography.titleLarge,
+                    maxLines = 1,
+                )
+            }
+        }
+
+        if(state.error) {
+            SimpleErrorCardOverlay(
+                title = "Error",
+                message = "There was an error while trying to fetch user data.",
+                action = "Try Again" to { onEvent(SplashScreenEvent.TryAgain) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun CenterMainContent(
+    modifier: Modifier = Modifier,
+    horizontalAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,
+    verticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(4.dp, Alignment.CenterVertically),
+    above: @Composable BoxScope.() -> Unit = {},
+    below: @Composable BoxScope.() -> Unit = {},
+    content: @Composable BoxScope.() -> Unit,
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = horizontalAlignment,
+        verticalArrangement = verticalArrangement,
+    ) {
+        Box(
+            modifier = Modifier.weight(1f).fillMaxWidth(),
+            contentAlignment = Alignment.BottomCenter,
+            content = above,
+        )
+
+        Box(
+            contentAlignment = Alignment.Center,
+            content = content
+        )
+
+        Box(
+            modifier = Modifier.weight(1f).fillMaxWidth(),
+            contentAlignment = Alignment.TopCenter,
+            content = below
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun SplashScreenContentPreviewWithError() {
+    MaterialTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            SplashScreenContent(SplashScreenState(true), {})
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun SplashScreenContentPreviewWithoutError() {
+    MaterialTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            SplashScreenContent(SplashScreenState(false), {})
         }
     }
 }

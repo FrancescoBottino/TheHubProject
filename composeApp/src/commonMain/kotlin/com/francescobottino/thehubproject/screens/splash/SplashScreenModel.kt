@@ -10,6 +10,7 @@ import com.francescobottino.thehubproject.client_shared.screens.StatefulScreenMo
 import com.francescobottino.thehubproject.network.UserApi
 import com.francescobottino.thehubproject.screens.login.LoginScreen
 import com.francescobottino.thehubproject.screens.main_host.MainHostScreen
+import io.ktor.http.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -31,7 +32,7 @@ class SplashScreenModel(
     override fun onEvent(event: SplashScreenEvent) {
         when(event) {
             is SplashScreenEvent.TryAgain -> {
-                _state.update { it.copy(error = null) }
+                _state.update { it.copy(error = false) }
                 screenModelScope.launch { tryInit() }
             }
         }
@@ -42,23 +43,32 @@ class SplashScreenModel(
     }
 
     private suspend fun tryInit() {
-        try {
-            if(!authRepo.isLoggedIn()) {
-                navigator.replace(LoginScreen)
-                return
-            }
-
-            val user = userApi.me().getOrElse { errorCode ->
-                navigator.replace(LoginScreen)
-                return
-            }
-
-            userRepo.setCurrentUser(User(user.id, user.username))
-            navigator.replace(MainHostScreen)
+        val isLoggedIn = runCatching { authRepo.isLoggedIn() }.getOrElse { false }
+        if(!isLoggedIn) {
+            navigator.replace(LoginScreen)
             return
-        } catch (e: Exception) {
-            e.printStackTrace()
-            _state.update { it.copy(error = e.message ?: "Unknown error") }
         }
+
+        val userProfile = runCatching { userApi.me() }
+            .getOrElse { exception ->
+                _state.update {
+                    it.copy(error = true)
+                }
+                return
+            }
+            .getOrElse { profileError ->
+                if(profileError == HttpStatusCode.Unauthorized) {
+                    navigator.replace(LoginScreen)
+                } else {
+                    _state.update {
+                        it.copy(error = true)
+                    }
+                }
+                return
+            }
+
+        userRepo.setCurrentUser(User(userProfile.id, userProfile.username))
+        navigator.replace(MainHostScreen)
+        return
     }
 }
