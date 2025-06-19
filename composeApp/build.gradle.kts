@@ -190,9 +190,34 @@ compose.desktop {
         mainClass = "com.francescobottino.thehubproject.MainKt"
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.francescobottino.thehubproject"
+            targetFormats(
+                TargetFormat.Dmg, TargetFormat.Pkg,     // macOS
+                TargetFormat.Msi, TargetFormat.Exe,     // Windows
+                TargetFormat.Deb, TargetFormat.Rpm,     // Red Hat/Fedora
+                //TargetFormat.AppImage // Universal Linux
+            )
+            packageName = "The Hub Project"
             packageVersion = mainVersionName
+
+            macOS {
+                iconFile = project.file("src/desktopMain/assets/app_icon.icns")
+            }
+            windows {
+                iconFile = project.file("src/desktopMain/assets/app_icon.png")
+            }
+            linux {
+                iconFile = project.file("src/desktopMain/assets/app_icon.png")
+            }
+        }
+
+        buildTypes {
+            release {
+                proguard {
+                    optimize = false
+                    obfuscate = false
+                    isEnabled = false
+                }
+            }
         }
     }
 }
