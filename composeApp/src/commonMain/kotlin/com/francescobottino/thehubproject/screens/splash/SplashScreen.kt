@@ -14,9 +14,12 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import com.francescobottino.thehubproject.client_shared.screens.SimpleErrorCardOverlay
+import com.francescobottino.thehubproject.client_shared.ui.components.SimpleErrorCardOverlay
+import com.francescobottino.thehubproject.client_shared.ui.theme.AppTheme
 import com.francescobottino.thehubproject.presentation.MainIcon
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.jetbrains.compose.ui.tooling.preview.PreviewParameter
+import org.jetbrains.compose.ui.tooling.preview.PreviewParameterProvider
 
 object SplashScreen: Screen {
     @Composable
@@ -123,26 +126,24 @@ private fun CenterMainContent(
     }
 }
 
-@Preview
-@Composable
-private fun SplashScreenContentPreviewWithError() {
-    MaterialTheme {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            SplashScreenContent(SplashScreenState(true), {})
-        }
-    }
+private class SplashScreenStatePreview: PreviewParameterProvider<SplashScreenState> {
+    override val values = sequenceOf(
+        SplashScreenState(error = false),
+        SplashScreenState(error = true),
+    )
 }
 
 @Preview
 @Composable
-private fun SplashScreenContentPreviewWithoutError() {
-    MaterialTheme {
+private fun SplashScreenContentPreviewWithError(
+    @PreviewParameter(SplashScreenStatePreview::class)
+    state: SplashScreenState
+) {
+    AppTheme {
         Surface(
             modifier = Modifier.fillMaxSize(),
         ) {
-            SplashScreenContent(SplashScreenState(false), {})
+            SplashScreenContent(state, {})
         }
     }
 }

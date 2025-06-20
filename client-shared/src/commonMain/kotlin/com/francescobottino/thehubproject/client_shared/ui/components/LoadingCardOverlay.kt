@@ -1,4 +1,4 @@
-package com.francescobottino.thehubproject.client_shared.screens
+package com.francescobottino.thehubproject.client_shared.ui.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularProgressIndicator
@@ -17,7 +17,7 @@ fun LoadingCardOverlay(
     modifier: Modifier = Modifier,
 ) {
     DialogCardOverlay(modifier = modifier) {
-        Column (
+        Column(
             horizontalAlignment = CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.padding(vertical = 16.dp, horizontal = 32.dp),

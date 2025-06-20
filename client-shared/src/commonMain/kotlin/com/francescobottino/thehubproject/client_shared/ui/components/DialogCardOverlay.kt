@@ -1,4 +1,4 @@
-package com.francescobottino.thehubproject.client_shared.screens
+package com.francescobottino.thehubproject.client_shared.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

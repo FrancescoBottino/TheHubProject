@@ -60,9 +60,7 @@ class SplashScreenModel(
                 if(profileError == HttpStatusCode.Unauthorized) {
                     navigator.replace(LoginScreen)
                 } else {
-                    _state.update {
-                        it.copy(error = true)
-                    }
+                    _state.update { it.copy(error = true) }
                 }
                 return
             }

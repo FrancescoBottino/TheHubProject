@@ -19,9 +19,11 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.francescobottino.thehubproject.client_shared.ui.theme.AppTheme
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Eye
 import compose.icons.feathericons.EyeOff
+import org.jetbrains.compose.ui.tooling.preview.Preview
 
 object LoginScreen: Screen {
     @Composable
@@ -157,6 +159,21 @@ private fun LoginScreenContent(
                     }
                 }
             }
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun LoginScreenContentPreview() {
+    AppTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            LoginScreenContent(
+                state = LoginScreenState(isLoading = false),
+                onEvent = {},
+            )
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.francescobottino.thehubproject.client_shared.screens
+package com.francescobottino.thehubproject.client_shared.ui.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment.Companion.End
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.francescobottino.thehubproject.client_shared.ui.theme.AppTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -21,7 +22,7 @@ fun SimpleErrorCardOverlay(
     modifier: Modifier = Modifier,
 ) {
     DialogCardOverlay(modifier = modifier) {
-        Column (
+        Column(
             horizontalAlignment = CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.requiredWidthIn(min = 160.dp),
@@ -64,7 +65,7 @@ fun SimpleErrorCardOverlay(
 @Preview
 @Composable
 private fun SimpleErrorCardOverlayPreview() {
-    MaterialTheme {
+    AppTheme {
         Surface(modifier = Modifier.fillMaxSize()) {
             SimpleErrorCardOverlay(
                 title = "Generic Error very long line lorem ipsium",
