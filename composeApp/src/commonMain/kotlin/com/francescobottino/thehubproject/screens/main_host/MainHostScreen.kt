@@ -1,6 +1,7 @@
 package com.francescobottino.thehubproject.screens.main_host
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -10,19 +11,26 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
-import cafe.adriel.voyager.navigator.CurrentScreen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import cafe.adriel.voyager.transitions.SlideTransition
+import com.francescobottino.thehubproject.client_shared.model.User
 import com.francescobottino.thehubproject.client_shared.repo.AuthRepository
 import com.francescobottino.thehubproject.client_shared.repo.UserRepository
+import com.francescobottino.thehubproject.client_shared.ui.components.LogoSmall
+import com.francescobottino.thehubproject.client_shared.ui.theme.AppTheme
 import com.francescobottino.thehubproject.screens.game_selection.GameSelectionScreen
 import com.francescobottino.thehubproject.screens.login.LoginScreen
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.ArrowLeft
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.koinInject
 
 object MainHostScreen: Screen {
@@ -38,60 +46,121 @@ object MainHostScreen: Screen {
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
                 topBar = {
-                    Surface(
-                        shadowElevation = 12.dp,
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .requiredHeight(height = 40.dp)
-                                .fillMaxWidth()
-                                .padding(vertical = 2.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            AnimatedVisibility(
-                                visible = navigator.canPop,
-                            ) {
-                                IconButton(
-                                    onClick = { navigator.pop() },
-                                    modifier = Modifier.fillMaxHeight().padding(start = 4.dp),
-                                ) {
-                                    Icon(
-                                        FeatherIcons.ArrowLeft,
-                                        contentDescription = "Back"
-                                    )
-                                }
+                    TopBar(
+                        user = user,
+                        canBack = navigator.canPop,
+                        onBackClicked = { navigator.pop() },
+                        onUserClicked = {
+                            scope.launch {
+                                if (authRepo.isLoggedIn()) { authRepo.logout() }
+                                parentNavigator.replace(LoginScreen)
                             }
-
-                            Box(
-                                modifier = Modifier.weight(1f).fillMaxHeight()
-                            ) {
-                                //todo main content, title maybe?
-                            }
-
-                            Text(
-                                text = user?.username ?: "Anonymous",
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier
-                                    .fillMaxHeight()
-                                    .wrapContentWidth()
-                                    .padding(end = 4.dp)
-                                    .clickable {
-                                        scope.launch {
-                                            authRepo.logout()
-                                            parentNavigator.replace(LoginScreen)
-                                        }
-                                    },
-                            )
                         }
-                    }
+                    )
                 }
             ) { paddingValues ->
                 Box(
                     modifier = Modifier.fillMaxSize().padding(paddingValues)
                 ) {
-                    CurrentScreen()
+                    SlideTransition(navigator)
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TopBar(
+    user: User?,
+    canBack: Boolean,
+    onBackClicked: () -> Unit,
+    onUserClicked: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier,
+        shadowElevation = 12.dp,
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier
+                .requiredHeight(height = 48.dp)
+                .fillMaxWidth()
+                .padding(vertical = 2.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .padding(start = 4.dp)
+                    .requiredSize(40.dp)
+            ) {
+                this@Row.AnimatedVisibility(
+                    visible = canBack,
+                ) {
+                    IconButton(
+                        onClick = onBackClicked,
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        Icon(
+                            FeatherIcons.ArrowLeft,
+                            contentDescription = "Back"
+                        )
+                    }
+                }
+            }
+
+            Box(
+                contentAlignment = Alignment.CenterStart,
+                modifier = Modifier.fillMaxHeight(),
+            ) {
+                LogoSmall()
+            }
+
+            //TODO menu to show user and other settings.
+            Box(
+                contentAlignment = Alignment.CenterEnd,
+                modifier = Modifier.fillMaxHeight().weight(1f),
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .requiredWidthIn(min = 80.dp)
+                        .padding(4.dp)
+                        .shadow(elevation = 2.dp, shape = MaterialTheme.shapes.medium)
+                        .clip(shape = MaterialTheme.shapes.medium)
+                        .background(color = MaterialTheme.colorScheme.surface, shape = MaterialTheme.shapes.medium)
+                        .clickable(onClick = onUserClicked)
+                        .padding(horizontal = 8.dp),
+                ) {
+                    Text(
+                        text = user?.username ?: "Login",
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun TopBarPreview() {
+    AppTheme {
+        Surface(modifier = Modifier.fillMaxSize()) {
+            Scaffold(
+                topBar = {
+                    TopBar(
+                        user = null,
+                        canBack = true,
+                        {},
+                        {},
+                    )
+                }
+            ) {
+                Box(modifier = Modifier.fillMaxSize().padding(it)) { }
             }
         }
     }

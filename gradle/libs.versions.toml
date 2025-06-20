@@ -70,6 +70,7 @@ postgresql-driver = { module = "org.postgresql:postgresql", version.ref = "postg
 dotenv = { module = "io.github.cdimascio:dotenv-kotlin", version.ref = "dotenvKotlin" }
 voyager-navigator = { module = "cafe.adriel.voyager:voyager-navigator", version.ref = "voyager"}
 voyager-screenmodel = { module = "cafe.adriel.voyager:voyager-screenmodel", version.ref = "voyager"}
+voyager-transitions = { module = "cafe.adriel.voyager:voyager-transitions", version.ref = "voyager"}
 composeIcons-feather = { module = "br.com.devsrsouza.compose.icons:feather", version.ref = "composeIcons"}
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
 

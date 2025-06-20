@@ -1,4 +1,4 @@
-package com.francescobottino.thehubproject.presentation
+package com.francescobottino.thehubproject.client_shared.ui.images
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor

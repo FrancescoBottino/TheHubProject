@@ -32,11 +32,13 @@ object LoginScreen: Screen {
         val screenModel = rememberScreenModel { LoginScreenModel(navigator) }
         val state by screenModel.state.collectAsState()
 
-        LoginScreenContent(
-            state = state,
-            onEvent = screenModel::onEvent,
-            modifier = Modifier.fillMaxSize(),
-        )
+        Scaffold {
+            LoginScreenContent(
+                state = state,
+                onEvent = screenModel::onEvent,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
     }
 }
 

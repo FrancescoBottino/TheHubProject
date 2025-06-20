@@ -1,22 +1,22 @@
 package com.francescobottino.thehubproject.screens.splash
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.francescobottino.thehubproject.client_shared.ui.components.LogoBig
 import com.francescobottino.thehubproject.client_shared.ui.components.SimpleErrorCardOverlay
 import com.francescobottino.thehubproject.client_shared.ui.theme.AppTheme
-import com.francescobottino.thehubproject.presentation.MainIcon
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.jetbrains.compose.ui.tooling.preview.PreviewParameter
 import org.jetbrains.compose.ui.tooling.preview.PreviewParameterProvider
@@ -29,11 +29,13 @@ object SplashScreen: Screen {
 
         val state by screenModel.state.collectAsState()
 
-        SplashScreenContent(
-            state = state,
-            onEvent = screenModel::onEvent,
-            modifier = Modifier.fillMaxSize(),
-        )
+        Scaffold {
+            SplashScreenContent(
+                state = state,
+                onEvent = screenModel::onEvent,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
     }
 }
 
@@ -59,28 +61,7 @@ private fun SplashScreenContent(
                 }
             }
         ) {
-            val imageSize = 64.dp
-            val spacing = 8.dp
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(spacing, Alignment.CenterHorizontally),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Image(
-                    imageVector = MainIcon,
-                    contentDescription = "logo",
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.requiredSize(imageSize)
-                )
-
-                VerticalDivider(modifier = Modifier.requiredHeight(imageSize))
-
-                Text(
-                    text = "The Hub Project",
-                    style = MaterialTheme.typography.titleLarge,
-                    maxLines = 1,
-                )
-            }
+            LogoBig()
         }
 
         if(state.error) {

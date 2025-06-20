@@ -84,6 +84,7 @@ kotlin {
             implementation(libs.koin.compose)
             implementation(libs.voyager.navigator)
             implementation(libs.voyager.screenmodel)
+            implementation(libs.voyager.transitions)
             implementation(libs.composeIcons.feather)
             implementation(libs.arrow.core)
 
