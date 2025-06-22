@@ -16,7 +16,7 @@ object TicTacToeGameRoomTable: Table("tic_tac_toe_game_rooms") {
     val roomState = varchar("room_state", 50) // Serialized state type
     val roomStateWinnerId = varchar("room_state_winner_id", 36).nullable() // For Finished state
     val roomStateClosedById = varchar("room_state_closed_by_id", 36).nullable() // For Closed state
-    val lastUpdate = long("last_update") // Instant as epoch milliseconds
+    val lastUpdate = long("last_update").index() // Instant as epoch milliseconds
 
     override val primaryKey = PrimaryKey(id)
 }

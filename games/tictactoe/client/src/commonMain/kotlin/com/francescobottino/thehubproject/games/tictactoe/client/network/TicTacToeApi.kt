@@ -4,6 +4,8 @@ import arrow.core.Either
 import com.francescobottino.thehubproject.client_shared.network.webSocketSessionAuth
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToeGameRoom
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.api.*
+import com.francescobottino.thehubproject.shared.model.PaginatedResponse
+import com.francescobottino.thehubproject.shared.model.PaginationParams
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.websocket.*
@@ -15,9 +17,10 @@ class TicTacToeApi(
     private val client: HttpClient,
     private val wsUrl: String,
 ) {
-    suspend fun myRooms(): List<TicTacToeGameRoom> {
+    suspend fun myRooms(paginationParams: PaginationParams): PaginatedResponse<TicTacToeGameRoom> {
         return client.get("/games/tictactoe/my-rooms") {
             contentType(ContentType.Application.Json)
+            setBody(paginationParams)
         }.body()
     }
     suspend fun makeRoom(request: TicTacToeMakeRoomRequest): String {

@@ -9,6 +9,7 @@ import com.francescobottino.thehubproject.server_shared.*
 import com.francescobottino.thehubproject.server_shared.auth.AUTH_JWT
 import com.francescobottino.thehubproject.server_shared.model.safe
 import com.francescobottino.thehubproject.shared.mainJson
+import com.francescobottino.thehubproject.shared.model.PaginationParams
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -55,9 +56,16 @@ private suspend fun RoutingContext.myRooms() {
         return
     }
 
+    val paginationParams = try {
+        call.receive<PaginationParams>()
+    } catch (e: Exception) {
+        call.respond(HttpStatusCode.BadRequest, e.message ?: "Invalid request")
+        return
+    }
+
     try {
-        val roomIds = useCase.getMyRooms(userId = userId)
-        call.respond(HttpStatusCode.OK, message = roomIds)
+        val paginatedRooms = useCase.getMyRooms(userId = userId, paginationParams = paginationParams)
+        call.respond(HttpStatusCode.OK, message = paginatedRooms)
     } catch (e: Exception) {
         call.application.log.error("myRooms failed", e)
         call.respond(HttpStatusCode.InternalServerError, message = e.message ?: "Unknown error occurred")

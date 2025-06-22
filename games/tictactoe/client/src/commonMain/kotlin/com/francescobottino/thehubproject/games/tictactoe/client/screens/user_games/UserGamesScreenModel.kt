@@ -5,6 +5,7 @@ import cafe.adriel.voyager.navigator.Navigator
 import com.francescobottino.thehubproject.client_shared.screens.StatefulScreenModel
 import com.francescobottino.thehubproject.games.tictactoe.client.network.TicTacToeApi
 import com.francescobottino.thehubproject.games.tictactoe.client.screens.game.GameScreen
+import com.francescobottino.thehubproject.shared.model.PaginationParams
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -36,19 +37,20 @@ class UserGamesScreenModel(
         }
     }
 
+    //Uses only first page - implement pagination
     private fun refresh() {
         if(refreshJob?.isActive == true) return
 
         _state.update { it.copy(isLoading = true) }
         refreshJob = screenModelScope.launch {
-            runCatching { api.myRooms() }
+            runCatching { api.myRooms(PaginationParams()) }
                 .onFailure { error ->
                     _state.update { it.copy(error = error.message ?: "Unknown error") }
                 }
                 .onSuccess { response ->
                     _state.update {
                         it.copy(
-                            rooms = response.map { room ->
+                            rooms = response.data.map { room ->
                                 UserGamesScreenState.Room(
                                     id = room.id,
                                     lastUpdate = room.lastUpdate.toLocalDateTime(TimeZone.currentSystemDefault())
