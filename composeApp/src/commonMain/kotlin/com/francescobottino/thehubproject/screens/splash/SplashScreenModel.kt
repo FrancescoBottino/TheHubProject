@@ -1,6 +1,7 @@
 package com.francescobottino.thehubproject.screens.splash
 
-import arrow.core.getOrElse
+import arrow.core.Either
+import arrow.core.left
 import cafe.adriel.voyager.core.model.screenModelScope
 import cafe.adriel.voyager.navigator.Navigator
 import com.francescobottino.thehubproject.client_shared.model.User
@@ -10,7 +11,10 @@ import com.francescobottino.thehubproject.client_shared.screens.StatefulScreenMo
 import com.francescobottino.thehubproject.network.UserApi
 import com.francescobottino.thehubproject.screens.login.LoginScreen
 import com.francescobottino.thehubproject.screens.main_host.MainHostScreen
+import com.francescobottino.thehubproject.shared.model.UserResponse
 import io.ktor.http.*
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -21,6 +25,7 @@ import org.koin.core.component.inject
 
 class SplashScreenModel(
     private val navigator: Navigator,
+    private val minWaitTimeMillis: Long,
 ): StatefulScreenModel<SplashScreenState, SplashScreenEvent>(), KoinComponent {
     private val authRepo by inject<AuthRepository>()
     private val userApi by inject<UserApi>()
@@ -33,40 +38,57 @@ class SplashScreenModel(
         when(event) {
             is SplashScreenEvent.TryAgain -> {
                 _state.update { it.copy(isError = false) }
-                screenModelScope.launch { tryInit() }
+                screenModelScope.launch { handleUserResponse(tryFetchUser()) }
             }
         }
     }
 
     init {
-        screenModelScope.launch { tryInit() }
+        screenModelScope.launch {
+            val user = async { tryFetchUser() }
+            val animation = async { delay(minWaitTimeMillis) }
+            animation.await()
+            handleUserResponse(user.await())
+        }
     }
 
-    private suspend fun tryInit() {
+    private fun handleUserResponse(user: Either<FetchUserError, UserResponse>) {
+        user
+            .onLeft { error ->
+                when(error) {
+                    FetchUserError.AUTH_ERROR -> navigator.replace(LoginScreen)
+                    FetchUserError.FETCH_ERROR -> _state.update { it.copy(isError = true) }
+                }
+            }
+            .onRight { userProfile ->
+                userRepo.setCurrentUser(User(userProfile.id, userProfile.username))
+                navigator.replace(MainHostScreen)
+            }
+    }
+
+    private suspend fun tryFetchUser(): Either<FetchUserError, UserResponse> {
         val isLoggedIn = runCatching { authRepo.isLoggedIn() }.getOrElse { false }
         if(!isLoggedIn) {
-            navigator.replace(LoginScreen)
-            return
+            return FetchUserError.AUTH_ERROR.left()
         }
 
-        val userProfile = runCatching { userApi.me() }
-            .getOrElse { exception ->
-                _state.update {
-                    it.copy(isError = true)
+        return Either.catch { userApi.me() }
+            .fold(
+                ifLeft = { FetchUserError.FETCH_ERROR.left() },
+                ifRight = { profileResponse ->
+                    profileResponse.mapLeft { profileError ->
+                        if(profileError == HttpStatusCode.Unauthorized) {
+                            FetchUserError.AUTH_ERROR
+                        } else {
+                            FetchUserError.FETCH_ERROR
+                        }
+                    }
                 }
-                return
-            }
-            .getOrElse { profileError ->
-                if(profileError == HttpStatusCode.Unauthorized) {
-                    navigator.replace(LoginScreen)
-                } else {
-                    _state.update { it.copy(isError = true) }
-                }
-                return
-            }
+            )
+    }
 
-        userRepo.setCurrentUser(User(userProfile.id, userProfile.username))
-        navigator.replace(MainHostScreen)
-        return
+    enum class FetchUserError {
+        AUTH_ERROR,
+        FETCH_ERROR;
     }
 }
