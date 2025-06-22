@@ -4,7 +4,7 @@ import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToe
 import com.francescobottino.thehubproject.server_shared.data.UsersTable
 import org.jetbrains.exposed.sql.Table
 
-object TicTacToeGameRoomTable : Table("tic_tac_toe_game_rooms") {
+object TicTacToeGameRoomTable: Table("tic_tac_toe_game_rooms") {
     val id = varchar("id", 36)
     val hostPlayerId = varchar("host_player_id", 36).references(UsersTable.id)
     val hostPlayerSign = enumerationByName("host_player_sign", 1, TicTacToePlayerSign::class)

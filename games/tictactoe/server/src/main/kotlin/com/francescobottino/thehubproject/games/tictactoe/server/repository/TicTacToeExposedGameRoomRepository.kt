@@ -38,23 +38,6 @@ class TicTacToeExposedGameRoomRepository(private val database: Database) : TicTa
         }
     }
 
-    override fun storeRoom(room: TicTacToeGameRoom) {
-        transaction(database) {
-            val existingRow = TicTacToeGameRoomTable.selectAll()
-                .where { TicTacToeGameRoomTable.id eq room.id }
-                .forUpdate()
-                .singleOrNull()
-
-            if (existingRow != null) {
-                updateRoomInternal(room)
-            } else {
-                insertRoomInternal(room)
-            }
-            activeConnections[room.id] = room.connectedPlayerIds
-            roomUpdateFlows[room.id]?.value = room
-        }
-    }
-
     override fun getRoom(roomId: String): TicTacToeGameRoom? {
         return transaction(database) {
             TicTacToeGameRoomTable.selectAll()
@@ -66,7 +49,12 @@ class TicTacToeExposedGameRoomRepository(private val database: Database) : TicTa
 
     override fun updateRoom(roomId: String, updater: (TicTacToeGameRoom?) -> TicTacToeGameRoom?) {
         return transaction(database) {
-            val currentRoom = getRoomForUpdate(roomId)
+            val currentRoom = TicTacToeGameRoomTable.selectAll()
+                .where { TicTacToeGameRoomTable.id eq id }
+                .forUpdate()
+                .singleOrNull()
+                ?.let { row -> reconstructRoom(row) }
+
             val updatedRoom = updater(currentRoom)
 
             if(updatedRoom != null) {
@@ -110,24 +98,16 @@ class TicTacToeExposedGameRoomRepository(private val database: Database) : TicTa
         }
     }
 
-    private fun Transaction.getRoomForUpdate(id: String): TicTacToeGameRoom? {
-        return TicTacToeGameRoomTable.selectAll()
-            .where { TicTacToeGameRoomTable.id eq id }
-            .forUpdate()
-            .singleOrNull()
-            ?.let { row -> reconstructRoom(row) }
-    }
-
     private fun Transaction.updateRoomInternal(room: TicTacToeGameRoom) {
         TicTacToeGameRoomTable.update({ TicTacToeGameRoomTable.id eq room.id }) {
-            prepareStatementFroRoom(it, room)
+            prepareStatementForRoom(it, room)
         }
     }
 
     private fun Transaction.insertRoomInternal(room: TicTacToeGameRoom) {
         TicTacToeGameRoomTable.insert {
             it[id] = room.id
-            prepareStatementFroRoom(it, room)
+            prepareStatementForRoom(it, room)
         }
     }
 
@@ -147,7 +127,7 @@ class TicTacToeExposedGameRoomRepository(private val database: Database) : TicTa
             }
     }
 
-    private fun prepareStatementFroRoom(statement: UpdateBuilder<Int>, room: TicTacToeGameRoom) {
+    private fun prepareStatementForRoom(statement: UpdateBuilder<Int>, room: TicTacToeGameRoom) {
         statement[hostPlayerId] = room.hostPlayer.user.id
         statement[hostPlayerSign] = room.hostPlayer.sign
         statement[opponentPlayerId] = room.opponentPlayer?.user?.id

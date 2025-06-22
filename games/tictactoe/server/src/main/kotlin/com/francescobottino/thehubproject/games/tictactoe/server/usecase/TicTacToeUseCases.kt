@@ -33,7 +33,7 @@ class TicTacToeUseCases(
             currentPlayerSign = startingSign
         )
 
-        repo.storeRoom(room)
+        repo.updateRoom(roomId = room.id) { room }
 
         return room.id
     }
@@ -157,6 +157,11 @@ class TicTacToeUseCases(
         repo.updateRoom(roomId) { room ->
             if(room == null) {
                 validationError = TicTacToeCloseGameResponseError.ROOM_NOT_FOUND
+                return@updateRoom null
+            }
+
+            if(room.roomState is TicTacToeGameRoom.State.Closed) {
+                validationError = TicTacToeCloseGameResponseError.ROOM_ALREADY_CLOSED
                 return@updateRoom null
             }
 

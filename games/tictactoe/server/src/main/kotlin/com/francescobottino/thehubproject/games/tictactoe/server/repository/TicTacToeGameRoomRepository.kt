@@ -4,7 +4,6 @@ import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToe
 import kotlinx.coroutines.flow.Flow
 
 interface TicTacToeGameRoomRepository {
-    fun storeRoom(room: TicTacToeGameRoom)
     fun getRoom(roomId: String): TicTacToeGameRoom?
     fun updateRoom(roomId: String, updater: (TicTacToeGameRoom?) -> TicTacToeGameRoom?)
     fun getRoomUpdates(roomId: String): Flow<TicTacToeGameRoom>
