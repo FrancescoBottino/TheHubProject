@@ -30,7 +30,7 @@ class MainScreenModel(
             is MainScreenEvent.OnCreateRoom -> createRoom()
             is MainScreenEvent.OnJoinRoom -> joinRoom()
             is MainScreenEvent.OnSeeMyGames -> navigator.push(UserGamesScreen)
-            is MainScreenEvent.OnDialogClosed -> _state.update { it.copy(dialogMessagesQueue = it.dialogMessagesQueue.drop(1)) }
+            is MainScreenEvent.OnDialogClosed -> _state.update { it.copy(error = null) }
         }
     }
 
@@ -56,14 +56,14 @@ class MainScreenModel(
 
             runCatching { api.joinRoom(id) }
                 .onFailure { e ->
-                    _state.update { it.copy(dialogMessagesQueue = it.dialogMessagesQueue + (e.message ?: "Unknown error")) }
+                    _state.update { it.copy(error = "There was an error while trying to communicate with the server.") }
                 }
                 .onSuccess { response ->
                     response.onLeft { error ->
                         when(error) {
                             TicTacToeJoinRoomResponseError.PLAYER_ALREADY_IN_ROOM -> navigator.push(GameScreen(id))
-                            TicTacToeJoinRoomResponseError.ROOM_NOT_FOUND -> _state.update { it.copy(dialogMessagesQueue = it.dialogMessagesQueue + "Room not found. Please try again with a valid room ID.") }
-                            TicTacToeJoinRoomResponseError.ROOM_ALREADY_FULL -> _state.update { it.copy(dialogMessagesQueue = it.dialogMessagesQueue + "Room already full.") }
+                            TicTacToeJoinRoomResponseError.ROOM_NOT_FOUND -> _state.update { it.copy(error = "Room not found. Please try again with a valid room ID.") }
+                            TicTacToeJoinRoomResponseError.ROOM_ALREADY_FULL -> _state.update { it.copy(error = "Room already full.") }
                         }
                     }.onRight {
                         navigator.push(GameScreen(id))

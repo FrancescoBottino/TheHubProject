@@ -1,6 +1,6 @@
 package com.francescobottino.thehubproject.games.tictactoe.client.screens.main
 
-import androidx.compose.foundation.background
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -10,16 +10,17 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.francescobottino.thehubproject.client_shared.ui.components.LoadingCardOverlay
+import com.francescobottino.thehubproject.client_shared.ui.components.SimpleErrorCardOverlay
 import com.francescobottino.thehubproject.client_shared.ui.theme.AppTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.jetbrains.compose.ui.tooling.preview.PreviewParameter
+import org.jetbrains.compose.ui.tooling.preview.PreviewParameterProvider
 
 object MainScreen: Screen {
     @Composable
@@ -42,87 +43,85 @@ private fun MainScreenContent(
     onEvent: (MainScreenEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    //todo handle loading
-
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.Top),
-        modifier = modifier
-            .verticalScroll(rememberScrollState())
+    Box(
+        modifier = modifier,
     ) {
-        Spacer(Modifier.height(24.dp))
-
-        Button(
-            onClick = { onEvent(MainScreenEvent.OnCreateRoom) }
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.Top),
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
         ) {
-            Text("New Game")
-        }
-
-        HorizontalDivider()
-
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            OutlinedTextField(
-                value = state.searchedRoomId,
-                onValueChange = { onEvent(MainScreenEvent.OnSearchedRoomIdChanged(it)) },
-                modifier = Modifier.weight(1f),
-            )
+            Spacer(Modifier.height(24.dp))
 
             Button(
-                onClick = { onEvent(MainScreenEvent.OnJoinRoom) }
+                onClick = { onEvent(MainScreenEvent.OnCreateRoom) }
             ) {
-                Text("Join Game")
+                Text("New Game")
             }
-        }
 
-        HorizontalDivider()
+            HorizontalDivider()
 
-        Button(
-            onClick = { onEvent(MainScreenEvent.OnSeeMyGames) }
-        ) {
-            Text("My Games")
-        }
-
-        Spacer(Modifier.height(24.dp))
-    }
-
-    if(state.dialogMessagesQueue.isNotEmpty()) {
-        val dialogMessage = state.dialogMessagesQueue.first()
-
-        Dialog(
-            onDismissRequest = {},
-        ) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.fillMaxSize(),
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
-                    modifier = Modifier
-                        .shadow(elevation = 12.dp)
-                        .background(color = Color.White)
-                        .padding(16.dp),
+                OutlinedTextField(
+                    value = state.searchedRoomId,
+                    onValueChange = { onEvent(MainScreenEvent.OnSearchedRoomIdChanged(it)) },
+                    modifier = Modifier.weight(1f),
+                )
+
+                Button(
+                    onClick = { onEvent(MainScreenEvent.OnJoinRoom) }
                 ) {
-                    Text(dialogMessage)
-                    Button(onClick = { onEvent(MainScreenEvent.OnDialogClosed) }) {
-                        Text("OK")
-                    }
+                    Text("Join Game")
                 }
             }
+
+            HorizontalDivider()
+
+            Button(
+                onClick = { onEvent(MainScreenEvent.OnSeeMyGames) }
+            ) {
+                Text("My Games")
+            }
+
+            Spacer(Modifier.height(24.dp))
+        }
+
+        AnimatedVisibility(state.isLoading) {
+            LoadingCardOverlay()
+        }
+
+        AnimatedVisibility(state.error != null) {
+            SimpleErrorCardOverlay(
+                title = "Error",
+                message = state.error,
+                action = "OK" to { onEvent(MainScreenEvent.OnDialogClosed) },
+            )
         }
     }
 }
 
+private class MainScreenStatePreview: PreviewParameterProvider<MainScreenState> {
+    override val values: Sequence<MainScreenState>
+        get() = sequenceOf(
+            MainScreenState(isLoading = false, error = null),
+            MainScreenState(isLoading = true, error = null),
+            MainScreenState(isLoading = false, error = "Error"),
+        )
+}
+
 @Preview
 @Composable
-private fun MainScreenContentPreview() {
+private fun MainScreenContentPreview(
+    @PreviewParameter(MainScreenStatePreview::class)
+    state: MainScreenState
+) {
     AppTheme {
         Surface(modifier = Modifier.fillMaxSize()) {
             MainScreenContent(
-                state = MainScreenState(),
+                state = state,
                 onEvent = {},
             )
         }

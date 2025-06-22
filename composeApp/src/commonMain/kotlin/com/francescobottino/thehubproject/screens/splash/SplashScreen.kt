@@ -1,5 +1,6 @@
 package com.francescobottino.thehubproject.screens.splash
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.requiredSize
@@ -67,7 +68,7 @@ private fun SplashScreenContent(
             LogoBig()
         }
 
-        if(state.isError) {
+        AnimatedVisibility(state.isError) {
             SimpleErrorCardOverlay(
                 title = "Error",
                 message = "There was an error while trying to fetch user data.",

@@ -84,7 +84,7 @@ private fun LoginScreenContent(
             }
         )
 
-        if(state.isError) {
+        AnimatedVisibility(state.isError) {
             SimpleErrorCardOverlay(
                 title = "Error",
                 message = "There was an error while trying to communicate with the server.",

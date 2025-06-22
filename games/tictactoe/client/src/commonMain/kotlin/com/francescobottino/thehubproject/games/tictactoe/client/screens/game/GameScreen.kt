@@ -1,5 +1,6 @@
 package com.francescobottino.thehubproject.games.tictactoe.client.screens.game
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -142,13 +143,8 @@ private fun GameScreenContent(
         }
     }
 
-    if(state.roomId == null || state.isLoading) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center,
-        ) {
-            LoadingCardOverlay()
-        }
+    AnimatedVisibility(state.roomId == null || state.isLoading) {
+        LoadingCardOverlay()
     }
 
     state.dialog?.let {
@@ -493,6 +489,27 @@ private fun ScreenDialog(
                     }
                 }
             }
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun GameScreenContentPreview_Loading() {
+    MaterialTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            GameScreenContent(
+                state = GameScreenState(
+                    roomId = "2f9f6008-8b10-4d56-95ff-957d8fdf91a2",
+                    roomState = TicTacToeGameRoom.State.WaitingForOpponent,
+                    opponentState = GameScreenState.OpponentState.WaitingForOpponent,
+                    isLoading = true,
+                ),
+                onEvent = {},
+                modifier = Modifier.fillMaxSize(),
+            )
         }
     }
 }
