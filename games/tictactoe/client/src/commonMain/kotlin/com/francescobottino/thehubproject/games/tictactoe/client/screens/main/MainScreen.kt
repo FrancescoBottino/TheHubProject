@@ -4,10 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -21,6 +18,7 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.francescobottino.thehubproject.client_shared.ui.theme.AppTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 object MainScreen: Screen {
@@ -121,8 +119,12 @@ private fun MainScreenContent(
 @Preview
 @Composable
 private fun MainScreenContentPreview() {
-    MainScreenContent(
-        state = MainScreenState(),
-        onEvent = {},
-    )
+    AppTheme {
+        Surface(modifier = Modifier.fillMaxSize()) {
+            MainScreenContent(
+                state = MainScreenState(),
+                onEvent = {},
+            )
+        }
+    }
 }
