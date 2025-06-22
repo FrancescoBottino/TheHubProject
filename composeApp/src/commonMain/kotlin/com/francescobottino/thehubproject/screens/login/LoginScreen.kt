@@ -1,29 +1,29 @@
 package com.francescobottino.thehubproject.screens.login
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.francescobottino.thehubproject.client_shared.ui.components.SimpleErrorCardOverlay
+import com.francescobottino.thehubproject.client_shared.ui.components.VerticalCenteredLayout
 import com.francescobottino.thehubproject.client_shared.ui.theme.AppTheme
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Eye
 import compose.icons.feathericons.EyeOff
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.jetbrains.compose.ui.tooling.preview.PreviewParameter
+import org.jetbrains.compose.ui.tooling.preview.PreviewParameterProvider
 
 object LoginScreen: Screen {
     @Composable
@@ -48,6 +48,101 @@ private fun LoginScreenContent(
     onEvent: (LoginScreenEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    Box(
+        modifier = modifier,
+    ) {
+        VerticalCenteredLayout(
+            content = {
+                LoginTextFields(
+                    state = state,
+                    onEvent = onEvent,
+                    modifier = Modifier
+                        .requiredWidthIn(max = 320.dp)
+                        .fillMaxWidth(),
+                )
+            },
+            below = {
+                Column(
+                    modifier = Modifier
+                        .requiredWidthIn(max = 320.dp)
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Actions(
+                        state = state,
+                        onEvent = onEvent,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+
+                    AnimatedVisibility(
+                        visible = state.isLoading,
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+            }
+        )
+
+        if(state.isError) {
+            SimpleErrorCardOverlay(
+                title = "Error",
+                message = "There was an error while trying to communicate with the server.",
+                action = "Close" to { onEvent(LoginScreenEvent.OnDialogClosed) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun LoginTextFields(
+    state: LoginScreenState,
+    onEvent: (LoginScreenEvent) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        UsernameTextField(
+            state = state,
+            onEvent = onEvent,
+            modifier = Modifier.fillMaxWidth(),
+        )
+
+        PasswordTextField(
+            state = state,
+            onEvent = onEvent,
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}
+
+@Composable
+private fun UsernameTextField(
+    state: LoginScreenState,
+    onEvent: (LoginScreenEvent) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    OutlinedTextField(
+        modifier = modifier,
+        value = state.username,
+        onValueChange = { onEvent(LoginScreenEvent.OnUsernameChanged(it)) },
+        label = { Text("Username") },
+        maxLines = 1,
+        isError = state.usernameError != null,
+        supportingText = state.usernameError?.let { { Text(it) } },
+        enabled = !state.isLoading,
+    )
+}
+
+@Composable
+private fun PasswordTextField(
+    state: LoginScreenState,
+    onEvent: (LoginScreenEvent) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     var passwordVisible by remember { mutableStateOf(false) }
 
     val passwordTrailingIcon = if(passwordVisible) {
@@ -62,118 +157,86 @@ private fun LoginScreenContent(
         PasswordVisualTransformation()
     }
 
-    Box(
+    OutlinedTextField(
         modifier = modifier,
-        contentAlignment = Alignment.TopCenter,
+        value = state.password,
+        onValueChange = { onEvent(LoginScreenEvent.OnPasswordChanged(it)) },
+        label = { Text("Password") },
+        isError = state.passwordError != null,
+        maxLines = 1,
+        supportingText = state.passwordError?.let { { Text(it) } },
+        visualTransformation = passwordVisualTransformation,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+        trailingIcon = {
+            IconButton(
+                onClick = { passwordVisible = !passwordVisible },
+            ) {
+                Icon(
+                    imageVector = passwordTrailingIcon,
+                    contentDescription = null,
+                )
+            }
+        },
+        enabled = !state.isLoading,
+    )
+}
+
+@Composable
+private fun Actions(
+    state: LoginScreenState,
+    onEvent: (LoginScreenEvent) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
     ) {
-        Column(
-            modifier = Modifier.width(300.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+        Button(
+            enabled = !state.isLoading,
+            onClick = { onEvent(LoginScreenEvent.OnLogIn) },
         ) {
-            Spacer(modifier = Modifier.height(80.dp))
-            OutlinedTextField(
-                modifier = Modifier.fillMaxWidth(),
-                value = state.username,
-                onValueChange = { onEvent(LoginScreenEvent.OnUsernameChanged(it)) },
-                label = { Text("Username") },
-                maxLines = 1,
-                isError = state.usernameError != null,
-                supportingText = state.usernameError?.let { { Text(it) } },
-                enabled = !state.isLoading,
-            )
-            OutlinedTextField(
-                modifier = Modifier.fillMaxWidth(),
-                value = state.password,
-                onValueChange = { onEvent(LoginScreenEvent.OnPasswordChanged(it)) },
-                label = { Text("Password") },
-                isError = state.passwordError != null,
-                maxLines = 1,
-                supportingText = state.passwordError?.let { { Text(it) } },
-                visualTransformation = passwordVisualTransformation,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                trailingIcon = {
-                    IconButton(
-                        onClick = { passwordVisible = !passwordVisible },
-                    ) {
-                        Icon(
-                            imageVector = passwordTrailingIcon,
-                            contentDescription = null,
-                        )
-                    }
-                },
-                enabled = !state.isLoading,
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-            ) {
-                Button(
-                    enabled = !state.isLoading,
-                    onClick = { onEvent(LoginScreenEvent.OnLogIn) },
-                ) {
-                    Text("Log In")
-                }
-                Button(
-                    enabled = !state.isLoading,
-                    onClick = { onEvent(LoginScreenEvent.OnRegister) }
-                ) {
-                    Text("Register")
-                }
-            }
-            Text(
-                text = state.errorMessage.orEmpty(),
-                color = MaterialTheme.colorScheme.error,
-            )
-
-            AnimatedVisibility(
-                visible = state.isLoading,
-            ) {
-                CircularProgressIndicator()
-            }
-
-            Spacer(modifier = Modifier.height(80.dp))
+            Text("Log In")
+        }
+        Button(
+            enabled = !state.isLoading,
+            onClick = { onEvent(LoginScreenEvent.OnRegister) }
+        ) {
+            Text("Register")
         }
     }
+}
 
-    if(state.dialogMessagesQueue.isNotEmpty()) {
-        val dialogMessage = state.dialogMessagesQueue.first()
-
-        Dialog(
-            onDismissRequest = { onEvent(LoginScreenEvent.OnDialogClosed) }
-        ) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
-                    modifier = Modifier
-                        .shadow(elevation = 12.dp)
-                        .background(color = Color.White)
-                        .padding(16.dp),
-                ) {
-                    Text(dialogMessage)
-                    Button(onClick = { onEvent(LoginScreenEvent.OnDialogClosed) }) {
-                        Text("OK")
-                    }
-                }
-            }
-        }
+private class LoginScreenStatePreview: PreviewParameterProvider<LoginScreenState> {
+    override val values = LoginScreenState(
+        username = "user",
+        usernameError = null,
+        password = "password",
+        passwordError = null,
+        isError = false,
+        isLoading = false
+    ).let { base ->
+        sequenceOf(
+            base,
+            base.copy(usernameError = "Error", passwordError = "Error"),
+            base.copy(isLoading = true),
+            base.copy(isError = true),
+        )
     }
 }
 
 @Preview
 @Composable
-private fun LoginScreenContentPreview() {
+private fun LoginScreenContentPreview(
+    @PreviewParameter(LoginScreenStatePreview::class)
+    state: LoginScreenState
+) {
     AppTheme {
         Surface(
             modifier = Modifier.fillMaxSize(),
         ) {
             LoginScreenContent(
-                state = LoginScreenState(isLoading = false),
+                state = state,
                 onEvent = {},
             )
         }

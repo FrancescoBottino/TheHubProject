@@ -32,7 +32,7 @@ class SplashScreenModel(
     override fun onEvent(event: SplashScreenEvent) {
         when(event) {
             is SplashScreenEvent.TryAgain -> {
-                _state.update { it.copy(error = false) }
+                _state.update { it.copy(isError = false) }
                 screenModelScope.launch { tryInit() }
             }
         }
@@ -52,7 +52,7 @@ class SplashScreenModel(
         val userProfile = runCatching { userApi.me() }
             .getOrElse { exception ->
                 _state.update {
-                    it.copy(error = true)
+                    it.copy(isError = true)
                 }
                 return
             }
@@ -60,7 +60,7 @@ class SplashScreenModel(
                 if(profileError == HttpStatusCode.Unauthorized) {
                     navigator.replace(LoginScreen)
                 } else {
-                    _state.update { it.copy(error = true) }
+                    _state.update { it.copy(isError = true) }
                 }
                 return
             }

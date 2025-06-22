@@ -5,7 +5,6 @@ data class LoginScreenState(
     val usernameError: String? = null,
     val password: String = "",
     val passwordError: String? = null,
-    val errorMessage: String? = null,
+    val isError: Boolean = false,
     val isLoading: Boolean = false,
-    val dialogMessagesQueue: List<String> = emptyList(),
 )

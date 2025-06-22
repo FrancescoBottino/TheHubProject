@@ -33,19 +33,19 @@ class LoginScreenModel(
             is LoginScreenEvent.OnPasswordChanged -> _state.update { it.copy(password = event.password) }
             is LoginScreenEvent.OnLogIn -> performAuth(endpoint = authRepo::login)
             is LoginScreenEvent.OnRegister -> performAuth(endpoint = authRepo::register)
-            is LoginScreenEvent.OnDialogClosed -> _state.update { it.copy(dialogMessagesQueue = it.dialogMessagesQueue.drop(1)) }
+            is LoginScreenEvent.OnDialogClosed -> _state.update { it.copy(isError = false) }
         }
     }
 
     private fun performAuth(endpoint: suspend (AuthRequest) -> Either<AuthResponseError, AuthResponseSuccess>) {
-        _state.update { it.copy(isLoading = true, usernameError = null, passwordError = null, errorMessage = null) }
+        _state.update { it.copy(isLoading = true, usernameError = null, passwordError = null) }
         screenModelScope.launch {
             val username = _state.value.username
             val password = _state.value.password
 
             runCatching { endpoint(AuthRequest(username, password)) }
                 .onFailure { error ->
-                    _state.update { it.copy(dialogMessagesQueue = it.dialogMessagesQueue + (error.message ?: "Unknown error")) }
+                    _state.update { it.copy(isError = true) }
                 }
                 .onSuccess { response ->
                     response.onLeft { error ->
