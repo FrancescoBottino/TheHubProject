@@ -1,18 +1,24 @@
 package com.francescobottino.thehubproject.screens.main_host
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.*
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
@@ -20,7 +26,6 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.transitions.SlideTransition
-import com.francescobottino.thehubproject.client_shared.model.User
 import com.francescobottino.thehubproject.client_shared.repo.AuthRepository
 import com.francescobottino.thehubproject.client_shared.repo.UserRepository
 import com.francescobottino.thehubproject.client_shared.ui.components.LogoSmall
@@ -29,6 +34,8 @@ import com.francescobottino.thehubproject.screens.game_selection.GameSelectionSc
 import com.francescobottino.thehubproject.screens.login.LoginScreen
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.ArrowLeft
+import compose.icons.feathericons.LogIn
+import compose.icons.feathericons.User
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.koinInject
@@ -47,7 +54,7 @@ object MainHostScreen: Screen {
                 modifier = Modifier.fillMaxSize(),
                 topBar = {
                     TopBar(
-                        user = user,
+                        username = user?.username,
                         canBack = navigator.canPop,
                         onBackClicked = { navigator.pop() },
                         onUserClicked = {
@@ -71,7 +78,7 @@ object MainHostScreen: Screen {
 
 @Composable
 private fun TopBar(
-    user: User?,
+    username: String?,
     canBack: Boolean,
     onBackClicked: () -> Unit,
     onUserClicked: () -> Unit,
@@ -79,88 +86,163 @@ private fun TopBar(
 ) {
     Surface(
         modifier = modifier,
-        shadowElevation = 12.dp,
+        shadowElevation = 16.dp,
+        color = Color.Transparent
+    ) {
+        Box(
+            modifier = Modifier
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(
+                            Color(0xFF1A1A2E).copy(alpha = 0.95f),
+                            Color(0xFF16213E).copy(alpha = 0.95f),
+                            Color(0xFF0F3460).copy(alpha = 0.95f)
+                        )
+                    )
+                )
+                //.backdrop(BlurRadius.MEDIUM) TODO
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier
+                    .requiredHeight(height = 64.dp)
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                // Back Button
+                Box(
+                    modifier = Modifier.requiredSize(48.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    this@Row.AnimatedVisibility(
+                        visible = canBack,
+                        enter = fadeIn() + scaleIn(),
+                        exit = fadeOut() + scaleOut()
+                    ) {
+                        IconButton(
+                            onClick = onBackClicked,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    Color.White.copy(alpha = 0.1f),
+                                    CircleShape
+                                )
+                        ) {
+                            Icon(
+                                FeatherIcons.ArrowLeft,
+                                contentDescription = "Back",
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                }
+
+                // Logo Section
+                LogoSmall()
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                // User Profile Section
+                UserProfileSection(
+                    username = username,
+                    onClick = onUserClicked
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun UserProfileSection(
+    username: String?,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var isPressed by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
+    )
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .scale(scale)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        isPressed = true
+                        tryAwaitRelease()
+                        isPressed = false
+                    }
+                )
+            }
+            .background(
+                brush = Brush.horizontalGradient(
+                    colors = listOf(
+                        Color(0xFF6C63FF).copy(alpha = 0.8f),
+                        Color(0xFF5A52FF).copy(alpha = 0.6f)
+                    )
+                ),
+                shape = RoundedCornerShape(24.dp)
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier
-                .requiredHeight(height = 48.dp)
-                .fillMaxWidth()
-                .padding(vertical = 2.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            // User Avatar
             Box(
                 modifier = Modifier
-                    .padding(start = 4.dp)
-                    .requiredSize(40.dp)
+                    .size(32.dp)
+                    .background(
+                        Color.White.copy(alpha = 0.2f),
+                        CircleShape
+                    ),
+                contentAlignment = Alignment.Center
             ) {
-                this@Row.AnimatedVisibility(
-                    visible = canBack,
-                ) {
-                    IconButton(
-                        onClick = onBackClicked,
-                        modifier = Modifier.fillMaxSize(),
-                    ) {
-                        Icon(
-                            FeatherIcons.ArrowLeft,
-                            contentDescription = "Back"
-                        )
-                    }
-                }
+                Icon(
+                    imageVector = if (username != null) FeatherIcons.User else FeatherIcons.LogIn,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(18.dp)
+                )
             }
 
-            Box(
-                contentAlignment = Alignment.CenterStart,
-                modifier = Modifier.fillMaxHeight(),
-            ) {
-                LogoSmall()
-            }
-
-            //TODO menu to show user and other settings.
-            Box(
-                contentAlignment = Alignment.CenterEnd,
-                modifier = Modifier.fillMaxHeight().weight(1f),
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .requiredWidthIn(min = 80.dp)
-                        .padding(4.dp)
-                        .shadow(elevation = 2.dp, shape = MaterialTheme.shapes.medium)
-                        .clip(shape = MaterialTheme.shapes.medium)
-                        .background(color = MaterialTheme.colorScheme.surface, shape = MaterialTheme.shapes.medium)
-                        .clickable(onClick = onUserClicked)
-                        .padding(horizontal = 8.dp),
-                ) {
-                    Text(
-                        text = user?.username ?: "Login",
-                        style = MaterialTheme.typography.bodyLarge,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
+            // Username/Login Text
+            Text(
+                text = username ?: "Login",
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
     }
 }
 
 @Preview
 @Composable
-private fun TopBarPreview() {
+private fun MainHostScreenContentPreview() {
     AppTheme {
         Surface(modifier = Modifier.fillMaxSize()) {
             Scaffold(
                 topBar = {
                     TopBar(
-                        user = null,
+                        username = "Alfred",
                         canBack = true,
                         {},
                         {},
                     )
                 }
             ) {
-                Box(modifier = Modifier.fillMaxSize().padding(it)) { }
+
             }
         }
     }
