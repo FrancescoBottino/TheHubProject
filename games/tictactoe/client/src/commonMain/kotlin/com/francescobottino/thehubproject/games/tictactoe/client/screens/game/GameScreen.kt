@@ -21,10 +21,10 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.francescobottino.thehubproject.client_shared.ui.components.LoadingCardOverlay
-import com.francescobottino.thehubproject.games.tictactoe.client.presentation.TicTacToeCatGame
-import com.francescobottino.thehubproject.games.tictactoe.client.presentation.TicTacToeCircle
-import com.francescobottino.thehubproject.games.tictactoe.client.presentation.TicTacToeCross
-import com.francescobottino.thehubproject.games.tictactoe.client.presentation.TicTacToeCrown
+import com.francescobottino.thehubproject.games.tictactoe.client.ui.images.TicTacToeCatGame
+import com.francescobottino.thehubproject.games.tictactoe.client.ui.images.TicTacToeCircle
+import com.francescobottino.thehubproject.games.tictactoe.client.ui.images.TicTacToeCross
+import com.francescobottino.thehubproject.games.tictactoe.client.ui.images.TicTacToeCrown
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToeBoardCell
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToeGameRoom
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToeGameState

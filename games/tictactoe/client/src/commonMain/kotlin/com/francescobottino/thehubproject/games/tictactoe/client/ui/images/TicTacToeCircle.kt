@@ -1,4 +1,4 @@
-package com.francescobottino.thehubproject.games.tictactoe.client.presentation
+package com.francescobottino.thehubproject.games.tictactoe.client.ui.images
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
