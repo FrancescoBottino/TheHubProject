@@ -2,36 +2,37 @@ package com.francescobottino.thehubproject.games.tictactoe.client.screens.main
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.francescobottino.thehubproject.client_shared.ui.components.LoadingCardOverlay
 import com.francescobottino.thehubproject.client_shared.ui.components.SimpleErrorCardOverlay
-import com.francescobottino.thehubproject.client_shared.ui.theme.AppTheme
+import com.francescobottino.thehubproject.client_shared.ui.theme.GameHubDimensions
+import com.francescobottino.thehubproject.client_shared.ui.theme.GameHubShapes
+import com.francescobottino.thehubproject.client_shared.ui.theme.GameHubTheme
+import com.francescobottino.thehubproject.client_shared.ui.theme.GameHubThemeUtils
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.ChevronRight
 import compose.icons.feathericons.LogIn
@@ -65,45 +66,39 @@ private fun MainScreenContent(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF1A1A2E),
-                        Color(0xFF16213E),
-                        Color(0xFF0F3460)
-                    )
-                )
-            )
+            .background(brush = GameHubThemeUtils.getBackgroundBrush())
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.Top),
+            verticalArrangement = Arrangement.spacedBy(GameHubDimensions.spacingXXLarge, Alignment.Top),
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = GameHubDimensions.paddingLarge)
         ) {
-            Spacer(Modifier.height(40.dp))
+            Spacer(Modifier.height(GameHubDimensions.spacingHuge))
 
             // Title Section
             GameTitle()
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(GameHubDimensions.spacingXXXLarge))
 
             // Main Action Cards
             GameActionCard(
                 title = "Create New Game",
                 subtitle = "Start a fresh gaming session",
                 icon = FeatherIcons.Plus,
-                gradient = listOf(Color(0xFF6C63FF), Color(0xFF5A52FF)),
-                onClick = { onEvent(MainScreenEvent.OnCreateRoom) }
+                brush = GameHubThemeUtils.getPrimaryActionBrush(),
+                onClick = { onEvent(MainScreenEvent.OnCreateRoom) },
+                modifier = Modifier.fillMaxWidth(),
             )
 
             // Join Game Section
             JoinGameSection(
                 roomId = state.searchedRoomId,
                 onRoomIdChange = { onEvent(MainScreenEvent.OnSearchedRoomIdChanged(it)) },
-                onJoinClick = { onEvent(MainScreenEvent.OnJoinRoom) }
+                onJoinClick = { onEvent(MainScreenEvent.OnJoinRoom) },
+                modifier = Modifier.fillMaxWidth(),
             )
 
             // My Games Section
@@ -111,11 +106,12 @@ private fun MainScreenContent(
                 title = "My Games",
                 subtitle = "Continue your existing games",
                 icon = FeatherIcons.User,
-                gradient = listOf(Color(0xFF00D4AA), Color(0xFF00B894)),
-                onClick = { onEvent(MainScreenEvent.OnSeeMyGames) }
+                brush = GameHubThemeUtils.getSecondaryActionBrush(),
+                onClick = { onEvent(MainScreenEvent.OnSeeMyGames) },
+                modifier = Modifier.fillMaxWidth(),
             )
 
-            Spacer(Modifier.height(40.dp))
+            Spacer(Modifier.height(GameHubDimensions.spacingHuge))
         }
 
         // Loading and Error Overlays
@@ -145,23 +141,19 @@ private fun MainScreenContent(
 private fun GameTitle() {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(GameHubDimensions.spacingSmall)
     ) {
         Text(
             text = "Game Hub",
-            style = MaterialTheme.typography.headlineLarge.copy(
-                fontWeight = FontWeight.Bold,
-                fontSize = 42.sp,
-                brush = Brush.linearGradient(
-                    colors = listOf(Color.White, Color(0xFFE0E0E0))
-                )
+            style = MaterialTheme.typography.displayLarge.copy(
+                brush = GameHubThemeUtils.getTitleBrush()
             )
         )
 
         Text(
             text = "Your gaming adventure starts here",
             style = MaterialTheme.typography.bodyLarge,
-            color = Color.White.copy(alpha = 0.7f),
+            color = GameHubTheme.colors.onSurface,
             textAlign = TextAlign.Center
         )
     }
@@ -172,87 +164,87 @@ private fun GameActionCard(
     title: String,
     subtitle: String,
     icon: ImageVector,
-    gradient: List<Color>,
+    brush: Brush,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var isPressed by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.95f else 1f,
+    val interactionSource = remember { MutableInteractionSource() }
+    val elevation by animateDpAsState(
+        targetValue = if (isPressed) 0.dp else GameHubDimensions.cardElevation,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
+    )
+    val offset by animateDpAsState(
+        targetValue = if (isPressed) 2.dp else 0.dp,
         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
     )
 
-    Card(
+    val shape = RoundedCornerShape(GameHubShapes.cardCornerRadius)
+
+    Box(
         modifier = modifier
-            .fillMaxWidth()
-            .scale(scale)
+            .offset(y = offset)
+            .shadow(elevation = elevation, shape = shape)
+            .clip(shape)
+            .background(brush)
+            .indication(interactionSource, LocalIndication.current)
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onPress = {
+                    onPress = { offset ->
+                        val press = PressInteraction.Press(offset)
+
                         isPressed = true
-                        tryAwaitRelease()
+                        interactionSource.emit(press)
+
+                        val released = tryAwaitRelease()
+
                         isPressed = false
-                    }
+                        interactionSource.emit(PressInteraction.Release(press))
+
+                        if(released) onClick()
+                    },
                 )
             }
-            .clickable { onClick() },
-        elevation = CardDefaults.cardElevation(defaultElevation = 12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        shape = RoundedCornerShape(20.dp)
+            .padding(GameHubDimensions.paddingLarge)
     ) {
-        Box(
-            modifier = Modifier
-                .background(
-                    brush = Brush.horizontalGradient(gradient),
-                    shape = RoundedCornerShape(20.dp)
-                )
-                .padding(24.dp)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(GameHubDimensions.spacingXLarge)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(20.dp)
+            Box(
+                modifier = Modifier
+                    .size(GameHubShapes.avatarSizeMedium)
+                    .background(GameHubTheme.colors.surfaceHighlight, CircleShape),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .background(
-                            Color.White.copy(alpha = 0.2f),
-                            CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(28.dp)
-                    )
-                }
-
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    )
-                    Text(
-                        text = subtitle,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.8f)
-                    )
-                }
-
                 Icon(
-                    imageVector = FeatherIcons.ChevronRight,
+                    imageVector = icon,
                     contentDescription = null,
-                    tint = Color.White.copy(alpha = 0.8f),
-                    modifier = Modifier.size(24.dp)
+                    tint = GameHubTheme.colors.onPrimary,
+                    modifier = Modifier.size(GameHubShapes.iconSizeLarge)
                 )
             }
+
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = GameHubTheme.colors.onPrimaryVariant
+                )
+            }
+
+            Icon(
+                imageVector = FeatherIcons.ChevronRight,
+                contentDescription = null,
+                tint = GameHubTheme.colors.onPrimaryVariant,
+                modifier = Modifier.size(GameHubShapes.iconSizeMedium)
+            )
         }
     }
 }
@@ -264,85 +256,83 @@ private fun JoinGameSection(
     onJoinClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.1f)),
-        shape = RoundedCornerShape(20.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(
-                            Color(0xFFFF6B6B).copy(alpha = 0.2f),
-                            CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = FeatherIcons.LogIn,
-                        contentDescription = null,
-                        tint = Color(0xFFFF6B6B),
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
+    val elevation = GameHubDimensions.surfaceElevation
+    val shape = RoundedCornerShape(GameHubShapes.cardCornerRadius)
+    val backgroundColor = Color(red = 47, green = 60, blue = 89) //todo
 
-                Text(
-                    text = "Join Existing Game",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White
-                    )
+    Column(
+        modifier = modifier
+            .shadow(elevation, shape)
+            .clip(shape)
+            .background(backgroundColor)
+            .padding(GameHubDimensions.paddingLarge),
+        verticalArrangement = Arrangement.spacedBy(GameHubDimensions.spacingLarge)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(GameHubDimensions.spacingMedium)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(GameHubShapes.avatarSizeSmall)
+                    .background(
+                        GameHubTheme.colors.accentSoft,
+                        CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = FeatherIcons.LogIn,
+                    contentDescription = null,
+                    tint = GameHubTheme.colors.accent,
+                    modifier = Modifier.size(GameHubShapes.iconSizeSmall)
                 )
             }
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                OutlinedTextField(
-                    value = roomId,
-                    onValueChange = onRoomIdChange,
-                    placeholder = {
-                        Text(
-                            "Enter Game ID",
-                            color = Color.White.copy(alpha = 0.6f)
-                        )
-                    },
-                    modifier = Modifier.weight(1f),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFFFF6B6B),
-                        unfocusedBorderColor = Color.White.copy(alpha = 0.3f),
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        cursorColor = Color(0xFFFF6B6B)
-                    ),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true
-                )
+            Text(
+                text = "Join Existing Game",
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
 
-                Button(
-                    onClick = onJoinClick,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFFF6B6B)
-                    ),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.height(56.dp)
-                ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(GameHubDimensions.spacingMedium),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            OutlinedTextField(
+                value = roomId,
+                onValueChange = onRoomIdChange,
+                placeholder = {
                     Text(
-                        "Join",
-                        color = Color.White,
-                        fontWeight = FontWeight.SemiBold
+                        text = "Enter Game ID",
+                        color = GameHubTheme.colors.onSurfaceVariant
                     )
-                }
+                },
+                modifier = Modifier.weight(1f),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = GameHubTheme.colors.borderFocused,
+                    unfocusedBorderColor = GameHubTheme.colors.border,
+                    focusedTextColor = GameHubTheme.colors.onPrimary,
+                    unfocusedTextColor = GameHubTheme.colors.onPrimary,
+                    cursorColor = GameHubTheme.colors.accent
+                ),
+                shape = RoundedCornerShape(GameHubShapes.textFieldCornerRadius),
+                singleLine = true
+            )
+
+            Button(
+                onClick = onJoinClick,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = GameHubTheme.colors.accent
+                ),
+                shape = RoundedCornerShape(GameHubShapes.buttonCornerRadius),
+                modifier = Modifier.height(GameHubDimensions.buttonHeight)
+            ) {
+                Text(
+                    text = "Join",
+                    color = GameHubTheme.colors.onPrimary,
+                    style = MaterialTheme.typography.labelMedium
+                )
             }
         }
     }
@@ -363,7 +353,7 @@ private fun MainScreenContentPreview(
     @PreviewParameter(MainScreenStatePreview::class)
     state: MainScreenState
 ) {
-    AppTheme {
+    GameHubTheme {
         Surface(modifier = Modifier.fillMaxSize()) {
             MainScreenContent(
                 state = state,
