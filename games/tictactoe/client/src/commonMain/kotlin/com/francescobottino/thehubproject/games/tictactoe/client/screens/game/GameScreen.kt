@@ -1,6 +1,5 @@
 package com.francescobottino.thehubproject.games.tictactoe.client.screens.game
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -143,9 +142,7 @@ private fun GameScreenContent(
         }
     }
 
-    AnimatedVisibility(state.roomId == null || state.isLoading) {
-        LoadingCardOverlay()
-    }
+    LoadingCardOverlay(state.roomId == null || state.isLoading)
 
     state.dialog?.let {
         ScreenDialog(it, onEvent)

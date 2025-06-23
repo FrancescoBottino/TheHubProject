@@ -1,6 +1,5 @@
 package com.francescobottino.thehubproject.screens.splash
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.requiredSize
@@ -10,6 +9,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -18,6 +18,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.francescobottino.thehubproject.client_shared.ui.components.LogoBig
+import com.francescobottino.thehubproject.client_shared.ui.components.SimpleError
 import com.francescobottino.thehubproject.client_shared.ui.components.SimpleErrorCardOverlay
 import com.francescobottino.thehubproject.client_shared.ui.components.VerticalCenteredLayout
 import com.francescobottino.thehubproject.client_shared.ui.theme.AppTheme
@@ -68,13 +69,21 @@ private fun SplashScreenContent(
             LogoBig()
         }
 
-        AnimatedVisibility(state.isError) {
-            SimpleErrorCardOverlay(
+        val genericError = remember {
+            SimpleError(
                 title = "Error",
                 message = "There was an error while trying to fetch user data.",
                 action = "Try Again" to { onEvent(SplashScreenEvent.TryAgain) },
             )
         }
+
+        SimpleErrorCardOverlay(
+            if(state.isError) {
+                genericError
+            } else {
+                null
+            }
+        )
     }
 }
 

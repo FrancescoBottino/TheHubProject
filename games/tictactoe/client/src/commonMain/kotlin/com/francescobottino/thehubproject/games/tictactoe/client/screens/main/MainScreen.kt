@@ -1,6 +1,5 @@
 package com.francescobottino.thehubproject.games.tictactoe.client.screens.main
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -8,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -16,6 +16,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.francescobottino.thehubproject.client_shared.ui.components.LoadingCardOverlay
+import com.francescobottino.thehubproject.client_shared.ui.components.SimpleError
 import com.francescobottino.thehubproject.client_shared.ui.components.SimpleErrorCardOverlay
 import com.francescobottino.thehubproject.client_shared.ui.theme.AppTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -89,17 +90,23 @@ private fun MainScreenContent(
             Spacer(Modifier.height(24.dp))
         }
 
-        AnimatedVisibility(state.isLoading) {
-            LoadingCardOverlay()
-        }
+        LoadingCardOverlay(state.isLoading)
 
-        AnimatedVisibility(state.error != null) {
-            SimpleErrorCardOverlay(
+        val genericError = remember(state.error) {
+            SimpleError(
                 title = "Error",
                 message = state.error,
                 action = "OK" to { onEvent(MainScreenEvent.OnDialogClosed) },
             )
         }
+
+        SimpleErrorCardOverlay(
+            if(state.error != null) {
+                genericError
+            } else {
+                null
+            }
+        )
     }
 }
 

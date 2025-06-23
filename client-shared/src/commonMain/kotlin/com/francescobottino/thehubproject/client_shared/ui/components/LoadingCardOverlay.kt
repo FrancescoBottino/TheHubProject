@@ -13,10 +13,14 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 fun LoadingCardOverlay(
+    visible: Boolean = true,
     text: String = "Loading...",
     modifier: Modifier = Modifier,
 ) {
-    DialogCardOverlay(modifier = modifier) {
+    DialogCardOverlay(
+        visible = visible,
+        modifier = modifier
+    ) {
         Column(
             horizontalAlignment = CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp),
