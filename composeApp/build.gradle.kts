@@ -134,6 +134,12 @@ private val devServerIp: String by rootProject.extra
 private val devServerPort: Int by rootProject.extra
 private val prodServerDomain: String = "thehubproject-api.up.railway.app"
 private val stagingServerDomain: String = "thehubproject-api-staging.up.railway.app"
+private val deepLinkDomain = when(environment) {
+    "dev" -> devServerIp
+    "staging" -> stagingServerDomain
+    else -> prodServerDomain
+}
+private val deepLinkScheme = "thehubproject"
 
 android {
     namespace = "com.francescobottino.thehubproject"
@@ -170,6 +176,8 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = mainVersionCode
         versionName = mainVersionName
+        manifestPlaceholders["deepLinkDomain"] = deepLinkDomain
+        manifestPlaceholders["deepLinkScheme"] = deepLinkScheme
     }
     lint {
         disable += "NullSafeMutableLiveData"
@@ -238,6 +246,8 @@ buildConfig {
     useKotlinOutput()
 
     buildConfigField<String>("ENVIRONMENT", environment)
+    buildConfigField<String>("DEEP_LINK_DOMAIN", deepLinkDomain)
+    buildConfigField<String>("DEEP_LINK_SCHEME", deepLinkScheme)
     buildConfigField<String>("PROD_SERVER_DOMAIN", prodServerDomain)
     buildConfigField<String>("STAGING_SERVER_DOMAIN", stagingServerDomain)
     buildConfigField<String>("DEV_SERVER_IP", devServerIp)

@@ -32,8 +32,8 @@ fun main() {
 
     embeddedServer(
         factory = Netty,
-        host = Envs.HOST,
-        port = Envs.PORT,
+        host = "0.0.0.0",
+        port = Envs.SERVER_PORT,
         module = Application::module
     ).start(wait = true)
 }
@@ -74,9 +74,7 @@ fun Application.module() {
         allowCredentials = false
 
         if(ServerConfig.ENVIRONMENT != "dev") {
-            Envs.WEBAPP_HOST?.let { host ->
-                allowHost(host, schemes = listOf("https"))
-            }
+            allowHost("0.0.0.0", schemes = listOf("https"))
         } else {
             anyHost()
         }
@@ -87,6 +85,7 @@ fun Application.module() {
     }
 
     routing {
+        configureRoutingStatic()
         configureRoutingAuth()
         configureRoutingUser()
         configureRoutingGames()

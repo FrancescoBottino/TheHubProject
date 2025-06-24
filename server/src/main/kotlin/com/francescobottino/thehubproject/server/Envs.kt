@@ -1,9 +1,7 @@
 package com.francescobottino.thehubproject.server
 
 object Envs {
-    val WEBAPP_HOST: String? by lazy { System.getenv("WEBAPP_HOST") }
-    val HOST: String by lazy { System.getenv("HOST") ?: "0.0.0.0" }
-    val PORT: Int by lazy { System.getenv("PORT")?.toIntOrNull() ?: 80 }
+    val SERVER_PORT = System.getenv("SERVER_PORT").toIntOrNull() ?: 9090
 
     val DB_USER = System.getenv("DB_USER") ?: throw IllegalArgumentException("DB_USER environment variable not set.")
     val DB_PASSWORD = System.getenv("DB_PASSWORD") ?: throw IllegalArgumentException("DB_PASSWORD environment variable not set.")

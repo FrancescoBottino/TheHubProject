@@ -44,9 +44,9 @@ gradle.beforeProject {
         val envVariables = readDotEnv(rootProject.projectDir)
 
         val localProperties = readLocalProperties(rootProject.projectDir)
-        val environment = if(project.hasProperty("environment")) project.property("environment") else localProperties["environment"]
-        val devServerIp = localProperties["dev_server_ip"] ?: "Localhost"
-        val devServerPort = envVariables["PORT"]?.toInt() ?: 9090
+        val environment = if(project.hasProperty("environment")) project.property("environment")?.toString() else localProperties["environment"]?.toString()
+        val devServerIp = envVariables["SERVER_HOST"] ?: "Localhost"
+        val devServerPort = envVariables["SERVER_PORT"]?.toInt() ?: 9090
 
         rootProject.extra.set("environment", environment)
         println("   environment: $environment")

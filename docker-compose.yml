@@ -26,7 +26,7 @@ services:
     container_name: server
     restart: unless-stopped
     ports:
-      - "${PORT}:${PORT}"
+      - "${SERVER_PORT}:${SERVER_PORT}"
     depends_on:
       db:
         condition: service_healthy
@@ -39,8 +39,7 @@ services:
       DB_HOST: db
       DB_PORT: 5432
       DB_NAME: ${DB_NAME}
-      PORT: ${PORT}
-      HOST: ${HOST}
+      SERVER_PORT: ${SERVER_PORT}
     volumes:
       - gradle_cache:/home/gradle/.gradle
       - konan_cache:/home/gradle/.konan

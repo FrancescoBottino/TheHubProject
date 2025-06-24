@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.francescobottino.thehubproject",
+      "sha256_cert_fingerprints": [
+        "A8:0A:2C:4A:04:B7:90:B4:CE:8E:99:5F:C3:46:1B:27:51:E2:E8:D1:CC:39:E7:D7:0D:BB:B1:D9:17:6B:99:32"
+      ]
+    }
+  }
+]

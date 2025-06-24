@@ -1,4 +1,2 @@
-# Server IP for development builds
-dev_server_ip=192.168.1.1
 # one of dev, staging or prod
 environment=dev
