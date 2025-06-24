@@ -23,7 +23,6 @@ import cafe.adriel.voyager.transitions.SlideTransition
 import com.francescobottino.thehubproject.client_shared.model.User
 import com.francescobottino.thehubproject.client_shared.repo.AuthRepository
 import com.francescobottino.thehubproject.client_shared.repo.UserRepository
-import com.francescobottino.thehubproject.client_shared.ui.components.LogoSmall
 import com.francescobottino.thehubproject.client_shared.ui.theme.AppTheme
 import com.francescobottino.thehubproject.screens.game_selection.GameSelectionScreen
 import com.francescobottino.thehubproject.screens.login.LoginScreen
@@ -107,13 +106,6 @@ private fun TopBar(
                         )
                     }
                 }
-            }
-
-            Box(
-                contentAlignment = Alignment.CenterStart,
-                modifier = Modifier.fillMaxHeight(),
-            ) {
-                LogoSmall()
             }
 
             //TODO menu to show user and other settings.
