@@ -10,7 +10,7 @@ data class TicTacToeGameRoom(
     val hostPlayer: TicTacToePlayer,
     val opponentPlayer: TicTacToePlayer? = null,
     val gameState: TicTacToeGameState = emptyMap(),
-    val pastGamesWinners: List<TicTacToePlayer?> = emptyList(),
+    val pastGamesWinners: List<TicTacToePlayerSign?> = emptyList(),
     val currentPlayerSign: TicTacToePlayerSign,
     val roomState: State = State.WaitingForOpponent,
     val connectedPlayerIds: List<String> = emptyList(),
@@ -25,8 +25,8 @@ data class TicTacToeGameRoom(
         @Serializable
         data object InProgress: State
         @Serializable
-        data class Finished(val winner: TicTacToePlayer?): State // if winner is null, it's a tie
+        data class Finished(val winner: TicTacToePlayerSign?): State // if winner is null, it's a tie
         @Serializable
-        data class Closed(val byPlayer: TicTacToePlayer): State
+        data class Closed(val byPlayer: TicTacToePlayerSign): State
     }
 }

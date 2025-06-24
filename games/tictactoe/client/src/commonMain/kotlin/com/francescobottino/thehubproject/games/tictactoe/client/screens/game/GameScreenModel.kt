@@ -111,8 +111,8 @@ class GameScreenModel(
                             val finishState = if (update.roomState is TicTacToeGameRoom.State.Finished) {
                                 val winner = (update.roomState as TicTacToeGameRoom.State.Finished).winner
                                 GameScreenState.FinishState(
-                                    winnerSign = winner?.sign,
-                                    userWon = winner?.user?.id == me.user.id,
+                                    winnerSign = winner,
+                                    userWon = winner == me.sign,
                                     canRetry = isUserHost,
                                 )
                             } else {

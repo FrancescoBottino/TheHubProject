@@ -175,7 +175,7 @@ class TicTacToeUseCases(
             }
 
             room.copy(
-                roomState = TicTacToeGameRoom.State.Closed(player),
+                roomState = TicTacToeGameRoom.State.Closed(player.sign),
                 lastUpdate = Clock.System.now(),
             )
         }

@@ -10,8 +10,8 @@ import com.francescobottino.thehubproject.games.tictactoe.server.tables.TicTacTo
 import com.francescobottino.thehubproject.games.tictactoe.server.tables.TicTacToeGameRoomTable.opponentPlayerSign
 import com.francescobottino.thehubproject.games.tictactoe.server.tables.TicTacToeGameRoomTable.pastGamesWinnersJson
 import com.francescobottino.thehubproject.games.tictactoe.server.tables.TicTacToeGameRoomTable.roomState
-import com.francescobottino.thehubproject.games.tictactoe.server.tables.TicTacToeGameRoomTable.roomStateClosedById
-import com.francescobottino.thehubproject.games.tictactoe.server.tables.TicTacToeGameRoomTable.roomStateWinnerId
+import com.francescobottino.thehubproject.games.tictactoe.server.tables.TicTacToeGameRoomTable.roomStateClosedBySign
+import com.francescobottino.thehubproject.games.tictactoe.server.tables.TicTacToeGameRoomTable.roomStateWinnerSign
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.*
 import com.francescobottino.thehubproject.server_shared.data.UsersTable
 import com.francescobottino.thehubproject.shared.mainJson
@@ -155,7 +155,7 @@ class TicTacToeGameRoomRepository(private val database: Database) {
         statement[opponentPlayerId] = room.opponentPlayer?.user?.id
         statement[opponentPlayerSign] = room.opponentPlayer?.sign
         statement[gameStateJson] = mainJson.encodeToString(room.gameState.toSerializableMap())
-        statement[pastGamesWinnersJson] = mainJson.encodeToString(room.pastGamesWinners.map { winner -> winner?.user?.id })
+        statement[pastGamesWinnersJson] = mainJson.encodeToString(room.pastGamesWinners)
         statement[currentPlayerSign] = room.currentPlayerSign
         val roomStateField = room.roomState
         statement[roomState] = when (roomStateField) {
@@ -164,12 +164,12 @@ class TicTacToeGameRoomRepository(private val database: Database) {
             is TicTacToeGameRoom.State.Finished -> "Finished"
             is TicTacToeGameRoom.State.Closed -> "Closed"
         }
-        statement[roomStateWinnerId] = when (roomStateField) {
-            is TicTacToeGameRoom.State.Finished -> roomStateField.winner?.user?.id
+        statement[roomStateWinnerSign] = when (roomStateField) {
+            is TicTacToeGameRoom.State.Finished -> roomStateField.winner
             else -> null
         }
-        statement[roomStateClosedById] = when (roomStateField) {
-            is TicTacToeGameRoom.State.Closed -> roomStateField.byPlayer.user.id
+        statement[roomStateClosedBySign] = when (roomStateField) {
+            is TicTacToeGameRoom.State.Closed -> roomStateField.byPlayer
             else -> null
         }
         statement[lastUpdate] = room.lastUpdate.toEpochMilliseconds()
@@ -189,31 +189,13 @@ class TicTacToeGameRoomRepository(private val database: Database) {
         val gameState = mainJson.decodeFromString<Map<String, String>>(row[gameStateJson])
             .toGameState()
 
-        val pastWinnerIds = mainJson.decodeFromString<List<String?>>(row[pastGamesWinnersJson])
-        val pastGamesWinners = pastWinnerIds.map { winnerId ->
-            winnerId?.let { id ->
-                if (id == hostPlayer.user.id) hostPlayer
-                else opponentPlayer?.takeIf { it.user.id == id }
-            }
-        }
+        val pastGamesWinners = mainJson.decodeFromString<List<TicTacToePlayerSign?>>(row[pastGamesWinnersJson])
 
         val roomState = when (row[roomState]) {
             "WaitingForOpponent" -> TicTacToeGameRoom.State.WaitingForOpponent
             "InProgress" -> TicTacToeGameRoom.State.InProgress
-            "Finished" -> {
-                val winnerId = row[roomStateWinnerId]
-                val winner = winnerId?.let { id ->
-                    if (id == hostPlayer.user.id) hostPlayer
-                    else opponentPlayer?.takeIf { it.user.id == id }
-                }
-                TicTacToeGameRoom.State.Finished(winner)
-            }
-            "Closed" -> {
-                val closedById = row[roomStateClosedById]!!
-                val byPlayer = if (closedById == hostPlayer.user.id) hostPlayer
-                else opponentPlayer!!
-                TicTacToeGameRoom.State.Closed(byPlayer)
-            }
+            "Finished" -> TicTacToeGameRoom.State.Finished(row[roomStateWinnerSign])
+            "Closed" -> TicTacToeGameRoom.State.Closed(row[roomStateClosedBySign]!!)
             else -> TicTacToeGameRoom.State.WaitingForOpponent
         }
 

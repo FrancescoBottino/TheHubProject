@@ -56,12 +56,10 @@ private suspend fun RoutingContext.myRooms() {
         return
     }
 
-    val paginationParams = try {
-        call.receive<PaginationParams>()
-    } catch (e: Exception) {
-        call.respond(HttpStatusCode.BadRequest, e.message ?: "Invalid request")
-        return
-    }
+    val paginationParams = PaginationParams(
+        page = call.parameters.getOrFail<Int>("page"),
+        limit = call.parameters.getOrFail<Int>("limit"),
+    )
 
     try {
         val paginatedRooms = useCase.getMyRooms(userId = userId, paginationParams = paginationParams)

@@ -21,9 +21,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.francescobottino.thehubproject.client_shared.ui.components.LoadingCardOverlay
-import com.francescobottino.thehubproject.games.tictactoe.client.ui.images.TicTacToeCatGame
-import com.francescobottino.thehubproject.games.tictactoe.client.ui.images.TicTacToeCircle
-import com.francescobottino.thehubproject.games.tictactoe.client.ui.images.TicTacToeCross
+import com.francescobottino.thehubproject.games.tictactoe.client.ui.components.SignIcon
 import com.francescobottino.thehubproject.games.tictactoe.client.ui.images.TicTacToeCrown
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToeBoardCell
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToeGameRoom
@@ -303,18 +301,10 @@ private fun FinishDialog(
                         .background(color = MaterialTheme.colorScheme.surface)
                         .padding(12.dp),
                 ) {
-                    finishState.winnerSign?.let {
-                        SignIcon(
-                            sign = it,
-                            modifier = Modifier.fillMaxSize(),
-                        )
-                    } ?: run {
-                        Icon(
-                            TicTacToeCatGame,
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize(),
-                        )
-                    }
+                    SignIcon(
+                        sign = finishState.winnerSign,
+                        modifier = Modifier.fillMaxSize(),
+                    )
                 }
 
                 if(finishState.winnerSign != null) {
@@ -358,27 +348,6 @@ private fun FinishDialog(
             }
         }
     }
-}
-
-@Composable
-private fun SignIcon(
-    sign: TicTacToePlayerSign,
-    modifier: Modifier = Modifier,
-) {
-    val signDrawable = when (sign) {
-        TicTacToePlayerSign.O -> TicTacToeCircle
-        TicTacToePlayerSign.X -> TicTacToeCross
-    }
-    val color = when (sign) {
-        TicTacToePlayerSign.O -> Color(0xFFFF5C00)
-        TicTacToePlayerSign.X -> Color(0xFF305CDE)
-    }
-    Icon(
-        imageVector = signDrawable,
-        contentDescription = null,
-        tint = color,
-        modifier = modifier,
-    )
 }
 
 @Composable

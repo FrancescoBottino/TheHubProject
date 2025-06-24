@@ -1,7 +1,10 @@
 package com.francescobottino.thehubproject.games.tictactoe.server.usecase
 
-import com.francescobottino.thehubproject.games.tictactoe.shared.model.*
+import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToeBoardCell
+import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToeGameRoom
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToeGameRoom.State
+import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToeGameState
+import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToePlayerSign
 
 fun TicTacToeGameState.getWinnerSign(): TicTacToePlayerSign? {
     val rows = (0..2).map { r -> (0..2).map { c -> this[TicTacToeBoardCell(r, c)] } }
@@ -19,16 +22,12 @@ fun TicTacToeGameState.getWinnerSign(): TicTacToePlayerSign? {
         ?.singleOrNull() //get the sign
 }
 
-fun TicTacToeGameRoom.getWinnerPlayer(): TicTacToePlayer? {
-    return gameState.getWinnerSign()?.let { winnerSign -> players.single { it.sign == winnerSign } }
-}
-
 fun TicTacToeGameState.isBoardFull(): Boolean {
     return size == 9
 }
 
 fun TicTacToeGameRoom.updateWinner(): TicTacToeGameRoom {
-    val winner = getWinnerPlayer()
+    val winner = gameState.getWinnerSign()
     return when {
         winner != null -> copy(roomState = State.Finished(winner))
         gameState.isBoardFull() -> copy(roomState = State.Finished(null))

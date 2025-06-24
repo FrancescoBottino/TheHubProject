@@ -20,7 +20,10 @@ class TicTacToeApi(
     suspend fun myRooms(paginationParams: PaginationParams): PaginatedResponse<TicTacToeGameRoom> {
         return client.get("/games/tictactoe/my-rooms") {
             contentType(ContentType.Application.Json)
-            setBody(paginationParams)
+            parameters {
+                parameter("page", paginationParams.page)
+                parameter("limit", paginationParams.limit)
+            }
         }.body()
     }
     suspend fun makeRoom(request: TicTacToeMakeRoomRequest): String {
