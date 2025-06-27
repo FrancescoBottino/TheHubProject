@@ -3,10 +3,13 @@ package com.francescobottino.thehubproject.config
 import com.francescobottino.thehubproject.ClientConfig
 
 object Config {
-    private const val PRODUCTION_ENDPOINT = "thehubproject-api.up.railway.app"
-    private val serverEndpoint: String = if(ClientConfig.IS_PRODUCTION) PRODUCTION_ENDPOINT else "${internalServerDebugIp(ClientConfig.DEV_SERVER_IP)}:${ClientConfig.DEV_SERVER_PORT}"
-    private val httpSchema = if(ClientConfig.IS_PRODUCTION) "https" else "http"
-    private val wsSchema = if(ClientConfig.IS_PRODUCTION) "wss" else "ws"
+    private val serverEndpoint: String = when(ClientConfig.ENVIRONMENT) {
+        "dev" -> "${internalServerDebugIp(ClientConfig.DEV_SERVER_IP)}:${ClientConfig.DEV_SERVER_PORT}"
+        "staging" -> ClientConfig.STAGING_SERVER_DOMAIN
+        else -> ClientConfig.PROD_SERVER_DOMAIN
+    }
+    private val httpSchema = if(ClientConfig.ENVIRONMENT != "dev") "https" else "http"
+    private val wsSchema = if(ClientConfig.ENVIRONMENT != "dev") "wss" else "ws"
     val httpUrl = "$httpSchema://$serverEndpoint"
     val wsUrl = "$wsSchema://$serverEndpoint"
 }

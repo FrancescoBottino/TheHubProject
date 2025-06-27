@@ -42,11 +42,11 @@ dependencies {
     implementation(projects.tictactoeServer)
 }
 
-val isProduction: Boolean by rootProject.extra
+val environment: String by rootProject.extra
 
 buildConfig {
     packageName("com.francescobottino.thehubproject.server")
     className("ServerConfig")
     useKotlinOutput()
-    buildConfigField<Boolean>("IS_PRODUCTION", isProduction)
+    buildConfigField<String>("ENVIRONMENT", environment)
 }

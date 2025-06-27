@@ -116,14 +116,30 @@ kotlin {
     }
 }
 
-private var mainVersionCode = 1
-private var mainVersionName = "1.0.$mainVersionCode"
+dependencies {
+    debugImplementation(compose.runtime)
+    debugImplementation(compose.foundation)
+    debugImplementation(compose.material3)
+    debugImplementation(compose.ui)
+    debugImplementation(compose.components.resources)
+    debugImplementation(compose.components.uiToolingPreview)
+    debugImplementation(compose.uiTooling)
+}
+
+private val mainVersionCode = 1
+private val mainVersionName = "1.0.$mainVersionCode"
+
+private val environment: String by rootProject.extra
+private val devServerIp: String by rootProject.extra
+private val devServerPort: Int by rootProject.extra
+private val prodServerDomain: String = "thehubproject-api.up.railway.app"
+private val stagingServerDomain: String = "thehubproject-api-staging.up.railway.app"
 
 android {
     namespace = "com.francescobottino.thehubproject"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
-    val keystorePropertiesFile = rootProject.file("keystore.properties")
+    val keystorePropertiesFile = project.file("keystore.properties")
     val keystoreProperties = Properties()
     if (keystorePropertiesFile.exists()) {
         keystoreProperties.load(keystorePropertiesFile.inputStream())
@@ -140,7 +156,10 @@ android {
         }
     }
     buildTypes {
-        getByName("release") {
+        debug {
+            isMinifyEnabled = false
+        }
+        release {
             isMinifyEnabled = false
             signingConfig = signingConfigs.findByName("release")
         }
@@ -174,16 +193,6 @@ android {
             }
         }
     }
-}
-
-dependencies {
-    debugImplementation(compose.runtime)
-    debugImplementation(compose.foundation)
-    debugImplementation(compose.material3)
-    debugImplementation(compose.ui)
-    debugImplementation(compose.components.resources)
-    debugImplementation(compose.components.uiToolingPreview)
-    debugImplementation(compose.uiTooling)
 }
 
 compose.desktop {
@@ -223,16 +232,14 @@ compose.desktop {
     }
 }
 
-val isProduction: Boolean by rootProject.extra
-val devServerIp: String? by rootProject.extra
-val devServerPort: Int by rootProject.extra
-
 buildConfig {
     packageName("com.francescobottino.thehubproject")
     className("ClientConfig")
     useKotlinOutput()
 
-    buildConfigField<Boolean>("IS_PRODUCTION", isProduction)
+    buildConfigField<String>("ENVIRONMENT", environment)
+    buildConfigField<String>("PROD_SERVER_DOMAIN", prodServerDomain)
+    buildConfigField<String>("STAGING_SERVER_DOMAIN", stagingServerDomain)
     buildConfigField<String>("DEV_SERVER_IP", devServerIp)
     buildConfigField<Int>("DEV_SERVER_PORT", devServerPort)
 }
