@@ -5,11 +5,12 @@ import com.francescobottino.thehubproject.client_shared.usecase.CopyToClipboardU
 import com.francescobottino.thehubproject.di.initKoin
 import com.francescobottino.thehubproject.security.IosSecureStorage
 import com.francescobottino.thehubproject.usecase.IosCopyToClipboardUseCase
+import org.koin.core.Koin
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
 fun initKoinForIOS() {
-    initKoin {
+    val koinApp = initKoin {
         modules(
             module {
                 singleOf<SecureStorage>(::IosSecureStorage)
@@ -17,4 +18,8 @@ fun initKoinForIOS() {
             }
         )
     }
+
+    koin = koinApp.koin
 }
+
+lateinit var koin: Koin

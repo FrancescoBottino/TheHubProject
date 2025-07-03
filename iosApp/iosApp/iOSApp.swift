@@ -9,6 +9,9 @@ struct iOSApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .onOpenURL { url in
+                    DeeplinksKt.onDeeplinkReceived(url: url.absoluteString)
+                }
         }
     }
 }
