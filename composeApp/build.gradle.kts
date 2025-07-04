@@ -1,4 +1,6 @@
 import com.android.build.api.variant.impl.VariantOutputImpl
+import com.francescobottino.thehubproject.build_logic.convention.AppEnvironment
+import com.francescobottino.thehubproject.build_logic.convention.domain
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
@@ -13,7 +15,7 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
-    alias(libs.plugins.buildconfig)
+    alias(libs.plugins.envornment)
 }
 
 kotlin {
@@ -89,9 +91,16 @@ kotlin {
             implementation(libs.arrow.core)
 
             implementation(projects.shared)
+            implementation(
+                when(appEnvironment.current) {
+                    AppEnvironment.DEVELOPMENT -> projects.config.dev
+                    AppEnvironment.STAGING -> projects.config.staging
+                    AppEnvironment.PRODUCTION -> projects.config.prod
+                }
+            )
             implementation(projects.clientShared)
-            implementation(projects.clientFeatureAuth)
-            implementation(projects.tictactoeClient)
+            implementation(projects.clientFeatures.auth)
+            implementation(projects.games.tictactoe.client)
         }
         androidMain.dependencies {
             implementation(compose.preview)
@@ -129,18 +138,6 @@ dependencies {
 private val mainVersionCode = 1
 private val mainVersionName = "1.0.$mainVersionCode"
 
-private val environment: String by rootProject.extra
-private val devServerIp: String by rootProject.extra
-private val devServerPort: Int by rootProject.extra
-private val prodServerDomain: String = "thehubproject-api.up.railway.app"
-private val stagingServerDomain: String = "thehubproject-api-staging.up.railway.app"
-private val deepLinkDomain = when(environment) {
-    "dev" -> devServerIp
-    "staging" -> stagingServerDomain
-    else -> prodServerDomain
-}
-private val deepLinkScheme = "thehubproject"
-
 android {
     namespace = "com.francescobottino.thehubproject"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
@@ -176,8 +173,8 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = mainVersionCode
         versionName = mainVersionName
-        manifestPlaceholders["deepLinkDomain"] = deepLinkDomain
-        manifestPlaceholders["deepLinkScheme"] = deepLinkScheme
+        manifestPlaceholders["deepLinkDomain"] = appEnvironment.current.domain().orEmpty()
+        manifestPlaceholders["deepLinkScheme"] = "thehubproject"
     }
     lint {
         disable += "NullSafeMutableLiveData"
@@ -238,18 +235,4 @@ compose.desktop {
             }
         }
     }
-}
-
-buildConfig {
-    packageName("com.francescobottino.thehubproject")
-    className("ClientConfig")
-    useKotlinOutput()
-
-    buildConfigField<String>("ENVIRONMENT", environment)
-    buildConfigField<String>("DEEP_LINK_DOMAIN", deepLinkDomain)
-    buildConfigField<String>("DEEP_LINK_SCHEME", deepLinkScheme)
-    buildConfigField<String>("PROD_SERVER_DOMAIN", prodServerDomain)
-    buildConfigField<String>("STAGING_SERVER_DOMAIN", stagingServerDomain)
-    buildConfigField<String>("DEV_SERVER_IP", devServerIp)
-    buildConfigField<Int>("DEV_SERVER_PORT", devServerPort)
 }

@@ -1,8 +1,10 @@
+import com.francescobottino.thehubproject.build_logic.convention.AppEnvironment
+
 plugins {
     alias(libs.plugins.kotlinJvm)
     alias(libs.plugins.kotlinPluginSerialization)
     alias(libs.plugins.ktor)
-    alias(libs.plugins.buildconfig)
+    alias(libs.plugins.envornment)
     application
 }
 
@@ -39,14 +41,12 @@ dependencies {
 
     implementation(projects.shared)
     implementation(projects.serverShared)
-    implementation(projects.tictactoeServer)
-}
-
-val environment: String by rootProject.extra
-
-buildConfig {
-    packageName("com.francescobottino.thehubproject.server")
-    className("ServerConfig")
-    useKotlinOutput()
-    buildConfigField<String>("ENVIRONMENT", environment)
+    implementation(
+        when(appEnvironment.current) {
+            AppEnvironment.DEVELOPMENT -> projects.config.dev
+            AppEnvironment.STAGING -> projects.config.staging
+            AppEnvironment.PRODUCTION -> projects.config.prod
+        }
+    )
+    implementation(projects.games.tictactoe.server)
 }

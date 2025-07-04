@@ -23,7 +23,7 @@ dependencies {
 
     implementation(projects.shared)
     implementation(projects.serverShared)
-    implementation(projects.tictactoeShared)
+    implementation(projects.games.tictactoe.shared)
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {

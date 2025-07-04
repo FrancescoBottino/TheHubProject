@@ -1,5 +1,3 @@
-import java.util.*
-
 rootProject.name = "TheHubProject"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
@@ -24,40 +22,25 @@ fun readDotEnv(projectDir: File): Map<String, String> {
     return envMap
 }
 
-// Helper function to read local.properties
-fun readLocalProperties(projectDir: File): Properties {
-    val properties = Properties()
-    val propertiesFile = File(projectDir, "local.properties")
-    if (propertiesFile.exists()) {
-        propertiesFile.inputStream().use { input ->
-            properties.load(input)
-        }
-    } else {
-        println("Warning: local.properties file not found at ${propertiesFile.absolutePath}")
-    }
-    return properties
-}
-
 // Load variables globally for all projects
 gradle.beforeProject {
     if(project == rootProject) { // Only execute once for the root project
         val envVariables = readDotEnv(rootProject.projectDir)
 
-        val localProperties = readLocalProperties(rootProject.projectDir)
-        val environment = if(project.hasProperty("environment")) project.property("environment")?.toString() else localProperties["environment"]?.toString()
-        val devServerIp = envVariables["SERVER_HOST"] ?: "Localhost"
+        val environment: String by project
+        val devServerHost = envVariables["SERVER_HOST"] ?: "Localhost"
         val devServerPort = envVariables["SERVER_PORT"]?.toInt() ?: 9090
 
-        rootProject.extra.set("environment", environment)
         println("   environment: $environment")
-        rootProject.extra.set("devServerIp", devServerIp)
-        println("   devServerIp: $devServerIp")
+        rootProject.extra.set("devServerHost", devServerHost)
+        println("   devServerHost: $devServerHost")
         rootProject.extra.set("devServerPort", devServerPort)
         println("   devServerPort: $devServerPort")
     }
 }
 
 pluginManagement {
+    includeBuild("build-logic")
     repositories {
         google {
             mavenContent {
@@ -88,27 +71,15 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
-fun includeGame(name: String) {
-    // Client module
-    include(":${name}-client")
-    project(":${name}-client").projectDir = file("games/${name}/client")
-    // Server module
-    include(":${name}-server")
-    project(":${name}-server").projectDir = file("games/${name}/server")
-    // Shared module
-    include(":${name}-shared")
-    project(":${name}-shared").projectDir = file("games/${name}/shared")
-}
-
-fun includeClientFeature(name: String) {
-    include(":clientFeature-${name}")
-    project(":clientFeature-${name}").projectDir = file("client-features/${name}")
-}
-
 include(":composeApp")
 include(":server")
 include(":shared")
+include(":config:dev")
+include(":config:staging")
+include(":config:prod")
 include(":server-shared")
 include(":client-shared")
-includeClientFeature("auth")
-includeGame("tictactoe")
+include(":client-features:auth")
+include(":games:tictactoe:client")
+include(":games:tictactoe:server")
+include(":games:tictactoe:shared")

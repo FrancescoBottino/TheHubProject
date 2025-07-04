@@ -70,7 +70,7 @@ kotlin {
 
             implementation(projects.shared)
             implementation(projects.clientShared)
-            implementation(projects.tictactoeShared)
+            implementation(projects.games.tictactoe.shared)
         }
     }
 }
