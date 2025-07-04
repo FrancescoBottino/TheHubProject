@@ -19,21 +19,19 @@ class MainActivity: ComponentActivity(), KoinComponent {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
+        intent.data?.toString()?.let { url ->
+            deepLinkHandler.storeStartupDeeplink(url)
+        }
+
         setContent {
             Box(Modifier.safeDrawingPadding()) {
                 App()
             }
         }
-
-        handleIntent(intent)
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        handleIntent(intent)
-    }
-
-    private fun handleIntent(intent: Intent) {
         intent.data?.toString()?.let { url ->
             deepLinkHandler.onDeepLinkReceived(url)
         }

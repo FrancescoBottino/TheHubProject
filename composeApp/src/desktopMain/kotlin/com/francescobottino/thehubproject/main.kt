@@ -12,7 +12,7 @@ import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
 fun main() {
-    initKoin {
+    val koin = initKoin {
         modules(
             module {
                 singleOf<SecureStorage>(::DesktopSecureStorage)
@@ -20,6 +20,8 @@ fun main() {
             }
         )
     }
+
+    koin.koin
 
     application {
         Window(

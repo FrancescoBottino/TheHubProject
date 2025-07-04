@@ -2,6 +2,7 @@ package com.francescobottino.thehubproject.screens.splash
 
 import arrow.core.getOrElse
 import cafe.adriel.voyager.core.model.screenModelScope
+import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.Navigator
 import com.francescobottino.thehubproject.client_shared.model.User
 import com.francescobottino.thehubproject.client_shared.repo.AuthRepository
@@ -21,6 +22,7 @@ import org.koin.core.component.inject
 
 class SplashScreenModel(
     private val navigator: Navigator,
+    private val pendingNavigation: Screen?,
 ): StatefulScreenModel<SplashScreenState, SplashScreenEvent>(), KoinComponent {
     private val authRepo by inject<AuthRepository>()
     private val userApi by inject<UserApi>()
@@ -45,7 +47,7 @@ class SplashScreenModel(
     private suspend fun tryInit() {
         val isLoggedIn = runCatching { authRepo.isLoggedIn() }.getOrElse { false }
         if(!isLoggedIn) {
-            navigator.replace(LoginScreen)
+            navigator.replace(LoginScreen(pendingNavigation = pendingNavigation))
             return
         }
 
@@ -58,7 +60,7 @@ class SplashScreenModel(
             }
             .getOrElse { profileError ->
                 if(profileError == HttpStatusCode.Unauthorized) {
-                    navigator.replace(LoginScreen)
+                    navigator.replace(LoginScreen(pendingNavigation = pendingNavigation))
                 } else {
                     _state.update { it.copy(isError = true) }
                 }
@@ -66,7 +68,7 @@ class SplashScreenModel(
             }
 
         userRepo.setCurrentUser(User(userProfile.id, userProfile.username))
-        navigator.replace(MainHostScreen)
+        navigator.replace(MainHostScreen(pendingNavigation = pendingNavigation))
         return
     }
 }

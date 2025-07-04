@@ -26,11 +26,11 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.jetbrains.compose.ui.tooling.preview.PreviewParameter
 import org.jetbrains.compose.ui.tooling.preview.PreviewParameterProvider
 
-object LoginScreen: Screen {
+class LoginScreen(private val pendingNavigation: Screen?): Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        val screenModel = rememberScreenModel { LoginScreenModel(navigator) }
+        val screenModel = rememberScreenModel { LoginScreenModel(navigator, pendingNavigation) }
         val state by screenModel.state.collectAsState()
 
         Scaffold {

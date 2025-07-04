@@ -2,6 +2,7 @@ package com.francescobottino.thehubproject.screens.login
 
 import arrow.core.Either
 import cafe.adriel.voyager.core.model.screenModelScope
+import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.Navigator
 import com.francescobottino.thehubproject.client_shared.model.User
 import com.francescobottino.thehubproject.client_shared.repo.AuthRepository
@@ -20,6 +21,7 @@ import org.koin.core.component.inject
 
 class LoginScreenModel(
     private val navigator: Navigator,
+    private val pendingNavigation: Screen?,
 ): StatefulScreenModel<LoginScreenState, LoginScreenEvent>(), KoinComponent {
     private val authRepo by inject<AuthRepository>()
     private val userRepository by inject<UserRepository>()
@@ -56,7 +58,7 @@ class LoginScreenModel(
                         }
                     }.onRight { successResponse ->
                         userRepository.setCurrentUser(User(id = successResponse.userId, username = successResponse.username))
-                        navigator.replace(MainHostScreen)
+                        navigator.replace(MainHostScreen(pendingNavigation = pendingNavigation))
                     }
                 }
         }.invokeOnCompletion {

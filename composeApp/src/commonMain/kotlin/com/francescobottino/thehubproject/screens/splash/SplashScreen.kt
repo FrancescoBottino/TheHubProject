@@ -26,11 +26,11 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.jetbrains.compose.ui.tooling.preview.PreviewParameter
 import org.jetbrains.compose.ui.tooling.preview.PreviewParameterProvider
 
-object SplashScreen: Screen {
+class SplashScreen(private val pendingNavigation: Screen?): Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        val screenModel = rememberScreenModel { SplashScreenModel(navigator) }
+        val screenModel = rememberScreenModel { SplashScreenModel(navigator, pendingNavigation) }
 
         val state by screenModel.state.collectAsState()
 

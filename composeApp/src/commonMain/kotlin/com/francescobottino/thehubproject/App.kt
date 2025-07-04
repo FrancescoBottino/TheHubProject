@@ -1,6 +1,7 @@
 package com.francescobottino.thehubproject
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import cafe.adriel.voyager.navigator.CurrentScreen
 import cafe.adriel.voyager.navigator.Navigator
 import com.francescobottino.thehubproject.client_shared.ui.theme.AppTheme
@@ -13,9 +14,10 @@ import org.koin.compose.koinInject
 @Preview
 fun App() {
     val deepLinkHandler = koinInject<DeepLinkHandler>()
+    val pendingNavigation = remember(Unit) { deepLinkHandler.getStartupPendingNavigation() }
 
     AppTheme {
-        Navigator(SplashScreen) { navigator ->
+        Navigator(SplashScreen(pendingNavigation)) { navigator ->
             deepLinkHandler.handleDeepLinks(navigator)
             CurrentScreen()
         }

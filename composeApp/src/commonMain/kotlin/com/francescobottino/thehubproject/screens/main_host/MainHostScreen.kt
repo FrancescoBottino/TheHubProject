@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.koinInject
 
-object MainHostScreen: Screen {
+class MainHostScreen(private val pendingNavigation: Screen?): Screen {
     @Composable
     override fun Content() {
         val parentNavigator = LocalNavigator.currentOrThrow
@@ -52,7 +52,7 @@ object MainHostScreen: Screen {
                         onUserClicked = {
                             scope.launch {
                                 if (authRepo.isLoggedIn()) { authRepo.logout() }
-                                parentNavigator.replace(LoginScreen)
+                                parentNavigator.replace(LoginScreen(null)) //todo on logout this loses current screen. is it desired behavior?
                             }
                         }
                     )
