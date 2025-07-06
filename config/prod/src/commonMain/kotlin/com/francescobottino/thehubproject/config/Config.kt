@@ -1,7 +1,8 @@
 package com.francescobottino.thehubproject.config
 
-object Config {
-    const val CLEAR_TEXT_TRAFFIC = false
-    val httpUrl = "https://${BuildConfig.DOMAIN}"
-    val wsUrl = "wss://${BuildConfig.DOMAIN}"
+import com.francescobottino.thehubproject.shared.config.SharedConfig
+
+object Config: SharedConfig {
+    override val apiHttpUrl = "https://${BuildConfig.API_DOMAIN}"
+    override val apiWsUrl = "wss://${BuildConfig.API_DOMAIN}"
 }

@@ -1,8 +1,9 @@
 package com.francescobottino.thehubproject.config
 
-object Config {
-    const val CLEAR_TEXT_TRAFFIC = true
-    private val SERVER_ENDPOINT: String = "${internalServerDebugHost(BuildConfig.DEV_SERVER_HOST)}:${BuildConfig.DEV_SERVER_PORT}"
-    val httpUrl = "http://$SERVER_ENDPOINT"
-    val wsUrl = "ws://$SERVER_ENDPOINT"
+import com.francescobottino.thehubproject.shared.config.SharedConfig
+
+object Config: SharedConfig {
+    private val API_ENDPOINT: String = "${internalServerDebugHost(BuildConfig.DEV_SERVER_HOST)}:${BuildConfig.DEV_SERVER_PORT}"
+    override val apiHttpUrl = "https://${API_ENDPOINT}"
+    override val apiWsUrl = "wss://${API_ENDPOINT}"
 }

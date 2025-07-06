@@ -44,7 +44,7 @@ fun makeHttpClient(
             }
         }
         defaultRequest {
-            url(Config.httpUrl)
+            url(Config.apiHttpUrl)
         }
     }
 }

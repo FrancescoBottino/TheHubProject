@@ -16,7 +16,7 @@ import org.koin.dsl.module
 
 val commonModule = module {
     single<HttpClient> { makeHttpClient { getKoin().get<AuthRepository>().getToken() } }
-    single<String>(named(WEBSOCKET_ENDPOINT)) { Config.wsUrl }
+    single<String>(named(WEBSOCKET_ENDPOINT)) { Config.apiWsUrl }
     singleOf(::UserApi)
     singleOf(::DeepLinkHandler)
 

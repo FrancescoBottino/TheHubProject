@@ -1,5 +1,5 @@
 import com.francescobottino.thehubproject.build_logic.convention.AppEnvironment
-import com.francescobottino.thehubproject.build_logic.convention.prodDomain
+import com.francescobottino.thehubproject.build_logic.convention.prodApiDomain
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -41,6 +41,12 @@ kotlin {
             }
         }
     }
+
+    sourceSets {
+        commonMain.dependencies {
+            implementation(projects.shared)
+        }
+    }
 }
 
 android {
@@ -60,5 +66,5 @@ buildConfig {
     className("BuildConfig")
     useKotlinOutput()
 
-    buildConfigField<String>("DOMAIN", AppEnvironment.prodDomain())
+    buildConfigField<String>("API_DOMAIN", AppEnvironment.prodApiDomain())
 }

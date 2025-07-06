@@ -1,6 +1,5 @@
 package com.francescobottino.thehubproject.server
 
-import com.francescobottino.thehubproject.config.Config
 import com.francescobottino.thehubproject.server.auth.JwtConfigImpl
 import com.francescobottino.thehubproject.server.auth.configureJwt
 import com.francescobottino.thehubproject.server.auth.configureRoutingAuth
@@ -73,12 +72,6 @@ fun Application.module() {
         allowHeader(HttpHeaders.ContentType)
 
         allowCredentials = false
-
-        if(Config.CLEAR_TEXT_TRAFFIC) {
-            anyHost()
-        } else {
-            allowHost("0.0.0.0", schemes = listOf("https"))
-        }
     }
 
     install(Authentication) {

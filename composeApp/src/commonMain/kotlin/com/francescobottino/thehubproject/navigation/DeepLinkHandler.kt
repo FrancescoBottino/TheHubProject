@@ -50,7 +50,7 @@ class DeepLinkHandler {
     }
 
     private fun getScreenFromDeepLink(url: String): Screen? {
-        if(!url.startsWith(Config.httpUrl)) return null
+        if(!url.startsWith(Config.apiHttpUrl)) return null
         Napier.d(tag = "DeepLinkHandler") { "segments : " + Url(url).rawSegments.toString() }
         val screen = UserGamesScreen //todo calculate actual screen
         Napier.d(tag = "DeepLinkHandler") { "Getting screen from deeplink: $url -> $screen" }
