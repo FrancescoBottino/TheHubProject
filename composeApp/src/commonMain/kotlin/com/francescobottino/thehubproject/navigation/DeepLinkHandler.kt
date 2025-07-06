@@ -3,11 +3,11 @@ package com.francescobottino.thehubproject.navigation
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.Navigator
 import com.francescobottino.thehubproject.config.Config
-import com.francescobottino.thehubproject.games.tictactoe.client.screens.user_games.UserGamesScreen
+import com.francescobottino.thehubproject.games.tictactoe.client.screens.game.GameScreen
 import io.github.aakira.napier.Napier
-import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.*
+import kotlin.uuid.ExperimentalUuidApi
 
 // todo:
 // IOS, Desktop.
@@ -49,10 +49,24 @@ class DeepLinkHandler {
         }
     }
 
+    @OptIn(ExperimentalUuidApi::class)
     private fun getScreenFromDeepLink(url: String): Screen? {
-        if(!url.startsWith(Config.apiHttpUrl)) return null
-        Napier.d(tag = "DeepLinkHandler") { "segments : " + Url(url).rawSegments.toString() }
-        val screen = UserGamesScreen //todo calculate actual screen
+        if(!url.startsWith(Config.apiHttpUrl+"/")) {
+            Napier.d(tag = "DeepLinkHandler") { "invalid url" }
+            return null
+        }
+        val path = url.removePrefix(Config.apiHttpUrl+"/")
+
+        val screen = when {
+            path.startsWith("tictactoe/invite/") -> {
+                val roomId = path.removePrefix("tictactoe/invite/")
+                Napier.d(tag = "DeepLinkHandler") { "tictactoe invite for id $roomId" }
+                GameScreen(roomId = roomId)
+            }
+
+            else -> null
+        }
+
         Napier.d(tag = "DeepLinkHandler") { "Getting screen from deeplink: $url -> $screen" }
         return screen
     }

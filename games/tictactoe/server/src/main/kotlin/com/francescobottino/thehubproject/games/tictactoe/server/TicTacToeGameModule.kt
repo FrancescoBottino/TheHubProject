@@ -211,27 +211,27 @@ private suspend fun DefaultWebSocketServerSession.getUpdates() {
     val repo by call.inject<TicTacToeGameRoomRepository>()
 
     val userId = getWebsocketAuthUserId() ?: run {
-        call.respond(HttpStatusCode.Unauthorized, "User not found or invalid token")
+        close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "User not found or invalid token"))
         return
     }
 
     val roomId = call.parameters["roomId"]
     if (roomId == null) {
         log.debug("roomId not found")
-        call.respond(HttpStatusCode.BadRequest, "Invalid request, requires room id")
+        close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "Invalid request, requires room id"))
         return
     }
 
     val room = repo.getRoom(roomId)
     if (room == null) {
         log.debug("room $roomId does not exist")
-        call.respond(HttpStatusCode.BadRequest, "Invalid request, room does not exist")
+        close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "Invalid request, room does not exist"))
         return
     }
 
     if (!room.players.map { it.user.id }.contains(userId)) {
         log.debug("player is not in room")
-        call.respond(HttpStatusCode.BadRequest, "Invalid request, player is not in room")
+        close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "Invalid request, player is not in room"))
         return
     }
 

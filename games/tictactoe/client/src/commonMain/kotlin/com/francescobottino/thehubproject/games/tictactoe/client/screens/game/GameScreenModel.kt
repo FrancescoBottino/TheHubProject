@@ -13,6 +13,7 @@ import com.francescobottino.thehubproject.games.tictactoe.shared.model.api.TicTa
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.api.TicTacToeMakeMoveResponseError
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.api.TicTacToeRestartGameResponseError
 import com.francescobottino.thehubproject.shared.mainJson
+import io.github.aakira.napier.Napier
 import io.ktor.client.plugins.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.Job
@@ -58,10 +59,13 @@ class GameScreenModel(
     fun connectToRoom() {
         _state.update { it.copy(isLoading = true) }
 
+        Napier.d(tag = "TicTacToes GameScreenModel") { "Attempting ws connection to room id $roomId" }
+
         roomUpdateJob?.cancel()
         roomUpdateJob = screenModelScope.launch {
             val webSocket = runCatching { api.joinRoomWebSocket(roomId) }
                 .onFailure { error ->
+                    Napier.d(tag = "TicTacToes GameScreenModel") { "failed to connect to room $roomId, error: $error" }
                     error.printStackTrace()
                     _state.update { screenState ->
                         screenState.copy(
@@ -77,78 +81,44 @@ class GameScreenModel(
                     }
                 }
                 .onSuccess { it ->
+                    Napier.d(tag = "TicTacToes GameScreenModel") { "connected to room $roomId" }
                     ws = it
                 }
                 .getOrNull()
                 ?: return@launch
 
             try {
-                for (frame in webSocket.incoming) {
-                    if (frame is Frame.Text) {
-                        val update = runCatching {
-                            mainJson.decodeFromString<TicTacToeGameRoom>(frame.readText())
-                        }.getOrNull()
+                Napier.d(tag = "TicTacToes GameScreenModel") { "ws incoming channel opened" }
+                listenToWebsocketUpdates(webSocket)
+                Napier.d(tag = "TicTacToes GameScreenModel") { "ws incoming channel closed" }
+                val closeReason = webSocket.closeReason.await()
 
-                        if(update != null) {
-                            val me = update.players.single { it.user.id == user.id }
-                            val opponent = update.players.singleOrNull { it.user.id != user.id }
-
-                            val isUserHost = update.hostPlayer.user.id == user.id
-
-                            val opponentConnected = update.roomState !is TicTacToeGameRoom.State.WaitingForOpponent
-                                    && opponent != null
-                                    && update.connectedPlayerIds.contains(opponent.user.id)
-
-                            val opponentState = when {
-                                update.roomState is TicTacToeGameRoom.State.WaitingForOpponent -> GameScreenState.OpponentState.WaitingForOpponent
-                                opponentConnected -> GameScreenState.OpponentState.Connected(opponent.user.username)
-                                else -> GameScreenState.OpponentState.Disconnected(opponent?.user?.username)
-                            }
-
-                            val isUserTurn = update.roomState is TicTacToeGameRoom.State.InProgress
-                                    && update.currentPlayerSign == me.sign
-
-                            val finishState = if (update.roomState is TicTacToeGameRoom.State.Finished) {
-                                val winner = (update.roomState as TicTacToeGameRoom.State.Finished).winner
-                                GameScreenState.FinishState(
-                                    winnerSign = winner,
-                                    userWon = winner == me.sign,
-                                    canRetry = isUserHost,
-                                )
-                            } else {
-                                null
-                            }
-
-                            _state.update { screenState ->
-                                screenState.copy(
-                                    isLoading = false,
-
-                                    roomId = roomId,
-                                    board = update.gameState,
-                                    isUserTurn = isUserTurn,
-                                    isUserHost = isUserHost,
-                                    roomState = update.roomState,
-                                    userLabel = user.username,
-                                    opponentState = opponentState,
-                                    finishState = finishState,
-                                )
-                            }
-                        }
-                    } else if (frame is Frame.Close) {
-                        _state.update { screenState ->
-                            screenState.copy(
-                                isLoading = false,
-                                dialog = GameScreenState.Dialog(
-                                    title = "Disconnected",
-                                    message = "You have been disconnected from the room.",
-                                    dismissable = false,
-                                    onConfirm = GameScreenState.Dialog.Action("Close screen", GameScreenEvent.OnCloseScreen),
-                                )
+                when(closeReason?.code) {
+                    CloseReason.Codes.CANNOT_ACCEPT.code -> _state.update { screenState ->
+                        screenState.copy(
+                            isLoading = false,
+                            dialog = GameScreenState.Dialog(
+                                title = "Connection refused",
+                                message = "Cannot connect to the room.\n"+closeReason.message,
+                                dismissable = false,
+                                onConfirm = GameScreenState.Dialog.Action("Close screen", GameScreenEvent.OnCloseScreen),
                             )
-                        }
+                        )
+                    }
+                    else -> _state.update { screenState ->
+                        screenState.copy(
+                            isLoading = false,
+                            dialog = GameScreenState.Dialog(
+                                title = "Disconnected",
+                                message = "You have been disconnected from the room.",
+                                dismissable = false,
+                                onConfirm = GameScreenState.Dialog.Action("Close screen", GameScreenEvent.OnCloseScreen),
+                            )
+                        )
                     }
                 }
             } catch (e: Exception) {
+                Napier.d(tag = "TicTacToes GameScreenModel") { "ws exception $e" }
                 e.printStackTrace()
                 _state.update { screenState ->
                     screenState.copy(
@@ -162,6 +132,81 @@ class GameScreenModel(
                     )
                 }
             }
+        }
+    }
+
+    private suspend fun listenToWebsocketUpdates(webSocket: DefaultClientWebSocketSession) {
+        for (frame in webSocket.incoming) {
+            Napier.d(tag = "TicTacToes GameScreenModel") { "incoming frame $frame" }
+
+            when (frame) {
+                is Frame.Text -> {
+                    Napier.d(tag = "TicTacToes GameScreenModel") { "frame is text, decoding as TicTacToeGameRoom" }
+
+                    val update = runCatching {
+                        mainJson.decodeFromString<TicTacToeGameRoom>(frame.readText())
+                    }.getOrNull()
+
+                    if(update != null) {
+                        parseUpdate(update)
+                    }
+                }
+
+                is Frame.Close -> {
+                    Napier.d(tag = "TicTacToes GameScreenModel") { "frame is close" }
+                    return
+                }
+
+                else -> {
+                    Napier.d(tag = "TicTacToes GameScreenModel") { "frame ignored" }
+                }
+            }
+        }
+    }
+
+    private fun parseUpdate(update: TicTacToeGameRoom) {
+        val me = update.players.single { it.user.id == user.id }
+        val opponent = update.players.singleOrNull { it.user.id != user.id }
+
+        val isUserHost = update.hostPlayer.user.id == user.id
+
+        val opponentConnected = update.roomState !is TicTacToeGameRoom.State.WaitingForOpponent
+                && opponent != null
+                && update.connectedPlayerIds.contains(opponent.user.id)
+
+        val opponentState = when {
+            update.roomState is TicTacToeGameRoom.State.WaitingForOpponent -> GameScreenState.OpponentState.WaitingForOpponent
+            opponentConnected -> GameScreenState.OpponentState.Connected(opponent.user.username)
+            else -> GameScreenState.OpponentState.Disconnected(opponent?.user?.username)
+        }
+
+        val isUserTurn = update.roomState is TicTacToeGameRoom.State.InProgress
+                && update.currentPlayerSign == me.sign
+
+        val finishState = if (update.roomState is TicTacToeGameRoom.State.Finished) {
+            val winner = (update.roomState as TicTacToeGameRoom.State.Finished).winner
+            GameScreenState.FinishState(
+                winnerSign = winner,
+                userWon = winner == me.sign,
+                canRetry = isUserHost,
+            )
+        } else {
+            null
+        }
+
+        _state.update { screenState ->
+            screenState.copy(
+                isLoading = false,
+
+                roomId = roomId,
+                board = update.gameState,
+                isUserTurn = isUserTurn,
+                isUserHost = isUserHost,
+                roomState = update.roomState,
+                userLabel = user.username,
+                opponentState = opponentState,
+                finishState = finishState,
+            )
         }
     }
 

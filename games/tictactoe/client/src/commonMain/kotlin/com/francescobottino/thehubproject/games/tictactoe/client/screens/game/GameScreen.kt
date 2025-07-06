@@ -394,6 +394,7 @@ private fun RoomIdCard(
     }
 }
 
+//todo change to custom component
 @Composable
 private fun ScreenDialog(
     state: GameScreenState.Dialog,
@@ -421,6 +422,7 @@ private fun ScreenDialog(
                 Text(
                     text = state.title,
                     style = MaterialTheme.typography.titleLarge,
+                    textAlign = TextAlign.Center,
                     modifier = Modifier.align(Alignment.CenterHorizontally),
                 )
 
@@ -428,6 +430,7 @@ private fun ScreenDialog(
                     Text(
                         text = state.message,
                         style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center,
                         modifier = Modifier.align(Alignment.CenterHorizontally),
                     )
                 }

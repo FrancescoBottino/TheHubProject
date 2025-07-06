@@ -57,7 +57,7 @@ class SplashScreenModel(
 
         val userProfile = runCatching { userApi.me() }
             .getOrElse { exception ->
-                Napier.d(tag = "SplashScreenModel") { "error in fetchinguser profile: $exception" }
+                Napier.d(tag = "SplashScreenModel") { "error in fetching user profile: $exception" }
                 _state.update {
                     it.copy(isError = true)
                 }
