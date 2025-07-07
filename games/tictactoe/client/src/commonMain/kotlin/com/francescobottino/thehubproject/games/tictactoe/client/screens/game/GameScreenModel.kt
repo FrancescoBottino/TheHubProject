@@ -73,7 +73,6 @@ class GameScreenModel(
                             isLoading = false,
                             dialog = AlertState(
                                 title = "Error connecting to the room",
-                                message = error.message ?: "Unknown error",
                                 dismissable = false,
                                 primaryAction = AlertState.Action(
                                     label = "Retry",
@@ -138,7 +137,7 @@ class GameScreenModel(
                         isLoading = false,
                         dialog = AlertState(
                             title = "Error",
-                            message = e.message ?: "Unknown error",
+                            message = "Unknown error. Please try again later",
                             dismissable = false,
                             primaryAction = AlertState.Action(
                                 label = "Close screen",
@@ -236,7 +235,7 @@ class GameScreenModel(
                         it.copy(
                             dialog = AlertState(
                                 title = "Error",
-                                message = e.message ?: "Unknown error",
+                                message = "Unknown error, please try again later",
                                 dismissable = true,
                                 primaryAction = AlertState.Action(
                                     label = "OK",
@@ -248,12 +247,26 @@ class GameScreenModel(
                 }
                 .onSuccess { response ->
                     response.onLeft { error ->
-                        when(error) {
-                            TicTacToeMakeMoveResponseError.NOT_YOUR_TURN -> TODO()
-                            TicTacToeMakeMoveResponseError.ROOM_NOT_FOUND -> TODO()
-                            TicTacToeMakeMoveResponseError.PLAYER_NOT_IN_ROOM -> TODO()
-                            TicTacToeMakeMoveResponseError.GAME_NOT_IN_PROGRESS -> TODO()
-                            TicTacToeMakeMoveResponseError.CELL_ALREADY_OCCUPIED -> TODO()
+                        val message = when(error) {
+                            TicTacToeMakeMoveResponseError.NOT_YOUR_TURN -> "Wait your turn!"
+                            TicTacToeMakeMoveResponseError.ROOM_NOT_FOUND -> "Room not found on server"
+                            TicTacToeMakeMoveResponseError.PLAYER_NOT_IN_ROOM -> "You are not a player in this room"
+                            TicTacToeMakeMoveResponseError.GAME_NOT_IN_PROGRESS -> "Game is not in progress"
+                            TicTacToeMakeMoveResponseError.CELL_ALREADY_OCCUPIED -> "Choose an empty cell"
+                        }
+
+                        _state.update {
+                            it.copy(
+                                dialog = AlertState(
+                                    title = "Error",
+                                    message = message,
+                                    dismissable = true,
+                                    primaryAction = AlertState.Action(
+                                        label = "OK",
+                                        onClick = { onEvent(GameScreenEvent.OnDismissDialog) }
+                                    ),
+                                ),
+                            )
                         }
                     }
                 }
@@ -272,7 +285,7 @@ class GameScreenModel(
                         it.copy(
                             dialog = AlertState(
                                 title = "Error",
-                                message = e.message ?: "Unknown error",
+                                message = "Unknown error, please try again later",
                                 dismissable = true,
                                 primaryAction = AlertState.Action(
                                     label = "OK",
@@ -284,10 +297,24 @@ class GameScreenModel(
                 }
                 .onSuccess { response ->
                     response.onLeft { error ->
-                        when(error) {
-                            TicTacToeRestartGameResponseError.ROOM_NOT_FOUND -> TODO()
-                            TicTacToeRestartGameResponseError.NOT_THE_HOST -> TODO()
-                            TicTacToeRestartGameResponseError.GAME_NOT_FINISHED -> TODO()
+                        val message = when(error) {
+                            TicTacToeRestartGameResponseError.ROOM_NOT_FOUND -> "Room not found on server"
+                            TicTacToeRestartGameResponseError.NOT_THE_HOST -> "You are not the host"
+                            TicTacToeRestartGameResponseError.GAME_NOT_FINISHED -> "Game is not finished"
+                        }
+
+                        _state.update {
+                            it.copy(
+                                dialog = AlertState(
+                                    title = "Error",
+                                    message = message,
+                                    dismissable = true,
+                                    primaryAction = AlertState.Action(
+                                        label = "OK",
+                                        onClick = { onEvent(GameScreenEvent.OnDismissDialog) }
+                                    ),
+                                ),
+                            )
                         }
                     }
                 }
