@@ -46,10 +46,7 @@ class GameScreenModel(
         when(event) {
             is GameScreenEvent.OnBoardCellClicked -> makeMove(event.cell)
             is GameScreenEvent.OnDismissDialog -> _state.update { it.copy(dialog = null) }
-            is GameScreenEvent.OnDialogActionConnectToRoom -> {
-                _state.update { it.copy(dialog = null) }
-                connectToRoom()
-            }
+            is GameScreenEvent.OnDialogActionConnectToRoom -> connectToRoom()
             is GameScreenEvent.OnCloseScreen -> navigator.pop()
             is GameScreenEvent.OnCloseRoom -> TODO()
             is GameScreenEvent.OnRetry -> restart()
@@ -58,7 +55,12 @@ class GameScreenModel(
     }
 
     fun connectToRoom() {
-        _state.update { it.copy(isLoading = true) }
+        _state.update {
+            it.copy(
+                dialog = null,
+                isLoading = true,
+            )
+        }
 
         Napier.d(tag = "TicTacToes GameScreenModel") { "Attempting ws connection to room id $roomId" }
 
