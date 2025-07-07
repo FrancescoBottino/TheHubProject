@@ -35,8 +35,4 @@ data class GameScreenState(
         val userWon: Boolean = false,
         val canRetry: Boolean = true,
     )
-
-    data class ClosedState(
-        val byUser: Boolean = false,
-    )
 }
