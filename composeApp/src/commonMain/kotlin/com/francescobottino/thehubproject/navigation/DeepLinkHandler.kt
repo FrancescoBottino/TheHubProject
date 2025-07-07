@@ -2,17 +2,20 @@ package com.francescobottino.thehubproject.navigation
 
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.Navigator
+import com.francescobottino.thehubproject.client_features.core.navigation.DeeplinkParser
 import com.francescobottino.thehubproject.config.Config
-import com.francescobottino.thehubproject.games.tictactoe.client.screens.game.GameScreen
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.*
+import org.koin.core.component.KoinComponent
 import kotlin.uuid.ExperimentalUuidApi
 
 // todo:
 // IOS, Desktop.
 
-class DeepLinkHandler {
+class DeepLinkHandler: KoinComponent {
+    private val deepLinkParsers by lazy { getKoin().getAll<DeeplinkParser<*>>() }
+
     private var startupPendingNavigation: Screen? = null
     fun getStartupPendingNavigation() = startupPendingNavigation?.also { startupPendingNavigation = null }
     fun storeStartupDeeplink(deepLink: String) {
@@ -57,17 +60,14 @@ class DeepLinkHandler {
         }
         val path = url.removePrefix(Config.apiHttpUrl+"/")
 
-        val screen = when {
-            path.startsWith("tictactoe/invite/") -> {
-                val roomId = path.removePrefix("tictactoe/invite/")
-                Napier.d(tag = "DeepLinkHandler") { "tictactoe invite for id $roomId" }
-                GameScreen(roomId = roomId)
-            }
+        val parser = deepLinkParsers.singleOrNull { path.startsWith(it.basePath) }
 
-            else -> null
-        }
+        val destination = parser
+            ?.getFromPath(url.removePrefix(Config.apiHttpUrl+"/"))
+            ?.getDestination()
 
-        Napier.d(tag = "DeepLinkHandler") { "Getting screen from deeplink: $url -> $screen" }
-        return screen
+        Napier.d(tag = "DeepLinkHandler") { "Getting screen from deeplink: $url -> $destination" }
+
+        return destination
     }
 }
