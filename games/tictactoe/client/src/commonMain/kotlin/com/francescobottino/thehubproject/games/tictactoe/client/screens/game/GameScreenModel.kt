@@ -204,9 +204,11 @@ class GameScreenModel(
 
         val opponentState = when {
             update.roomState is TicTacToeGameRoom.State.WaitingForOpponent || opponent == null -> GameScreenState.OpponentState.WaitingForOpponent
-            update.roomState is TicTacToeGameRoom.State.Closed -> GameScreenState.OpponentState.GameFinished(opponent.user.username)
-            update.connectedPlayerIds.contains(opponent.user.id) -> GameScreenState.OpponentState.Connected(opponent.user.username)
-            else -> GameScreenState.OpponentState.Disconnected(opponent.user.username)
+            else -> GameScreenState.OpponentState.Known(
+                username = opponent.user.username,
+                sign = opponent.sign,
+                connected = update.connectedPlayerIds.contains(opponent.user.id),
+            )
         }
 
         val isUserTurn = update.roomState is TicTacToeGameRoom.State.InProgress && update.currentPlayerSign == me.sign
@@ -228,15 +230,17 @@ class GameScreenModel(
             screenState.copy(
                 isLoading = false,
 
-                roomId = roomId,
-                board = update.gameState,
-                isUserTurn = isUserTurn,
-                isUserHost = isUserHost,
-                roomState = update.roomState,
-                userLabel = user.username,
-                opponentState = opponentState,
-                finishState = finishState,
-                isClosed = isClosed,
+                room = GameScreenState.Room(
+                    roomId = roomId,
+                    userSign = me.sign,
+                    board = update.gameState,
+                    isUserTurn = isUserTurn,
+                    isUserHost = isUserHost,
+                    roomState = update.roomState,
+                    opponentState = opponentState,
+                    finishState = finishState,
+                    isClosed = isClosed,
+                )
             )
         }
     }
@@ -361,10 +365,24 @@ class GameScreenModel(
                 }
                 .onSuccess { response ->
                     response.onLeft { error ->
-                        when(error) {
-                            TicTacToeCloseGameResponseError.ROOM_NOT_FOUND -> TODO()
-                            TicTacToeCloseGameResponseError.PLAYER_NOT_IN_ROOM -> TODO()
-                            TicTacToeCloseGameResponseError.ROOM_ALREADY_CLOSED -> TODO()
+                        val message = when(error) {
+                            TicTacToeCloseGameResponseError.ROOM_NOT_FOUND -> "Room not found on server"
+                            TicTacToeCloseGameResponseError.PLAYER_NOT_IN_ROOM -> "You are not a player in this room"
+                            TicTacToeCloseGameResponseError.ROOM_ALREADY_CLOSED -> "The game is already closed"
+                        }
+
+                        _state.update {
+                            it.copy(
+                                dialog = AlertState(
+                                    title = "Error",
+                                    message = message,
+                                    dismissable = true,
+                                    primaryAction = AlertState.Action(
+                                        label = "OK",
+                                        onClick = { onEvent(GameScreenEvent.OnDismissDialog) }
+                                    ),
+                                ),
+                            )
                         }
                     }
                     navigator.pop()

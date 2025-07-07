@@ -63,7 +63,7 @@ private fun GameScreenContent(
     onEvent: (GameScreenEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    if(state.roomId != null) {
+    if(state.room != null) {
         Column(
             modifier = modifier
                 .padding(horizontal = 12.dp)
@@ -72,14 +72,20 @@ private fun GameScreenContent(
         ) {
             Spacer(Modifier.height(24.dp))
 
-            OpponentConnectionStatus(
-                opponentState = state.opponentState,
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth(),
-            )
+            ) {
+                UserLabel(state.room.userSign)
+
+                OpponentConnectionStatus(
+                    opponentState = state.room.opponentState,
+                )
+            }
 
             Spacer(Modifier.height(30.dp))
 
-            TurnIndicator(state = state)
+            TurnIndicator(state = state.room)
 
             Spacer(Modifier.height(12.dp))
 
@@ -93,13 +99,13 @@ private fun GameScreenContent(
                     .aspectRatio(1f, matchHeightConstraintsFirst = false)
             ) {
                 Board(
-                    state = state.board,
-                    isUserTurn = state.isUserTurn,
+                    state = state.room.board,
+                    isUserTurn = state.room.isUserTurn,
                     onMove = { cell -> onEvent(GameScreenEvent.OnBoardCellClicked(cell))},
                     modifier = Modifier.fillMaxSize()
                 )
 
-                state.finishState?.let {
+                state.room.finishState?.let {
                     FinishDialog(
                         finishState = it,
                         onEvent = onEvent,
@@ -111,11 +117,11 @@ private fun GameScreenContent(
 
             Spacer(Modifier.height(40.dp))
 
-            if(state.isClosed) {
+            if(state.room.isClosed) {
                 RoomClosedInfoCard()
             } else {
                 RoomIdCard(
-                    roomId = state.roomId,
+                    roomId = state.room.roomId,
                     onClick = { onEvent(GameScreenEvent.OnCopyRoomId) }
                 )
 
@@ -130,16 +136,16 @@ private fun GameScreenContent(
 
             Spacer(Modifier.height(48.dp))
 
-            if(state.pastGamesWinners.isNotEmpty()) {
+            if(state.room.pastGamesWinners.isNotEmpty()) {
                 PastWinnersRowFull(
-                    winners = state.pastGamesWinners,
+                    winners = state.room.pastGamesWinners,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
         }
     }
 
-    LoadingCardOverlay(state.roomId == null || state.isLoading)
+    LoadingCardOverlay(state.room == null || state.isLoading)
 
     state.dialog?.let { dialogState ->
         AlertCardOverlay(
@@ -157,43 +163,79 @@ private fun OpponentConnectionStatus(
 ) {
     val color = when(opponentState) {
         is GameScreenState.OpponentState.WaitingForOpponent -> MaterialTheme.colorScheme.onSurface
-        is GameScreenState.OpponentState.Disconnected -> MaterialTheme.colorScheme.error
-        is GameScreenState.OpponentState.GameFinished,
-        is GameScreenState.OpponentState.Connected -> MaterialTheme.colorScheme.primary
+        is GameScreenState.OpponentState.Known -> when(opponentState.connected) {
+            false -> MaterialTheme.colorScheme.error
+            true -> MaterialTheme.colorScheme.primary
+        }
     }
 
     val label = when(opponentState) {
         is GameScreenState.OpponentState.WaitingForOpponent -> "Waiting for opponent..."
-        is GameScreenState.OpponentState.OpponentKnown -> opponentState.username
+        is GameScreenState.OpponentState.Known -> opponentState.username
     }
 
     val shape = RoundedCornerShape(50)
 
-    Box(modifier = modifier) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .shadow(elevation = 12.dp, shape = shape, clip = true)
-                .clip(shape)
-                .border(width = 1.dp, color = color, shape = shape)
-                .background(color = MaterialTheme.colorScheme.surface)
-                .padding(vertical = 6.dp, horizontal = 12.dp),
-        ) {
-            Text(text = label)
-            Box(modifier = Modifier.requiredSize(16.dp).clip(CircleShape).background(color)) {
-                if(opponentState is GameScreenState.OpponentState.WaitingForOpponent) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier
+            .shadow(elevation = 12.dp, shape = shape, clip = true)
+            .clip(shape)
+            .border(width = 1.dp, color = color, shape = shape)
+            .background(color = MaterialTheme.colorScheme.surface)
+            .padding(vertical = 6.dp, horizontal = 12.dp),
+    ) {
+        Text(
+            text = label,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        when(opponentState) {
+            is GameScreenState.OpponentState.WaitingForOpponent -> {
+                Box(modifier = Modifier.requiredSize(16.dp).clip(CircleShape).background(color)) {
                     CircularProgressIndicator()
                 }
+            }
+
+            is GameScreenState.OpponentState.Known -> {
+                SignIcon(
+                    sign = opponentState.sign,
+                    modifier = Modifier.requiredSize(20.dp)
+                )
             }
         }
     }
 }
 
 @Composable
+private fun UserLabel(
+    userSign: TicTacToePlayerSign,
+    modifier: Modifier = Modifier,
+) {
+    val shape = RoundedCornerShape(50)
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier
+            .shadow(elevation = 12.dp, shape = shape, clip = true)
+            .clip(shape)
+            .border(width = 1.dp, color = MaterialTheme.colorScheme.onSurface, shape = shape)
+            .background(color = MaterialTheme.colorScheme.surface)
+            .padding(vertical = 6.dp, horizontal = 12.dp),
+    ) {
+        SignIcon(
+            sign = userSign,
+            modifier = Modifier.requiredSize(20.dp)
+        )
+        Text(text = "You")
+    }
+}
+
+@Composable
 private fun TurnIndicator(
-    state: GameScreenState,
+    state: GameScreenState.Room,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -414,157 +456,116 @@ private fun RoomClosedInfoCard(
 }
 
 private class GameScreenContentPreviewProvider: PreviewParameterProvider<GameScreenState> {
-    override val values: Sequence<GameScreenState> = sequenceOf(
-        GameScreenState(
-            roomId = "2f9f6008-8b10-4d56-95ff-957d8fdf91a2",
-            roomState = TicTacToeGameRoom.State.WaitingForOpponent,
-            opponentState = GameScreenState.OpponentState.WaitingForOpponent,
+    override val values: Sequence<GameScreenState> = sequence {
+        var state = GameScreenState(
+            room = GameScreenState.Room(
+                userSign = TicTacToePlayerSign.X,
+                roomId = "2f9f6008-8b10-4d56-95ff-957d8fdf91a2",
+                roomState = TicTacToeGameRoom.State.WaitingForOpponent,
+                opponentState = GameScreenState.OpponentState.WaitingForOpponent,
+            ),
             isLoading = true,
-        ),
-        GameScreenState(
-            roomId = "2f9f6008-8b10-4d56-95ff-957d8fdf91a2",
-            roomState = TicTacToeGameRoom.State.WaitingForOpponent,
-            opponentState = GameScreenState.OpponentState.WaitingForOpponent,
-        ),
-        GameScreenState(
-            roomId = "2f9f6008-8b10-4d56-95ff-957d8fdf91a2",
-            roomState = TicTacToeGameRoom.State.InProgress,
-            opponentState = GameScreenState.OpponentState.Connected("User 2"),
-            board = mapOf(
-                TicTacToeBoardCell(0, 0) to TicTacToePlayerSign.X,
-                TicTacToeBoardCell(0, 1) to TicTacToePlayerSign.O,
+        )
+
+        yield(state)
+
+        state = state.copy(
+            room = state.room?.copy(
+                roomState = TicTacToeGameRoom.State.InProgress,
+                opponentState = GameScreenState.OpponentState.Known(
+                    username = "User 2",
+                    sign = TicTacToePlayerSign.O,
+                    connected = true
+                ),
+                board = mapOf(
+                    TicTacToeBoardCell(0, 0) to TicTacToePlayerSign.X,
+                    TicTacToeBoardCell(0, 1) to TicTacToePlayerSign.O,
+                ),
+                isUserTurn = false,
             ),
-            isUserTurn = false,
-        ),
-        GameScreenState(
-            roomId = "2f9f6008-8b10-4d56-95ff-957d8fdf91a2",
-            roomState = TicTacToeGameRoom.State.InProgress,
-            opponentState = GameScreenState.OpponentState.Connected("User 2"),
-            board = mapOf(
-                TicTacToeBoardCell(0, 0) to TicTacToePlayerSign.X,
-                TicTacToeBoardCell(0, 1) to TicTacToePlayerSign.O,
-            ),
-            isUserTurn = true,
-        ),
-        GameScreenState(
-            roomId = "2f9f6008-8b10-4d56-95ff-957d8fdf91a2",
-            roomState = TicTacToeGameRoom.State.InProgress,
-            opponentState = GameScreenState.OpponentState.Connected("User 2"),
-            board = mapOf(
-                TicTacToeBoardCell(0, 0) to TicTacToePlayerSign.X,
-                TicTacToeBoardCell(0, 1) to TicTacToePlayerSign.O,
-            ),
-            isUserTurn = true,
-            dialog = AlertState(
-                title = "Error",
-                message = "you have been disconnected",
-                primaryAction = AlertState.Action(
-                    label = "close",
-                    onClick = {}
+            isLoading = false,
+        )
+
+        yield(state)
+
+        yield(
+            state.copy(
+                dialog = AlertState(
+                    title = "Error",
+                    message = "you have been disconnected",
+                    primaryAction = AlertState.Action(
+                        label = "close",
+                        onClick = {}
+                    )
+                ),
+            )
+        )
+
+        state = state.copy(
+            room = state.room?.copy(
+                pastGamesWinners = listOf(
+                    TicTacToePlayerSign.X,
+                    null,
+                    TicTacToePlayerSign.X,
+                    TicTacToePlayerSign.O,
+                    null,
                 )
             )
-        ),
-        GameScreenState(
-            roomId = "2f9f6008-8b10-4d56-95ff-957d8fdf91a2",
-            roomState = TicTacToeGameRoom.State.InProgress,
-            opponentState = GameScreenState.OpponentState.Connected("User 2"),
-            board = mapOf(
-                TicTacToeBoardCell(0, 0) to TicTacToePlayerSign.X,
-                TicTacToeBoardCell(0, 1) to TicTacToePlayerSign.O,
-            ),
-            isUserTurn = true,
-            pastGamesWinners = listOf(
-                TicTacToePlayerSign.X,
-                null,
-                TicTacToePlayerSign.X,
-                TicTacToePlayerSign.O,
-                null,
+        )
+
+        yield(state)
+
+        yieldAll(
+            listOf(
+                state.copy(
+                    room = state.room?.copy(
+                        finishState = GameScreenState.FinishState(
+                            winnerSign = TicTacToePlayerSign.X,
+                            userWon = true,
+                            canRetry = false,
+                        ),
+                    )
+                ),
+                state.copy(
+                    room = state.room?.copy(
+                        finishState = GameScreenState.FinishState(
+                            winnerSign = TicTacToePlayerSign.X,
+                            userWon = true,
+                            canRetry = false,
+                        ),
+                    )
+                ),
+                state.copy(
+                    room = state.room?.copy(
+                        finishState = GameScreenState.FinishState(
+                            winnerSign = TicTacToePlayerSign.X,
+                            userWon = true,
+                            canRetry = false,
+                        ),
+                    )
+                ),
+                state.copy(
+                    room = state.room?.copy(
+                        finishState = GameScreenState.FinishState(
+                            winnerSign = TicTacToePlayerSign.X,
+                            userWon = true,
+                            canRetry = false,
+                        ),
+                    )
+                ),
+                state.copy(
+                    room = state.room?.copy(
+                        isClosed = true
+                    )
+                ),
             )
-        ),
-        GameScreenState(
-            roomId = "2f9f6008-8b10-4d56-95ff-957d8fdf91a2",
-            roomState = TicTacToeGameRoom.State.InProgress,
-            opponentState = GameScreenState.OpponentState.Disconnected("User 2"),
-            board = mapOf(
-                TicTacToeBoardCell(0, 0) to TicTacToePlayerSign.X,
-                TicTacToeBoardCell(0, 1) to TicTacToePlayerSign.O,
-            ),
-            isUserTurn = true,
-            finishState = GameScreenState.FinishState(
-                winnerSign = TicTacToePlayerSign.X,
-                userWon = true,
-                canRetry = false,
-            ),
-        ),
-        GameScreenState(
-            roomId = "2f9f6008-8b10-4d56-95ff-957d8fdf91a2",
-            roomState = TicTacToeGameRoom.State.InProgress,
-            opponentState = GameScreenState.OpponentState.Disconnected("User 2"),
-            board = mapOf(
-                TicTacToeBoardCell(0, 0) to TicTacToePlayerSign.X,
-                TicTacToeBoardCell(0, 1) to TicTacToePlayerSign.O,
-            ),
-            isUserTurn = true,
-            finishState = GameScreenState.FinishState(
-                winnerSign = TicTacToePlayerSign.X,
-                userWon = false,
-                canRetry = false,
-            ),
-        ),
-        GameScreenState(
-            roomId = "2f9f6008-8b10-4d56-95ff-957d8fdf91a2",
-            roomState = TicTacToeGameRoom.State.InProgress,
-            opponentState = GameScreenState.OpponentState.Disconnected("User 2"),
-            board = mapOf(
-                TicTacToeBoardCell(0, 0) to TicTacToePlayerSign.X,
-                TicTacToeBoardCell(0, 1) to TicTacToePlayerSign.O,
-            ),
-            isUserTurn = true,
-            finishState = GameScreenState.FinishState(
-                winnerSign = TicTacToePlayerSign.X,
-                userWon = true,
-                canRetry = true,
-            ),
-        ),
-        GameScreenState(
-            roomId = "2f9f6008-8b10-4d56-95ff-957d8fdf91a2",
-            roomState = TicTacToeGameRoom.State.InProgress,
-            opponentState = GameScreenState.OpponentState.Disconnected("User 2"),
-            board = mapOf(
-                TicTacToeBoardCell(0, 0) to TicTacToePlayerSign.X,
-                TicTacToeBoardCell(0, 1) to TicTacToePlayerSign.O,
-            ),
-            isUserTurn = true,
-            finishState = GameScreenState.FinishState(
-                winnerSign = TicTacToePlayerSign.X,
-                userWon = false,
-                canRetry = true,
-            ),
-        ),
-        GameScreenState(
-            roomId = "2f9f6008-8b10-4d56-95ff-957d8fdf91a2",
-            roomState = TicTacToeGameRoom.State.InProgress,
-            opponentState = GameScreenState.OpponentState.Connected("User 2"),
-            board = mapOf(
-                TicTacToeBoardCell(0, 0) to TicTacToePlayerSign.X,
-                TicTacToeBoardCell(0, 1) to TicTacToePlayerSign.O,
-            ),
-            isUserTurn = true,
-            pastGamesWinners = listOf(
-                TicTacToePlayerSign.X,
-                null,
-                TicTacToePlayerSign.X,
-                TicTacToePlayerSign.O,
-                null,
-            ),
-            isClosed = true,
-        ),
-    )
+        )
+    }
 }
 
 @Preview
 @Composable
-private fun GameScreenContentPreview(
+private fun e(
     @PreviewParameter(GameScreenContentPreviewProvider::class)
     state: GameScreenState,
 ) {
