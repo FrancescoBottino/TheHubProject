@@ -1,6 +1,5 @@
 package com.francescobottino.thehubproject.games.tictactoe.client.screens.user_games
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -31,8 +30,8 @@ import com.francescobottino.thehubproject.client_shared.ui.components.AlertCardO
 import com.francescobottino.thehubproject.client_shared.ui.components.AlertState
 import com.francescobottino.thehubproject.client_shared.ui.components.LoadingCardOverlay
 import com.francescobottino.thehubproject.client_shared.ui.images.Vs
+import com.francescobottino.thehubproject.games.tictactoe.client.ui.components.PastWinnersRowCompact
 import com.francescobottino.thehubproject.games.tictactoe.client.ui.components.SignIcon
-import com.francescobottino.thehubproject.games.tictactoe.client.ui.images.TicTacToeCrown
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToePlayerSign
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.jetbrains.compose.ui.tooling.preview.PreviewParameter
@@ -169,7 +168,7 @@ private fun RoomCard(
         }
 
         if(room.winners.isNotEmpty()) {
-            PastWinnersRow(
+            PastWinnersRowCompact(
                 winners = room.winners,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -239,68 +238,6 @@ private fun PlayerDisplay(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-    }
-}
-
-@Composable
-private fun PastWinnersRow(
-    winners: Map<TicTacToePlayerSign?, Int>,
-    modifier: Modifier = Modifier,
-) {
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalArrangement = Arrangement.spacedBy(1.dp),
-        itemVerticalAlignment = Alignment.CenterVertically,
-        maxLines = 2,
-        modifier = modifier,
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(1.dp),
-            modifier = Modifier.padding(end = 4.dp)
-        ) {
-            Text(
-                text = "Past Winners ",
-                style = MaterialTheme.typography.labelSmall,
-                maxLines = 1,
-            )
-
-            Image(
-                imageVector = TicTacToeCrown,
-                contentDescription = null,
-                modifier = Modifier.size(14.dp),
-            )
-
-            Text(
-                text = ":",
-                style = MaterialTheme.typography.labelSmall,
-                maxLines = 1,
-            )
-        }
-
-        winners.forEach { (winner, amount) ->
-            Box(
-                modifier = Modifier
-                    .requiredHeight(22.dp)
-                    .shadow(elevation = 2.dp, shape = CircleShape)
-                    .clip(CircleShape)
-                    .background(color = MaterialTheme.colorScheme.surface)
-                    .padding(4.dp),
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    SignIcon(winner, Modifier.fillMaxHeight().aspectRatio(1f))
-                    Text(
-                        text = amount.toString(),
-                        style = MaterialTheme.typography.labelSmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
-        }
     }
 }
 
