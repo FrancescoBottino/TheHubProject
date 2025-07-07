@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import cafe.adriel.voyager.navigator.CurrentScreen
 import cafe.adriel.voyager.navigator.Navigator
-import com.francescobottino.thehubproject.client_shared.ui.theme.AppTheme
+import com.francescobottino.thehubproject.client_features.core.ui.theme.AppTheme
 import com.francescobottino.thehubproject.navigation.DeepLinkHandler
 import com.francescobottino.thehubproject.screens.splash.SplashScreen
 import org.jetbrains.compose.ui.tooling.preview.Preview

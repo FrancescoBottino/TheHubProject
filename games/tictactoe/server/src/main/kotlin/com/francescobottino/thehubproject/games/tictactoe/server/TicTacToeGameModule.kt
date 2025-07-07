@@ -7,11 +7,11 @@ import com.francescobottino.thehubproject.games.tictactoe.server.usecase.TicTacT
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToeGameRoom
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.api.TicTacToeMakeMoveRequest
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.api.TicTacToeMakeRoomRequest
-import com.francescobottino.thehubproject.server_shared.*
-import com.francescobottino.thehubproject.server_shared.auth.AUTH_JWT
-import com.francescobottino.thehubproject.server_shared.model.safe
-import com.francescobottino.thehubproject.shared.mainJson
-import com.francescobottino.thehubproject.shared.model.PaginationParams
+import com.francescobottino.thehubproject.server_features.core.*
+import com.francescobottino.thehubproject.server_features.core.auth.AUTH_JWT
+import com.francescobottino.thehubproject.server_features.core.model.safe
+import com.francescobottino.thehubproject.shared_features.core.mainJson
+import com.francescobottino.thehubproject.shared_features.core.model.PaginationParams
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*

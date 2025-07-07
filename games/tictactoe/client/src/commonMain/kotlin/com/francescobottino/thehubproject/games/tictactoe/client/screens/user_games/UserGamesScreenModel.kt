@@ -2,13 +2,13 @@ package com.francescobottino.thehubproject.games.tictactoe.client.screens.user_g
 
 import cafe.adriel.voyager.core.model.screenModelScope
 import cafe.adriel.voyager.navigator.Navigator
-import com.francescobottino.thehubproject.client_shared.repo.UserRepository
-import com.francescobottino.thehubproject.client_shared.screens.StatefulScreenModel
-import com.francescobottino.thehubproject.client_shared.usecase.GetRelativeTimeUseCase.relativeTime
+import com.francescobottino.thehubproject.client_features.core.repo.UserRepository
+import com.francescobottino.thehubproject.client_features.core.screens.StatefulScreenModel
+import com.francescobottino.thehubproject.client_features.core.usecase.GetRelativeTimeUseCase.relativeTime
 import com.francescobottino.thehubproject.games.tictactoe.client.network.TicTacToeApi
 import com.francescobottino.thehubproject.games.tictactoe.client.screens.game.GameScreen
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToeGameRoom
-import com.francescobottino.thehubproject.shared.model.PaginationParams
+import com.francescobottino.thehubproject.shared_features.core.model.PaginationParams
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

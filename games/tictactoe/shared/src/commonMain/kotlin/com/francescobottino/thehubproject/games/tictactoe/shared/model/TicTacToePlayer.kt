@@ -1,6 +1,6 @@
 package com.francescobottino.thehubproject.games.tictactoe.shared.model
 
-import com.francescobottino.thehubproject.shared.model.UserResponse
+import com.francescobottino.thehubproject.shared_features.core.model.UserResponse
 import kotlinx.serialization.Serializable
 
 @Serializable

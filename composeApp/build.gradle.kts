@@ -91,7 +91,7 @@ kotlin {
             implementation(libs.composeIcons.feather)
             implementation(libs.arrow.core)
 
-            implementation(projects.shared)
+            implementation(projects.sharedFeatures.core)
             implementation(
                 when(appEnvironment.current) {
                     AppEnvironment.DEVELOPMENT -> projects.config.dev
@@ -99,7 +99,7 @@ kotlin {
                     AppEnvironment.PRODUCTION -> projects.config.prod
                 }
             )
-            implementation(projects.clientShared)
+            implementation(projects.clientFeatures.core)
             implementation(projects.clientFeatures.auth)
             implementation(projects.games.tictactoe.client)
         }

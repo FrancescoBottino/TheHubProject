@@ -1,6 +1,6 @@
 package com.francescobottino.thehubproject.config
 
-import com.francescobottino.thehubproject.shared.config.SharedConfig
+import com.francescobottino.thehubproject.shared_features.core.config.SharedConfig
 
 object Config: SharedConfig {
     private val API_ENDPOINT: String = "${internalServerDebugHost(BuildConfig.DEV_SERVER_HOST)}:${BuildConfig.DEV_SERVER_PORT}"

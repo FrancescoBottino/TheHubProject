@@ -26,10 +26,10 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import com.francescobottino.thehubproject.client_shared.ui.components.AlertCardOverlay
-import com.francescobottino.thehubproject.client_shared.ui.components.AlertState
-import com.francescobottino.thehubproject.client_shared.ui.components.LoadingCardOverlay
-import com.francescobottino.thehubproject.client_shared.ui.images.Vs
+import com.francescobottino.thehubproject.client_features.core.ui.components.AlertCardOverlay
+import com.francescobottino.thehubproject.client_features.core.ui.components.AlertState
+import com.francescobottino.thehubproject.client_features.core.ui.components.LoadingCardOverlay
+import com.francescobottino.thehubproject.client_features.core.ui.images.Vs
 import com.francescobottino.thehubproject.games.tictactoe.client.ui.components.PastWinnersRowCompact
 import com.francescobottino.thehubproject.games.tictactoe.client.ui.components.SignIcon
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToePlayerSign

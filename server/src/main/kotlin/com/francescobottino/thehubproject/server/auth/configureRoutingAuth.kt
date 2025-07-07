@@ -1,11 +1,11 @@
 package com.francescobottino.thehubproject.server.auth
 
-import com.francescobottino.thehubproject.server_shared.auth.JwtConfig
-import com.francescobottino.thehubproject.server_shared.data.UserRepository
-import com.francescobottino.thehubproject.server_shared.model.User
-import com.francescobottino.thehubproject.shared.model.AuthRequest
-import com.francescobottino.thehubproject.shared.model.AuthResponseError
-import com.francescobottino.thehubproject.shared.model.AuthResponseSuccess
+import com.francescobottino.thehubproject.server_features.core.auth.JwtConfig
+import com.francescobottino.thehubproject.server_features.core.data.UserRepository
+import com.francescobottino.thehubproject.server_features.core.model.User
+import com.francescobottino.thehubproject.shared_features.core.model.AuthRequest
+import com.francescobottino.thehubproject.shared_features.core.model.AuthResponseError
+import com.francescobottino.thehubproject.shared_features.core.model.AuthResponseSuccess
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*

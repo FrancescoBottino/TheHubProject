@@ -4,9 +4,9 @@ import com.francescobottino.thehubproject.server.auth.JwtConfigImpl
 import com.francescobottino.thehubproject.server.auth.configureJwt
 import com.francescobottino.thehubproject.server.auth.configureRoutingAuth
 import com.francescobottino.thehubproject.server.data.ExposedUserRepository
-import com.francescobottino.thehubproject.server_shared.auth.JwtConfig
-import com.francescobottino.thehubproject.server_shared.data.UserRepository
-import com.francescobottino.thehubproject.shared.mainJson
+import com.francescobottino.thehubproject.server_features.core.auth.JwtConfig
+import com.francescobottino.thehubproject.server_features.core.data.UserRepository
+import com.francescobottino.thehubproject.shared_features.core.mainJson
 import io.github.cdimascio.dotenv.dotenv
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*

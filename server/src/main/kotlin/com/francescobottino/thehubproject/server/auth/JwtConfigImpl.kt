@@ -4,8 +4,8 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
 import com.francescobottino.thehubproject.server.Envs
-import com.francescobottino.thehubproject.server_shared.auth.JwtConfig
-import com.francescobottino.thehubproject.server_shared.auth.USER_ID_CLAIM
+import com.francescobottino.thehubproject.server_features.core.auth.JwtConfig
+import com.francescobottino.thehubproject.server_features.core.auth.USER_ID_CLAIM
 import kotlinx.datetime.Clock
 import java.util.*
 import kotlin.time.Duration

@@ -47,7 +47,7 @@ kotlin {
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.kotlinx.datetime)
 
-            implementation(project.projects.shared)
+            implementation(project.projects.sharedFeatures.core)
         }
     }
 }

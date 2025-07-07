@@ -2,11 +2,11 @@ package com.francescobottino.thehubproject.games.tictactoe.client.screens.game
 
 import cafe.adriel.voyager.core.model.screenModelScope
 import cafe.adriel.voyager.navigator.Navigator
-import com.francescobottino.thehubproject.client_shared.model.User
-import com.francescobottino.thehubproject.client_shared.repo.UserRepository
-import com.francescobottino.thehubproject.client_shared.screens.StatefulScreenModel
-import com.francescobottino.thehubproject.client_shared.ui.components.AlertState
-import com.francescobottino.thehubproject.client_shared.usecase.CopyToClipboardUseCase
+import com.francescobottino.thehubproject.client_features.core.model.User
+import com.francescobottino.thehubproject.client_features.core.repo.UserRepository
+import com.francescobottino.thehubproject.client_features.core.screens.StatefulScreenModel
+import com.francescobottino.thehubproject.client_features.core.ui.components.AlertState
+import com.francescobottino.thehubproject.client_features.core.usecase.CopyToClipboardUseCase
 import com.francescobottino.thehubproject.games.tictactoe.client.network.TicTacToeApi
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToeBoardCell
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToeGameRoom
@@ -14,7 +14,7 @@ import com.francescobottino.thehubproject.games.tictactoe.shared.model.api.TicTa
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.api.TicTacToeMakeMoveRequest
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.api.TicTacToeMakeMoveResponseError
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.api.TicTacToeRestartGameResponseError
-import com.francescobottino.thehubproject.shared.mainJson
+import com.francescobottino.thehubproject.shared_features.core.mainJson
 import io.github.aakira.napier.Napier
 import io.ktor.client.plugins.websocket.*
 import io.ktor.websocket.*

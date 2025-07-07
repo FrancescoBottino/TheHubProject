@@ -1,6 +1,6 @@
 package com.francescobottino.thehubproject.security
 
-import com.francescobottino.thehubproject.client_shared.security.SecureStorage
+import com.francescobottino.thehubproject.client_features.core.security.SecureStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import platform.Foundation.NSUserDefaults

@@ -1,11 +1,11 @@
 package com.francescobottino.thehubproject.games.tictactoe.client.network
 
 import arrow.core.Either
-import com.francescobottino.thehubproject.client_shared.network.webSocketSessionAuth
+import com.francescobottino.thehubproject.client_features.core.network.webSocketSessionAuth
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToeGameRoom
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.api.*
-import com.francescobottino.thehubproject.shared.model.PaginatedResponse
-import com.francescobottino.thehubproject.shared.model.PaginationParams
+import com.francescobottino.thehubproject.shared_features.core.model.PaginatedResponse
+import com.francescobottino.thehubproject.shared_features.core.model.PaginationParams
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.websocket.*

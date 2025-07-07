@@ -1,7 +1,7 @@
 package com.francescobottino.thehubproject.games.tictactoe.server.tables
 
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToePlayerSign
-import com.francescobottino.thehubproject.server_shared.data.UsersTable
+import com.francescobottino.thehubproject.server_features.core.data.UsersTable
 import org.jetbrains.exposed.sql.Table
 
 object TicTacToeGameRoomTable: Table("tic_tac_toe_game_rooms") {

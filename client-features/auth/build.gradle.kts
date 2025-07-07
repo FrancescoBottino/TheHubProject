@@ -51,14 +51,14 @@ kotlin {
             implementation(libs.koin.core)
             implementation(libs.arrow.core)
 
-            implementation(projects.shared)
-            implementation(projects.clientShared)
+            implementation(projects.sharedFeatures.core)
+            implementation(projects.clientFeatures.core)
         }
     }
 }
 
 android {
-    namespace = "com.francescobottino.thehubproject.client_feature_auth"
+    namespace = "com.francescobottino.thehubproject.client_features.auth"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

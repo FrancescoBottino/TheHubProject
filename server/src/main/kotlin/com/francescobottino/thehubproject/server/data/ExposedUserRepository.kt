@@ -1,8 +1,8 @@
 package com.francescobottino.thehubproject.server.data
 
-import com.francescobottino.thehubproject.server_shared.data.UserRepository
-import com.francescobottino.thehubproject.server_shared.data.UsersTable
-import com.francescobottino.thehubproject.server_shared.model.User
+import com.francescobottino.thehubproject.server_features.core.data.UserRepository
+import com.francescobottino.thehubproject.server_features.core.data.UsersTable
+import com.francescobottino.thehubproject.server_features.core.model.User
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction

@@ -3,7 +3,7 @@ package com.francescobottino.thehubproject.security
 import android.content.Context
 import android.util.Base64
 import androidx.core.content.edit
-import com.francescobottino.thehubproject.client_shared.security.SecureStorage
+import com.francescobottino.thehubproject.client_features.core.security.SecureStorage
 import kotlinx.serialization.json.Json
 import java.security.SecureRandom
 import javax.crypto.Cipher

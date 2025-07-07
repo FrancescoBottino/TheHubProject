@@ -13,9 +13,9 @@ import com.francescobottino.thehubproject.games.tictactoe.shared.model.api.TicTa
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.api.TicTacToeJoinRoomResponseError
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.api.TicTacToeMakeMoveResponseError
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.api.TicTacToeRestartGameResponseError
-import com.francescobottino.thehubproject.shared.model.PaginatedResponse
-import com.francescobottino.thehubproject.shared.model.PaginationParams
-import com.francescobottino.thehubproject.shared.model.UserResponse
+import com.francescobottino.thehubproject.shared_features.core.model.PaginatedResponse
+import com.francescobottino.thehubproject.shared_features.core.model.PaginationParams
+import com.francescobottino.thehubproject.shared_features.core.model.UserResponse
 import kotlinx.datetime.Clock
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid

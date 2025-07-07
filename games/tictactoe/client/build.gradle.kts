@@ -69,8 +69,8 @@ kotlin {
             implementation(libs.composeIcons.feather)
             implementation(libs.composeIcons.tabler)
 
-            implementation(projects.shared)
-            implementation(projects.clientShared)
+            implementation(projects.sharedFeatures.core)
+            implementation(projects.clientFeatures.core)
             implementation(projects.games.tictactoe.shared)
         }
     }

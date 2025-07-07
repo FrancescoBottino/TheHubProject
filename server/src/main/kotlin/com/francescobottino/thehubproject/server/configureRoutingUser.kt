@@ -1,8 +1,8 @@
 package com.francescobottino.thehubproject.server
 
-import com.francescobottino.thehubproject.server_shared.auth.AUTH_JWT
-import com.francescobottino.thehubproject.server_shared.getAuthUser
-import com.francescobottino.thehubproject.server_shared.model.safe
+import com.francescobottino.thehubproject.server_features.core.auth.AUTH_JWT
+import com.francescobottino.thehubproject.server_features.core.getAuthUser
+import com.francescobottino.thehubproject.server_features.core.model.safe
 import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*

@@ -4,10 +4,10 @@ import arrow.core.getOrElse
 import cafe.adriel.voyager.core.model.screenModelScope
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.Navigator
-import com.francescobottino.thehubproject.client_shared.model.User
-import com.francescobottino.thehubproject.client_shared.repo.AuthRepository
-import com.francescobottino.thehubproject.client_shared.repo.UserRepository
-import com.francescobottino.thehubproject.client_shared.screens.StatefulScreenModel
+import com.francescobottino.thehubproject.client_features.core.model.User
+import com.francescobottino.thehubproject.client_features.core.repo.AuthRepository
+import com.francescobottino.thehubproject.client_features.core.repo.UserRepository
+import com.francescobottino.thehubproject.client_features.core.screens.StatefulScreenModel
 import com.francescobottino.thehubproject.network.UserApi
 import com.francescobottino.thehubproject.screens.login.LoginScreen
 import com.francescobottino.thehubproject.screens.main_host.MainHostScreen

@@ -71,15 +71,15 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
-include(":composeApp")
-include(":server")
-include(":shared")
 include(":config:dev")
 include(":config:staging")
 include(":config:prod")
-include(":server-shared")
-include(":client-shared")
+include(":shared-features:core")
+include(":client-features:core")
 include(":client-features:auth")
+include(":server-features:core")
 include(":games:tictactoe:client")
 include(":games:tictactoe:server")
 include(":games:tictactoe:shared")
+include(":server")
+include(":composeApp")

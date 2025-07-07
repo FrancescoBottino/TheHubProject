@@ -1,9 +1,9 @@
 package com.francescobottino.thehubproject.server.auth
 
 import com.francescobottino.thehubproject.server.Envs
-import com.francescobottino.thehubproject.server_shared.auth.AUTH_JWT
-import com.francescobottino.thehubproject.server_shared.auth.JwtConfig
-import com.francescobottino.thehubproject.server_shared.auth.USER_ID_CLAIM
+import com.francescobottino.thehubproject.server_features.core.auth.AUTH_JWT
+import com.francescobottino.thehubproject.server_features.core.auth.JwtConfig
+import com.francescobottino.thehubproject.server_features.core.auth.USER_ID_CLAIM
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 

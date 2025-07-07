@@ -15,10 +15,10 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import com.francescobottino.thehubproject.client_shared.ui.components.AlertCardOverlay
-import com.francescobottino.thehubproject.client_shared.ui.components.AlertState
-import com.francescobottino.thehubproject.client_shared.ui.components.LoadingCardOverlay
-import com.francescobottino.thehubproject.client_shared.ui.theme.AppTheme
+import com.francescobottino.thehubproject.client_features.core.ui.components.AlertCardOverlay
+import com.francescobottino.thehubproject.client_features.core.ui.components.AlertState
+import com.francescobottino.thehubproject.client_features.core.ui.components.LoadingCardOverlay
+import com.francescobottino.thehubproject.client_features.core.ui.theme.AppTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.jetbrains.compose.ui.tooling.preview.PreviewParameter
 import org.jetbrains.compose.ui.tooling.preview.PreviewParameterProvider

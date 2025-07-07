@@ -21,8 +21,8 @@ dependencies {
     implementation(libs.kotlinx.datetime)
     implementation(libs.arrow.core)
 
-    implementation(projects.shared)
-    implementation(projects.serverShared)
+    implementation(projects.sharedFeatures.core)
+    implementation(projects.serverFeatures.core)
     implementation(projects.games.tictactoe.shared)
 }
 

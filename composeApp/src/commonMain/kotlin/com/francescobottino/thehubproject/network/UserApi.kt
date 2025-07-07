@@ -1,7 +1,7 @@
 package com.francescobottino.thehubproject.network
 
 import arrow.core.Either
-import com.francescobottino.thehubproject.shared.model.UserResponse
+import com.francescobottino.thehubproject.shared_features.core.model.UserResponse
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*

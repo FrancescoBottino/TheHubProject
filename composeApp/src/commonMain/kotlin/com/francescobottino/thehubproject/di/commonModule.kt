@@ -1,9 +1,9 @@
 package com.francescobottino.thehubproject.di
 
-import com.francescobottino.thehubproject.client_feature_auth.clientFeatureModule_Auth
-import com.francescobottino.thehubproject.client_shared.di.WEBSOCKET_ENDPOINT
-import com.francescobottino.thehubproject.client_shared.di.sharedClientModule
-import com.francescobottino.thehubproject.client_shared.repo.AuthRepository
+import com.francescobottino.thehubproject.client_features.auth.clientFeatureModule_Auth
+import com.francescobottino.thehubproject.client_features.core.di.WEBSOCKET_ENDPOINT
+import com.francescobottino.thehubproject.client_features.core.di.sharedClientModule
+import com.francescobottino.thehubproject.client_features.core.repo.AuthRepository
 import com.francescobottino.thehubproject.config.Config
 import com.francescobottino.thehubproject.games.tictactoe.client.di.tictactoeModule
 import com.francescobottino.thehubproject.navigation.DeepLinkHandler

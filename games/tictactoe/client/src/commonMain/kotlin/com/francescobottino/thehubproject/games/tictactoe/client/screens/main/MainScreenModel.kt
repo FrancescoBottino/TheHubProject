@@ -2,7 +2,7 @@ package com.francescobottino.thehubproject.games.tictactoe.client.screens.main
 
 import cafe.adriel.voyager.core.model.screenModelScope
 import cafe.adriel.voyager.navigator.Navigator
-import com.francescobottino.thehubproject.client_shared.screens.StatefulScreenModel
+import com.francescobottino.thehubproject.client_features.core.screens.StatefulScreenModel
 import com.francescobottino.thehubproject.games.tictactoe.client.network.TicTacToeApi
 import com.francescobottino.thehubproject.games.tictactoe.client.screens.game.GameScreen
 import com.francescobottino.thehubproject.games.tictactoe.client.screens.user_games.UserGamesScreen

@@ -1,6 +1,6 @@
 package com.francescobottino.thehubproject.games.tictactoe.client.screens.game
 
-import com.francescobottino.thehubproject.client_shared.ui.components.AlertState
+import com.francescobottino.thehubproject.client_features.core.ui.components.AlertState
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToeGameRoom
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToeGameState
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToePlayerSign

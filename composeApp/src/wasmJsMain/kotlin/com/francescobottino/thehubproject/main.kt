@@ -2,8 +2,8 @@ package com.francescobottino.thehubproject
 
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.ComposeViewport
-import com.francescobottino.thehubproject.client_shared.security.SecureStorage
-import com.francescobottino.thehubproject.client_shared.usecase.CopyToClipboardUseCase
+import com.francescobottino.thehubproject.client_features.core.security.SecureStorage
+import com.francescobottino.thehubproject.client_features.core.usecase.CopyToClipboardUseCase
 import com.francescobottino.thehubproject.di.initKoin
 import com.francescobottino.thehubproject.navigation.DeepLinkHandler
 import com.francescobottino.thehubproject.security.WasmJsSecureStorage

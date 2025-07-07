@@ -1,7 +1,7 @@
 package com.francescobottino.thehubproject.server
 
 import com.francescobottino.thehubproject.games.tictactoe.server.TicTacToeGameModule
-import com.francescobottino.thehubproject.server_shared.GameModule
+import com.francescobottino.thehubproject.server_features.core.GameModule
 import io.ktor.server.routing.*
 
 fun Routing.configureRoutingGames() {

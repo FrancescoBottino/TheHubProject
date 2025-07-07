@@ -2,7 +2,7 @@ package com.francescobottino.thehubproject.games.tictactoe.client
 
 import androidx.compose.ui.graphics.vector.ImageVector
 import cafe.adriel.voyager.core.screen.Screen
-import com.francescobottino.thehubproject.client_shared.GameModule
+import com.francescobottino.thehubproject.client_features.core.GameModule
 import com.francescobottino.thehubproject.games.tictactoe.client.screens.main.MainScreen
 import com.francescobottino.thehubproject.games.tictactoe.client.ui.images.TicTacToe
 

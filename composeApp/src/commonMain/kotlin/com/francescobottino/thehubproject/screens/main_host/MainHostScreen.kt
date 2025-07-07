@@ -17,10 +17,10 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.transitions.SlideTransition
-import com.francescobottino.thehubproject.client_shared.model.User
-import com.francescobottino.thehubproject.client_shared.repo.AuthRepository
-import com.francescobottino.thehubproject.client_shared.repo.UserRepository
-import com.francescobottino.thehubproject.client_shared.ui.theme.AppTheme
+import com.francescobottino.thehubproject.client_features.core.model.User
+import com.francescobottino.thehubproject.client_features.core.repo.AuthRepository
+import com.francescobottino.thehubproject.client_features.core.repo.UserRepository
+import com.francescobottino.thehubproject.client_features.core.ui.theme.AppTheme
 import com.francescobottino.thehubproject.navigation.DeepLinkHandler
 import com.francescobottino.thehubproject.screens.game_selection.GameSelectionScreen
 import com.francescobottino.thehubproject.screens.login.LoginScreen

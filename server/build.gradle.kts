@@ -39,8 +39,8 @@ dependencies {
     implementation(libs.koin.logger.slf4j)
     implementation(libs.dotenv)
 
-    implementation(projects.shared)
-    implementation(projects.serverShared)
+    implementation(projects.sharedFeatures.core)
+    implementation(projects.serverFeatures.core)
     implementation(
         when(appEnvironment.current) {
             AppEnvironment.DEVELOPMENT -> projects.config.dev
