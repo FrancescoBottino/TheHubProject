@@ -19,6 +19,7 @@ data class GameScreenState(
         val isUserHost: Boolean = false,
         val roomState: TicTacToeGameRoom.State = TicTacToeGameRoom.State.WaitingForOpponent,
         val pastGamesWinners: List<TicTacToePlayerSign?> = emptyList(),
+        val shareRoomLink: String,
         val finishState: FinishState? = null,
         val isClosed: Boolean = false,
     )

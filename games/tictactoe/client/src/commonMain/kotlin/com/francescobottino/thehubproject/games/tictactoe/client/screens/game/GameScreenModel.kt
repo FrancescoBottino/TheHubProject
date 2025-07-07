@@ -7,6 +7,7 @@ import com.francescobottino.thehubproject.client_features.core.repo.UserReposito
 import com.francescobottino.thehubproject.client_features.core.screens.StatefulScreenModel
 import com.francescobottino.thehubproject.client_features.core.ui.components.AlertState
 import com.francescobottino.thehubproject.client_features.core.usecase.CopyToClipboardUseCase
+import com.francescobottino.thehubproject.games.tictactoe.client.TicTacToeDeepLink
 import com.francescobottino.thehubproject.games.tictactoe.client.network.TicTacToeApi
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToeBoardCell
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToeGameRoom
@@ -51,7 +52,7 @@ class GameScreenModel(
             is GameScreenEvent.OnCloseScreen -> navigator.pop()
             is GameScreenEvent.OnCloseRoom -> close()
             is GameScreenEvent.OnRetry -> restart()
-            is GameScreenEvent.OnCopyRoomId -> screenModelScope.launch { copyToClipboard(roomId) }
+            is GameScreenEvent.OnCopyRoomInviteLink -> copyShareRoomLink()
         }
     }
 
@@ -226,6 +227,8 @@ class GameScreenModel(
 
         val isClosed = update.roomState is TicTacToeGameRoom.State.Closed
 
+        val deepLink = TicTacToeDeepLink.Invite(roomId).getPath()
+
         _state.update { screenState ->
             screenState.copy(
                 isLoading = false,
@@ -240,6 +243,7 @@ class GameScreenModel(
                     opponentState = opponentState,
                     finishState = finishState,
                     isClosed = isClosed,
+                    shareRoomLink = deepLink,
                 )
             )
         }
@@ -389,6 +393,12 @@ class GameScreenModel(
                 }
 
             _state.update { it.copy(isLoading = false) }
+        }
+    }
+
+    private fun copyShareRoomLink() {
+        screenModelScope.launch {
+            _state.value.room?.shareRoomLink?.let { copyToClipboard(it) }
         }
     }
 

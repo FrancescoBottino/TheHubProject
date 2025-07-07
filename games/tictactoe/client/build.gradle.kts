@@ -1,3 +1,4 @@
+import com.francescobottino.thehubproject.build_logic.convention.AppEnvironment
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -9,6 +10,7 @@ plugins {
     alias(libs.plugins.kotlinPluginSerialization)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.envornment)
 }
 
 kotlin {
@@ -71,6 +73,13 @@ kotlin {
 
             implementation(projects.sharedFeatures.core)
             implementation(projects.clientFeatures.core)
+            implementation(
+                when(appEnvironment.current) {
+                    AppEnvironment.DEVELOPMENT -> projects.config.dev
+                    AppEnvironment.STAGING -> projects.config.staging
+                    AppEnvironment.PRODUCTION -> projects.config.prod
+                }
+            )
             implementation(projects.games.tictactoe.shared)
         }
     }

@@ -21,6 +21,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.francescobottino.thehubproject.client_features.core.ui.components.AlertCardOverlay
 import com.francescobottino.thehubproject.client_features.core.ui.components.AlertState
 import com.francescobottino.thehubproject.client_features.core.ui.components.LoadingCardOverlay
+import com.francescobottino.thehubproject.games.tictactoe.client.TicTacToeDeepLink
 import com.francescobottino.thehubproject.games.tictactoe.client.ui.components.PastWinnersRowFull
 import com.francescobottino.thehubproject.games.tictactoe.client.ui.components.SignIcon
 import com.francescobottino.thehubproject.games.tictactoe.client.ui.images.TicTacToeCrown
@@ -121,8 +122,8 @@ private fun GameScreenContent(
                 RoomClosedInfoCard()
             } else {
                 RoomIdCard(
-                    roomId = state.room.roomId,
-                    onClick = { onEvent(GameScreenEvent.OnCopyRoomId) }
+                    shareRoomLink = state.room.shareRoomLink,
+                    onClick = { onEvent(GameScreenEvent.OnCopyRoomInviteLink) }
                 )
 
                 Spacer(Modifier.height(24.dp))
@@ -395,7 +396,7 @@ private fun FinishDialog(
 
 @Composable
 private fun RoomIdCard(
-    roomId: String,
+    shareRoomLink: String,
     onClick: () -> Unit,
 ) {
     val shape = RoundedCornerShape(20)
@@ -404,8 +405,9 @@ private fun RoomIdCard(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            text = "You can share this room id to your opponent: ",
+            text = "Invite someone to play:",
             style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
         )
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -421,7 +423,7 @@ private fun RoomIdCard(
         ) {
             SelectionContainer {
                 Text(
-                    text = roomId,
+                    text = shareRoomLink,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.labelSmall,
@@ -429,7 +431,7 @@ private fun RoomIdCard(
             }
 
             Icon(
-                FeatherIcons.Copy,
+                imageVector = FeatherIcons.Copy,
                 contentDescription = null,
                 modifier = Modifier.size(16.dp),
             )
@@ -457,12 +459,14 @@ private fun RoomClosedInfoCard(
 
 private class GameScreenContentPreviewProvider: PreviewParameterProvider<GameScreenState> {
     override val values: Sequence<GameScreenState> = sequence {
+        val id = "2f9f6008-8b10-4d56-95ff-957d8fdf91a2"
         var state = GameScreenState(
             room = GameScreenState.Room(
+                roomId = id,
                 userSign = TicTacToePlayerSign.X,
-                roomId = "2f9f6008-8b10-4d56-95ff-957d8fdf91a2",
                 roomState = TicTacToeGameRoom.State.WaitingForOpponent,
                 opponentState = GameScreenState.OpponentState.WaitingForOpponent,
+                shareRoomLink = TicTacToeDeepLink.Invite(id).getPath()
             ),
             isLoading = true,
         )
