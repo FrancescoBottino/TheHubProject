@@ -1,6 +1,6 @@
 import com.android.build.api.variant.impl.VariantOutputImpl
 import com.francescobottino.thehubproject.build_logic.convention.AppEnvironment
-import com.francescobottino.thehubproject.build_logic.convention.apiDomain
+import com.francescobottino.thehubproject.build_logic.convention.feDomain
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
@@ -177,7 +177,7 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = mainVersionCode
         versionName = mainVersionName
-        manifestPlaceholders["deepLinkDomain"] = appEnvironment.current.apiDomain().orEmpty()
+        manifestPlaceholders["deepLinkDomain"] = appEnvironment.current.feDomain().orEmpty()
         manifestPlaceholders["deepLinkScheme"] = "thehubproject"
     }
     lint {

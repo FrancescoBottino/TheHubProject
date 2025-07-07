@@ -1,5 +1,6 @@
 import com.francescobottino.thehubproject.build_logic.convention.AppEnvironment
 import com.francescobottino.thehubproject.build_logic.convention.stagingApiDomain
+import com.francescobottino.thehubproject.build_logic.convention.stagingFeDomain
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -67,4 +68,5 @@ buildConfig {
     useKotlinOutput()
 
     buildConfigField<String>("API_DOMAIN", AppEnvironment.stagingApiDomain())
+    buildConfigField<String>("FE_DOMAIN", AppEnvironment.stagingFeDomain())
 }

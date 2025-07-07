@@ -54,16 +54,16 @@ class DeepLinkHandler: KoinComponent {
 
     @OptIn(ExperimentalUuidApi::class)
     private fun getScreenFromDeepLink(url: String): Screen? {
-        if(!url.startsWith(Config.apiHttpUrl+"/")) {
+        if(!url.startsWith(Config.feHttpUrl+"/")) {
             Napier.d(tag = "DeepLinkHandler") { "invalid url" }
             return null
         }
-        val path = url.removePrefix(Config.apiHttpUrl+"/")
+        val path = url.removePrefix(Config.feHttpUrl+"/")
 
         val parser = deepLinkParsers.singleOrNull { path.startsWith(it.basePath) }
 
         val destination = parser
-            ?.getFromPath(url.removePrefix(Config.apiHttpUrl+"/"))
+            ?.getFromPath(path)
             ?.getDestination()
 
         Napier.d(tag = "DeepLinkHandler") { "Getting screen from deeplink: $url -> $destination" }

@@ -29,13 +29,16 @@ gradle.beforeProject {
 
         val environment: String by project
         val devServerHost = envVariables["SERVER_HOST"] ?: "Localhost"
-        val devServerPort = envVariables["SERVER_PORT"]?.toInt() ?: 9090
+        val devApiPort = envVariables["SERVER_PORT"]?.toInt() ?: 9090
+        val devFePort = envVariables["FE_PORT"]?.toInt() ?: 9091
 
         println("   environment: $environment")
         rootProject.extra.set("devServerHost", devServerHost)
         println("   devServerHost: $devServerHost")
-        rootProject.extra.set("devServerPort", devServerPort)
-        println("   devServerPort: $devServerPort")
+        rootProject.extra.set("devApiPort", devApiPort)
+        println("   devApiPort: $devApiPort")
+        rootProject.extra.set("devFePort", devFePort)
+        println("   devFePort: $devFePort")
     }
 }
 

@@ -12,7 +12,7 @@ object TicTacToeDeepLink {
     data class Invite(
         val roomId: String,
     ): Deeplink {
-        override fun getPath() = Config.apiHttpUrl + "/" + basePath + roomId
+        override fun getPath() = Config.feHttpUrl + "/" + basePath + roomId
         override fun getDestination() = JoinRoomScreen(roomId)
 
         companion object Parser: DeeplinkParser<Invite> {

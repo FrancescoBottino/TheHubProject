@@ -79,7 +79,6 @@ fun Application.module() {
     }
 
     routing {
-        configureRoutingStatic()
         configureRoutingAuth()
         configureRoutingUser()
         configureRoutingGames()

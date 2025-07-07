@@ -8,3 +8,12 @@ fun AppEnvironment.apiDomain(): String? = when(this) {
 
 fun AppEnvironment.Companion.prodApiDomain(): String = "thehubproject-api.up.railway.app"
 fun AppEnvironment.Companion.stagingApiDomain(): String = "thehubproject-api-staging.up.railway.app"
+
+fun AppEnvironment.feDomain(): String? = when(this) {
+    AppEnvironment.DEVELOPMENT -> null
+    AppEnvironment.STAGING -> AppEnvironment.stagingFeDomain()
+    AppEnvironment.PRODUCTION -> AppEnvironment.prodFeDomain()
+}
+
+fun AppEnvironment.Companion.prodFeDomain(): String = "thehubproject.up.railway.app"
+fun AppEnvironment.Companion.stagingFeDomain(): String = "thehubproject-staging.up.railway.app"

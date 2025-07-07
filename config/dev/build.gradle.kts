@@ -60,7 +60,8 @@ android {
 }
 
 private val devServerHost: String by rootProject.extra
-private val devServerPort: Int by rootProject.extra
+private val devApiPort: Int by rootProject.extra
+private val devFePort: Int by rootProject.extra
 
 buildConfig {
     packageName("com.francescobottino.thehubproject.config")
@@ -68,5 +69,6 @@ buildConfig {
     useKotlinOutput()
 
     buildConfigField<String>("DEV_SERVER_HOST", devServerHost)
-    buildConfigField<Int>("DEV_SERVER_PORT", devServerPort)
+    buildConfigField<Int>("DEV_API_PORT", devApiPort)
+    buildConfigField<Int>("DEV_FE_PORT", devFePort)
 }
