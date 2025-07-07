@@ -10,6 +10,7 @@ import com.francescobottino.thehubproject.client_shared.usecase.CopyToClipboardU
 import com.francescobottino.thehubproject.games.tictactoe.client.network.TicTacToeApi
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToeBoardCell
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToeGameRoom
+import com.francescobottino.thehubproject.games.tictactoe.shared.model.api.TicTacToeCloseGameResponseError
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.api.TicTacToeMakeMoveRequest
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.api.TicTacToeMakeMoveResponseError
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.api.TicTacToeRestartGameResponseError
@@ -48,7 +49,7 @@ class GameScreenModel(
             is GameScreenEvent.OnDismissDialog -> _state.update { it.copy(dialog = null) }
             is GameScreenEvent.OnDialogActionConnectToRoom -> connectToRoom()
             is GameScreenEvent.OnCloseScreen -> navigator.pop()
-            is GameScreenEvent.OnCloseRoom -> TODO()
+            is GameScreenEvent.OnCloseRoom -> close()
             is GameScreenEvent.OnRetry -> restart()
             is GameScreenEvent.OnCopyRoomId -> screenModelScope.launch { copyToClipboard(roomId) }
         }
@@ -108,6 +109,20 @@ class GameScreenModel(
                             dialog = AlertState(
                                 title = "Connection refused",
                                 message = "Cannot connect to the room.\n"+closeReason.message,
+                                dismissable = false,
+                                primaryAction = AlertState.Action(
+                                    label = "Close screen",
+                                    onClick = { onEvent(GameScreenEvent.OnCloseScreen) }
+                                )
+                            )
+                        )
+                    }
+                    CloseReason.Codes.NORMAL.code -> _state.update { screenState ->
+                        screenState.copy(
+                            isLoading = false,
+                            dialog = AlertState(
+                                title = "Disconnected",
+                                message = "You have been disconnected from the room.\n"+closeReason.message,
                                 dismissable = false,
                                 primaryAction = AlertState.Action(
                                     label = "Close screen",
@@ -187,18 +202,14 @@ class GameScreenModel(
 
         val isUserHost = update.hostPlayer.user.id == user.id
 
-        val opponentConnected = update.roomState !is TicTacToeGameRoom.State.WaitingForOpponent
-                && opponent != null
-                && update.connectedPlayerIds.contains(opponent.user.id)
-
         val opponentState = when {
-            update.roomState is TicTacToeGameRoom.State.WaitingForOpponent -> GameScreenState.OpponentState.WaitingForOpponent
-            opponentConnected -> GameScreenState.OpponentState.Connected(opponent.user.username)
-            else -> GameScreenState.OpponentState.Disconnected(opponent?.user?.username)
+            update.roomState is TicTacToeGameRoom.State.WaitingForOpponent || opponent == null -> GameScreenState.OpponentState.WaitingForOpponent
+            update.roomState is TicTacToeGameRoom.State.Closed -> GameScreenState.OpponentState.GameFinished(opponent.user.username)
+            update.connectedPlayerIds.contains(opponent.user.id) -> GameScreenState.OpponentState.Connected(opponent.user.username)
+            else -> GameScreenState.OpponentState.Disconnected(opponent.user.username)
         }
 
-        val isUserTurn = update.roomState is TicTacToeGameRoom.State.InProgress
-                && update.currentPlayerSign == me.sign
+        val isUserTurn = update.roomState is TicTacToeGameRoom.State.InProgress && update.currentPlayerSign == me.sign
 
         val finishState = if (update.roomState is TicTacToeGameRoom.State.Finished) {
             val winner = (update.roomState as TicTacToeGameRoom.State.Finished).winner
@@ -210,6 +221,8 @@ class GameScreenModel(
         } else {
             null
         }
+
+        val isClosed = update.roomState is TicTacToeGameRoom.State.Closed
 
         _state.update { screenState ->
             screenState.copy(
@@ -223,6 +236,7 @@ class GameScreenModel(
                 userLabel = user.username,
                 opponentState = opponentState,
                 finishState = finishState,
+                isClosed = isClosed,
             )
         }
     }
@@ -319,6 +333,41 @@ class GameScreenModel(
                             )
                         }
                     }
+                }
+
+            _state.update { it.copy(isLoading = false) }
+        }
+    }
+
+    private fun close() {
+        _state.update { it.copy(isLoading = true) }
+
+        screenModelScope.launch {
+            runCatching { api.close(roomId) }
+                .onFailure { e ->
+                    _state.update {
+                        it.copy(
+                            dialog = AlertState(
+                                title = "Error",
+                                message = e.message ?: "Unknown error",
+                                dismissable = true,
+                                primaryAction = AlertState.Action(
+                                    label = "OK",
+                                    onClick = { onEvent(GameScreenEvent.OnDismissDialog) }
+                                )
+                            ),
+                        )
+                    }
+                }
+                .onSuccess { response ->
+                    response.onLeft { error ->
+                        when(error) {
+                            TicTacToeCloseGameResponseError.ROOM_NOT_FOUND -> TODO()
+                            TicTacToeCloseGameResponseError.PLAYER_NOT_IN_ROOM -> TODO()
+                            TicTacToeCloseGameResponseError.ROOM_ALREADY_CLOSED -> TODO()
+                        }
+                    }
+                    navigator.pop()
                 }
 
             _state.update { it.copy(isLoading = false) }

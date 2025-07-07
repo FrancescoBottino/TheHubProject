@@ -111,18 +111,21 @@ private fun GameScreenContent(
 
             Spacer(Modifier.height(40.dp))
 
-            RoomIdCard(
-                roomId = state.roomId,
-                onClick = { onEvent(GameScreenEvent.OnCopyRoomId) }
-            )
+            if(state.isClosed) {
+                RoomClosedInfoCard()
+            } else {
+                RoomIdCard(
+                    roomId = state.roomId,
+                    onClick = { onEvent(GameScreenEvent.OnCopyRoomId) }
+                )
 
-            Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(24.dp))
 
-            Button(
-                onClick = { onEvent(GameScreenEvent.OnCloseRoom) },
-                enabled = false, //todo
-            ) {
-                Text("Close room")
+                Button(
+                    onClick = { onEvent(GameScreenEvent.OnCloseRoom) },
+                ) {
+                    Text("Close room")
+                }
             }
 
             Spacer(Modifier.height(48.dp))
@@ -133,16 +136,6 @@ private fun GameScreenContent(
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
-
-            /*
-            when(state.roomState) {
-                is TicTacToeGameRoom.State.WaitingForOpponent -> TODO()
-                is TicTacToeGameRoom.State.InProgress -> TODO()
-                is TicTacToeGameRoom.State.Finished -> TODO()
-                is TicTacToeGameRoom.State.Closed -> TODO()
-            }
-
-             */
         }
     }
 
@@ -164,14 +157,14 @@ private fun OpponentConnectionStatus(
 ) {
     val color = when(opponentState) {
         is GameScreenState.OpponentState.WaitingForOpponent -> MaterialTheme.colorScheme.onSurface
-        is GameScreenState.OpponentState.Connected -> MaterialTheme.colorScheme.primary
         is GameScreenState.OpponentState.Disconnected -> MaterialTheme.colorScheme.error
+        is GameScreenState.OpponentState.GameFinished,
+        is GameScreenState.OpponentState.Connected -> MaterialTheme.colorScheme.primary
     }
 
     val label = when(opponentState) {
         is GameScreenState.OpponentState.WaitingForOpponent -> "Waiting for opponent..."
-        is GameScreenState.OpponentState.Connected -> opponentState.username
-        is GameScreenState.OpponentState.Disconnected -> opponentState.username ?: "Disconnected"
+        is GameScreenState.OpponentState.OpponentKnown -> opponentState.username
     }
 
     val shape = RoundedCornerShape(50)
@@ -189,12 +182,10 @@ private fun OpponentConnectionStatus(
                 .padding(vertical = 6.dp, horizontal = 12.dp),
         ) {
             Text(text = label)
-            if(opponentState is GameScreenState.OpponentState.WaitingForOpponent) {
-                Box(modifier = Modifier.requiredSize(16.dp).clip(CircleShape).background(color)) {
+            Box(modifier = Modifier.requiredSize(16.dp).clip(CircleShape).background(color)) {
+                if(opponentState is GameScreenState.OpponentState.WaitingForOpponent) {
                     CircularProgressIndicator()
                 }
-            } else {
-                Box(modifier = Modifier.requiredSize(16.dp).clip(CircleShape).background(color))
             }
         }
     }
@@ -404,6 +395,24 @@ private fun RoomIdCard(
     }
 }
 
+@Composable
+private fun RoomClosedInfoCard(
+    modifier: Modifier = Modifier,
+) {
+    val shape = RoundedCornerShape(20)
+    Text(
+        text = "The room is closed",
+        color = MaterialTheme.colorScheme.onError,
+        modifier = modifier
+            .wrapContentSize()
+            .shadow(elevation = 12.dp, shape = shape, clip = true)
+            .clip(shape)
+            .border(width = 1.dp, color = MaterialTheme.colorScheme.onError, shape = shape)
+            .background(color = MaterialTheme.colorScheme.error)
+            .padding(6.dp),
+    )
+}
+
 private class GameScreenContentPreviewProvider: PreviewParameterProvider<GameScreenState> {
     override val values: Sequence<GameScreenState> = sequenceOf(
         GameScreenState(
@@ -531,6 +540,24 @@ private class GameScreenContentPreviewProvider: PreviewParameterProvider<GameScr
                 userWon = false,
                 canRetry = true,
             ),
+        ),
+        GameScreenState(
+            roomId = "2f9f6008-8b10-4d56-95ff-957d8fdf91a2",
+            roomState = TicTacToeGameRoom.State.InProgress,
+            opponentState = GameScreenState.OpponentState.Connected("User 2"),
+            board = mapOf(
+                TicTacToeBoardCell(0, 0) to TicTacToePlayerSign.X,
+                TicTacToeBoardCell(0, 1) to TicTacToePlayerSign.O,
+            ),
+            isUserTurn = true,
+            pastGamesWinners = listOf(
+                TicTacToePlayerSign.X,
+                null,
+                TicTacToePlayerSign.X,
+                TicTacToePlayerSign.O,
+                null,
+            ),
+            isClosed = true,
         ),
     )
 }

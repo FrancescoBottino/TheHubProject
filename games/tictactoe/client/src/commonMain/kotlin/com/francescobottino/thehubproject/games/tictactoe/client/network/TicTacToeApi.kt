@@ -63,6 +63,16 @@ class TicTacToeApi(
             }
         }
     }
+    suspend fun close(roomId: String): Either<TicTacToeCloseGameResponseError, Unit> {
+        return client.post("/games/tictactoe/room/$roomId/close") {
+            contentType(ContentType.Application.Json)
+        }.let {
+            when {
+                it.status.isSuccess() -> Either.Right(Unit)
+                else -> Either.Left(it.body<TicTacToeCloseGameResponseError>())
+            }
+        }
+    }
     @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun joinRoomWebSocket(roomId: String): DefaultClientWebSocketSession {
         return client.webSocketSessionAuth("$wsUrl/games/tictactoe/room/$roomId/updates")

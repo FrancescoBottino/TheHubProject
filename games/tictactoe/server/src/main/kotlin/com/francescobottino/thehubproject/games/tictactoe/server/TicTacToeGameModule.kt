@@ -2,7 +2,9 @@ package com.francescobottino.thehubproject.games.tictactoe.server
 
 import com.francescobottino.thehubproject.games.tictactoe.server.di.ticTacToeModule
 import com.francescobottino.thehubproject.games.tictactoe.server.repository.TicTacToeGameRoomRepository
+import com.francescobottino.thehubproject.games.tictactoe.server.repository.updateRoomOrSkip
 import com.francescobottino.thehubproject.games.tictactoe.server.usecase.TicTacToeUseCases
+import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToeGameRoom
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.api.TicTacToeMakeMoveRequest
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.api.TicTacToeMakeRoomRequest
 import com.francescobottino.thehubproject.server_shared.*
@@ -40,6 +42,7 @@ object TicTacToeGameModule: GameModule {
                         post("join") { joinRoom() }
                         post("move") { makeMove() }
                         post("restart") { restart() }
+                        post("close") { close() }
                     }
                     webSocket("updates") { getUpdates() }
                 }
@@ -206,6 +209,38 @@ private suspend fun RoutingContext.restart() {
     }
 }
 
+private suspend fun RoutingContext.close() {
+    val useCase by call.inject<TicTacToeUseCases>()
+
+    val userId = call.getAuthUserId() ?: run {
+        call.respond(HttpStatusCode.Unauthorized, "User not found or invalid token")
+        return
+    }
+
+    val roomId = try {
+        call.parameters.getOrFail<String>("roomId")
+    } catch (e: Exception) {
+        call.respond(HttpStatusCode.BadRequest, e.message ?: "Invalid request")
+        return
+    }
+
+    try {
+        val result = useCase.close(
+            playerId = userId,
+            roomId = roomId,
+        )
+
+        result.onRight {
+            call.respond(HttpStatusCode.OK)
+        }.onLeft {
+            call.respond(HttpStatusCode.BadRequest, it)
+        }
+    } catch (e: Exception) {
+        call.application.log.error("restart failed", e)
+        call.respond(HttpStatusCode.InternalServerError, message = e.message ?: "Invalid request")
+    }
+}
+
 context(route: Route)
 private suspend fun DefaultWebSocketServerSession.getUpdates() {
     val repo by call.inject<TicTacToeGameRoomRepository>()
@@ -235,8 +270,12 @@ private suspend fun DefaultWebSocketServerSession.getUpdates() {
         return
     }
 
+    if(room.roomState is TicTacToeGameRoom.State.Closed) {
+        close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "Room is closed"))
+    }
+
     log.debug("updating room with player connection")
-    repo.updateRoom(roomId) { room ->
+    repo.updateRoomOrSkip(roomId) { room ->
         room?.let {
             room.copy(connectedPlayerIds = room.connectedPlayerIds + userId)
         }
@@ -247,7 +286,7 @@ private suspend fun DefaultWebSocketServerSession.getUpdates() {
 
         log.debug("Client closed the connection")
         log.debug("updating room with player disconnection")
-        repo.updateRoom(roomId) { room ->
+        repo.updateRoomOrSkip(roomId) { room ->
             room?.let {
                 room.copy(connectedPlayerIds = room.connectedPlayerIds - userId)
             }
@@ -262,11 +301,15 @@ private suspend fun DefaultWebSocketServerSession.getUpdates() {
         repo.getRoomUpdates(roomId).collect {
             log.debug("on room update for player $userId in room $roomId, sending update to client")
             send(Frame.Text(mainJson.encodeToString(it)))
+
+            if(it.roomState is TicTacToeGameRoom.State.Closed) {
+                close(CloseReason(CloseReason.Codes.NORMAL, "Game has been closed"))
+            }
         }
     }.onFailure {
         log.debug("error collecting updates: $it | ${it.message} | ${it.stackTraceToString()}")
         log.debug("updating room with player disconnection")
-        repo.updateRoom(roomId) { room ->
+        repo.updateRoomOrSkip(roomId) { room ->
             room?.let {
                 room.copy(connectedPlayerIds = room.connectedPlayerIds - userId)
             }

@@ -2,6 +2,9 @@ package com.francescobottino.thehubproject.games.tictactoe.server.usecase
 
 import arrow.core.Either
 import com.francescobottino.thehubproject.games.tictactoe.server.repository.TicTacToeGameRoomRepository
+import com.francescobottino.thehubproject.games.tictactoe.server.repository.UpdateResult
+import com.francescobottino.thehubproject.games.tictactoe.server.repository.updateRoomOrSkip
+import com.francescobottino.thehubproject.games.tictactoe.server.repository.write
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToeBoardCell
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToeGameRoom
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToePlayer
@@ -35,7 +38,7 @@ class TicTacToeUseCases(
             currentPlayerSign = startingSign
         )
 
-        repo.updateRoom(roomId = room.id) { room }
+        repo.write(room)
 
         return room.id
     }
@@ -43,20 +46,20 @@ class TicTacToeUseCases(
     fun joinRoom(player: UserResponse, roomId: String): Either<TicTacToeJoinRoomResponseError, Unit> {
         var validationError: TicTacToeJoinRoomResponseError? = null
 
-        repo.updateRoom(roomId) { room ->
+        repo.updateRoomOrSkip(roomId) { room ->
             if(room == null) {
                 validationError = TicTacToeJoinRoomResponseError.ROOM_NOT_FOUND
-                return@updateRoom null
+                return@updateRoomOrSkip null
             }
 
             if(room.players.map { it.user.id }.contains(player.id)) {
                 validationError = TicTacToeJoinRoomResponseError.PLAYER_ALREADY_IN_ROOM
-                return@updateRoom null
+                return@updateRoomOrSkip null
             }
 
             if(room.opponentPlayer != null) {
                 validationError = TicTacToeJoinRoomResponseError.ROOM_ALREADY_FULL
-                return@updateRoom null
+                return@updateRoomOrSkip null
             }
 
             room.copy(
@@ -79,29 +82,29 @@ class TicTacToeUseCases(
     fun makeMove(playerId: String, roomId: String, cell: TicTacToeBoardCell): Either<TicTacToeMakeMoveResponseError, Unit> {
         var validationError: TicTacToeMakeMoveResponseError? = null
 
-        repo.updateRoom(roomId) { room ->
+        repo.updateRoomOrSkip(roomId) { room ->
             if(room == null) {
                 validationError = TicTacToeMakeMoveResponseError.ROOM_NOT_FOUND
-                return@updateRoom null
+                return@updateRoomOrSkip null
             }
 
             val player = room.players.singleOrNull { it.user.id == playerId }
 
             if(player == null) {
                 validationError = TicTacToeMakeMoveResponseError.PLAYER_NOT_IN_ROOM
-                return@updateRoom null
+                return@updateRoomOrSkip null
             }
             if(room.currentPlayerSign != player.sign) {
                 validationError = TicTacToeMakeMoveResponseError.NOT_YOUR_TURN
-                return@updateRoom null
+                return@updateRoomOrSkip null
             }
             if(room.roomState !is TicTacToeGameRoom.State.InProgress) {
                 validationError = TicTacToeMakeMoveResponseError.GAME_NOT_IN_PROGRESS
-                return@updateRoom null
+                return@updateRoomOrSkip null
             }
             if(room.gameState.containsKey(cell)) {
                 validationError = TicTacToeMakeMoveResponseError.CELL_ALREADY_OCCUPIED
-                return@updateRoom null
+                return@updateRoomOrSkip null
             }
 
             room.copy(
@@ -121,21 +124,21 @@ class TicTacToeUseCases(
     fun restartGame(playerId: String, roomId: String): Either<TicTacToeRestartGameResponseError, Unit> {
         var validationError: TicTacToeRestartGameResponseError? = null
 
-        repo.updateRoom(roomId) { room ->
+        repo.updateRoomOrSkip(roomId) { room ->
             if(room == null) {
                 validationError = TicTacToeRestartGameResponseError.ROOM_NOT_FOUND
-                return@updateRoom null
+                return@updateRoomOrSkip null
             }
 
             val roomState = room.roomState
             if(roomState !is TicTacToeGameRoom.State.Finished) {
                 validationError = TicTacToeRestartGameResponseError.GAME_NOT_FINISHED
-                return@updateRoom null
+                return@updateRoomOrSkip null
             }
 
             if(playerId != room.hostPlayer.user.id) {
                 validationError = TicTacToeRestartGameResponseError.NOT_THE_HOST
-                return@updateRoom null
+                return@updateRoomOrSkip null
             }
 
             room.copy(
@@ -159,25 +162,45 @@ class TicTacToeUseCases(
         repo.updateRoom(roomId) { room ->
             if(room == null) {
                 validationError = TicTacToeCloseGameResponseError.ROOM_NOT_FOUND
-                return@updateRoom null
+                return@updateRoom UpdateResult.Skip()
             }
 
             if(room.roomState is TicTacToeGameRoom.State.Closed) {
                 validationError = TicTacToeCloseGameResponseError.ROOM_ALREADY_CLOSED
-                return@updateRoom null
+                return@updateRoom UpdateResult.Skip()
             }
 
             val player = room.players.singleOrNull { it.user.id == playerId }
 
             if(player == null) {
                 validationError = TicTacToeCloseGameResponseError.PLAYER_NOT_IN_ROOM
-                return@updateRoom null
+                return@updateRoom UpdateResult.Skip()
             }
 
-            room.copy(
-                roomState = TicTacToeGameRoom.State.Closed(player.sign),
-                lastUpdate = Clock.System.now(),
-            )
+            val roomState = room.roomState
+
+            when(roomState) {
+                is TicTacToeGameRoom.State.WaitingForOpponent -> {
+                    UpdateResult.Delete()
+                }
+                else -> {
+                    UpdateResult.Write(
+                        room.let {
+                            if(roomState is TicTacToeGameRoom.State.Finished) {
+                                it.copy(
+                                    gameState = emptyMap(),
+                                    pastGamesWinners = room.pastGamesWinners + roomState.winner,
+                                )
+                            } else {
+                                it
+                            }
+                        }.copy(
+                            roomState = TicTacToeGameRoom.State.Closed(player.sign),
+                            lastUpdate = Clock.System.now(),
+                        )
+                    )
+                }
+            }
         }
 
         if(validationError != null) {

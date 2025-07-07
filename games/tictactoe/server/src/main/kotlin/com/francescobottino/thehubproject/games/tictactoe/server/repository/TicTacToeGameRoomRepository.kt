@@ -50,25 +50,35 @@ class TicTacToeGameRoomRepository(private val database: Database) {
         }
     }
 
-    fun updateRoom(roomId: String, updater: (TicTacToeGameRoom?) -> TicTacToeGameRoom?) {
+    fun updateRoom(roomId: String, updater: (TicTacToeGameRoom?) -> UpdateResult<TicTacToeGameRoom>) {
         return transaction(database) {
             val currentRoom = TicTacToeGameRoomTable.selectAll()
-                .where { TicTacToeGameRoomTable.id eq id }
+                .where { TicTacToeGameRoomTable.id eq roomId }
                 .forUpdate()
                 .singleOrNull()
                 ?.let { row -> reconstructRoom(row) }
 
-            val updatedRoom = updater(currentRoom)
+            val updateResult = updater(currentRoom)
 
-            if(updatedRoom != null) {
-                if(currentRoom == null) {
-                    insertRoomInternal(updatedRoom)
-                } else {
-                    updateRoomInternal(updatedRoom)
+            when(updateResult) {
+                is UpdateResult.Delete -> {
+                    deleteRoomInternal(roomId)
+
+                    activeConnections.remove(roomId)
+                    roomUpdateFlows.remove(roomId)
                 }
+                is UpdateResult.Write<TicTacToeGameRoom> -> {
+                    val updatedRoom = updateResult.data
+                    if(currentRoom == null) {
+                        insertRoomInternal(updatedRoom)
+                    } else {
+                        updateRoomInternal(updatedRoom)
+                    }
 
-                activeConnections[roomId] = updatedRoom.connectedPlayerIds
-                roomUpdateFlows[roomId]?.value = updatedRoom
+                    activeConnections[roomId] = updatedRoom.connectedPlayerIds
+                    roomUpdateFlows[roomId]?.value = updatedRoom
+                }
+                is UpdateResult.Skip -> {}
             }
         }
     }
