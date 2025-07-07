@@ -8,11 +8,15 @@ import com.francescobottino.thehubproject.client_shared.usecase.CopyToClipboardU
 import com.francescobottino.thehubproject.di.initKoin
 import com.francescobottino.thehubproject.security.DesktopSecureStorage
 import com.francescobottino.thehubproject.usecase.DesktopCopyToClipboardUseCase
+import io.github.aakira.napier.DebugAntilog
+import io.github.aakira.napier.Napier
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
 fun main() {
-    val koin = initKoin {
+    Napier.base(DebugAntilog())
+
+    initKoin {
         modules(
             module {
                 singleOf<SecureStorage>(::DesktopSecureStorage)
@@ -20,8 +24,6 @@ fun main() {
             }
         )
     }
-
-    koin.koin
 
     application {
         Window(

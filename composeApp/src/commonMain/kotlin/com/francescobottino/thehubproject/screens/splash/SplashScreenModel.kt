@@ -11,6 +11,7 @@ import com.francescobottino.thehubproject.client_shared.screens.StatefulScreenMo
 import com.francescobottino.thehubproject.network.UserApi
 import com.francescobottino.thehubproject.screens.login.LoginScreen
 import com.francescobottino.thehubproject.screens.main_host.MainHostScreen
+import io.github.aakira.napier.Napier
 import io.ktor.http.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -41,25 +42,31 @@ class SplashScreenModel(
     }
 
     init {
+        Napier.d(tag = "SplashScreenModel") { "On splash screen init" }
         screenModelScope.launch { tryInit() }
     }
 
     private suspend fun tryInit() {
+        Napier.d(tag = "SplashScreenModel") { "trying app init" }
         val isLoggedIn = runCatching { authRepo.isLoggedIn() }.getOrElse { false }
         if(!isLoggedIn) {
+            Napier.d(tag = "SplashScreenModel") { "not logged in, showing login screen" }
             navigator.replace(LoginScreen(pendingNavigation = pendingNavigation))
             return
         }
 
         val userProfile = runCatching { userApi.me() }
             .getOrElse { exception ->
+                Napier.d(tag = "SplashScreenModel") { "error in fetchinguser profile: $exception" }
                 _state.update {
                     it.copy(isError = true)
                 }
                 return
             }
             .getOrElse { profileError ->
+                Napier.d(tag = "SplashScreenModel") { "user profile response is an error: $profileError" }
                 if(profileError == HttpStatusCode.Unauthorized) {
+                    Napier.d(tag = "SplashScreenModel") { "showing login screen" }
                     navigator.replace(LoginScreen(pendingNavigation = pendingNavigation))
                 } else {
                     _state.update { it.copy(isError = true) }
@@ -67,6 +74,7 @@ class SplashScreenModel(
                 return
             }
 
+        Napier.d(tag = "SplashScreenModel") { "Syncing user info ans starting app" }
         userRepo.setCurrentUser(User(userProfile.id, userProfile.username))
         navigator.replace(MainHostScreen(pendingNavigation = pendingNavigation))
         return

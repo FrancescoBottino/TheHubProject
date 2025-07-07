@@ -6,6 +6,8 @@ import com.francescobottino.thehubproject.client_shared.usecase.CopyToClipboardU
 import com.francescobottino.thehubproject.di.initKoin
 import com.francescobottino.thehubproject.security.AndroidSecureStorage
 import com.francescobottino.thehubproject.usecase.AndroidCopyToClipboardUseCase
+import io.github.aakira.napier.DebugAntilog
+import io.github.aakira.napier.Napier
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.dsl.module
@@ -13,6 +15,8 @@ import org.koin.dsl.module
 class TheHubApplication: Application() {
     override fun onCreate() {
         super.onCreate()
+
+        Napier.base(DebugAntilog())
 
         initKoin {
             androidLogger()

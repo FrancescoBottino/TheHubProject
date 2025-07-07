@@ -72,6 +72,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.napier)
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.client.logging)
@@ -160,11 +161,14 @@ android {
     }
     buildTypes {
         debug {
+            signingConfig = signingConfigs.findByName("release")
             isMinifyEnabled = false
+            isDebuggable = true
         }
         release {
-            isMinifyEnabled = false
             signingConfig = signingConfigs.findByName("release")
+            isMinifyEnabled = true
+            isDebuggable = false
         }
     }
     defaultConfig {

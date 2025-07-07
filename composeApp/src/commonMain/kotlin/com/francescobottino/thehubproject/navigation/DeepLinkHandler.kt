@@ -1,11 +1,12 @@
 package com.francescobottino.thehubproject.navigation
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.Navigator
-import com.francescobottino.thehubproject.screens.main_host.MainHostScreen
-import com.francescobottino.thehubproject.screens.splash.SplashScreen
+import com.francescobottino.thehubproject.config.Config
+import com.francescobottino.thehubproject.games.tictactoe.client.screens.user_games.UserGamesScreen
+import io.github.aakira.napier.Napier
+import io.ktor.http.*
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.*
 
 // todo:
@@ -15,33 +16,44 @@ class DeepLinkHandler {
     private var startupPendingNavigation: Screen? = null
     fun getStartupPendingNavigation() = startupPendingNavigation?.also { startupPendingNavigation = null }
     fun storeStartupDeeplink(deepLink: String) {
+        Napier.d(tag = "DeepLinkHandler") { "Starting deep link: $deepLink" }
         getScreenFromDeepLink(deepLink)?.let {
             startupPendingNavigation = it
         }
     }
 
-    private val _onDeepLinkReceivedFlow = MutableSharedFlow<String>()
+    private val _onDeepLinkReceivedFlow = MutableSharedFlow<String>(extraBufferCapacity = Int.MAX_VALUE)
     val onDeepLinkReceivedFlow: SharedFlow<String> = _onDeepLinkReceivedFlow.asSharedFlow()
-    fun onDeepLinkReceived(url: String) {
+    fun tryOnDeepLinkReceived(url: String) {
+        Napier.d(tag = "DeepLinkHandler") { "Deep link received: $url" }
         _onDeepLinkReceivedFlow.tryEmit(url)
     }
 
-    @Composable
-    fun handleDeepLinks(navigator: Navigator) {
-        LaunchedEffect(Unit) {
-            onDeepLinkReceivedFlow
-                .onEach { deepLink -> handleNavigation(navigator, deepLink) }
-                .launchIn(this)
-        }
+    suspend fun onDeepLinkReceived(url: String) {
+        Napier.d(tag = "DeepLinkHandler") { "Deep link received: $url" }
+        _onDeepLinkReceivedFlow.emit(url)
+    }
+
+    fun handleDeepLinks(scope: CoroutineScope, navigator: Navigator) {
+        onDeepLinkReceivedFlow
+            .onEach { deepLink ->
+                Napier.d(tag = "DeepLinkHandler") { "Deep link collected: $deepLink" }
+                handleNavigation(navigator, deepLink) }
+            .launchIn(scope)
     }
 
     private fun handleNavigation(navigator: Navigator, deepLink: String) {
         getScreenFromDeepLink(deepLink)?.let {
-            navigator.push(SplashScreen(pendingNavigation = it)) //todo use proper screen to skeep splash / login if already logged
+            Napier.d(tag = "DeepLinkHandler") { "Deeplink handler: navigating to screen $it" }
+            navigator.push(it)
         }
     }
 
     private fun getScreenFromDeepLink(url: String): Screen? {
-        return TODO()
+        if(!url.startsWith(Config.httpUrl)) return null
+        Napier.d(tag = "DeepLinkHandler") { "segments : " + Url(url).rawSegments.toString() }
+        val screen = UserGamesScreen //todo calculate actual screen
+        Napier.d(tag = "DeepLinkHandler") { "Getting screen from deeplink: $url -> $screen" }
+        return screen
     }
 }

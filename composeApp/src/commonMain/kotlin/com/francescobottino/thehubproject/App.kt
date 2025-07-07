@@ -18,7 +18,6 @@ fun App() {
 
     AppTheme {
         Navigator(SplashScreen(pendingNavigation)) { navigator ->
-            deepLinkHandler.handleDeepLinks(navigator)
             CurrentScreen()
         }
     }

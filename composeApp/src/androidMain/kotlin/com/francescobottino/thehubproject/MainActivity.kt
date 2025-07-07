@@ -8,7 +8,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.lifecycleScope
 import com.francescobottino.thehubproject.navigation.DeepLinkHandler
+import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -33,7 +35,9 @@ class MainActivity: ComponentActivity(), KoinComponent {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         intent.data?.toString()?.let { url ->
-            deepLinkHandler.onDeepLinkReceived(url)
+            lifecycleScope.launch {
+                deepLinkHandler.onDeepLinkReceived(url)
+            }
         }
     }
 }

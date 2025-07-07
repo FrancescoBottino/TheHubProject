@@ -5,10 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,10 +21,12 @@ import com.francescobottino.thehubproject.client_shared.model.User
 import com.francescobottino.thehubproject.client_shared.repo.AuthRepository
 import com.francescobottino.thehubproject.client_shared.repo.UserRepository
 import com.francescobottino.thehubproject.client_shared.ui.theme.AppTheme
+import com.francescobottino.thehubproject.navigation.DeepLinkHandler
 import com.francescobottino.thehubproject.screens.game_selection.GameSelectionScreen
 import com.francescobottino.thehubproject.screens.login.LoginScreen
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.ArrowLeft
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.koinInject
@@ -37,11 +36,20 @@ class MainHostScreen(private val pendingNavigation: Screen?): Screen {
     override fun Content() {
         val parentNavigator = LocalNavigator.currentOrThrow
         val scope = rememberCoroutineScope()
+        val deepLinkHandler = koinInject<DeepLinkHandler>()
         val authRepo = koinInject<AuthRepository>()
         val userRepository = koinInject<UserRepository>()
         val user by userRepository.getCurrentUserFlow().collectAsState()
 
         Navigator(GameSelectionScreen) { navigator ->
+            LaunchedEffect(Unit) {
+                pendingNavigation?.let {
+                    Napier.d { "Navigating to pending navigation screen $pendingNavigation" }
+                    navigator.push(it)
+                }
+                deepLinkHandler.handleDeepLinks(this, navigator)
+            }
+
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
                 topBar = {
