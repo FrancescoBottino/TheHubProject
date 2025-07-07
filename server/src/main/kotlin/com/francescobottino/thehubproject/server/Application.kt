@@ -8,12 +8,14 @@ import com.francescobottino.thehubproject.server_features.core.auth.JwtConfig
 import com.francescobottino.thehubproject.server_features.core.data.UserRepository
 import com.francescobottino.thehubproject.shared_features.core.mainJson
 import io.github.cdimascio.dotenv.dotenv
+import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
@@ -59,6 +61,17 @@ fun Application.module() {
         timeout = 15.seconds
         maxFrameSize = Long.MAX_VALUE
         masking = false
+    }
+
+    install(CORS) {
+        allowMethod(HttpMethod.Options)
+        allowMethod(HttpMethod.Put)
+        allowMethod(HttpMethod.Delete)
+        allowMethod(HttpMethod.Patch)
+        allowHeader(HttpHeaders.Authorization)
+        allowHeader(HttpHeaders.ContentType)
+
+        allowCredentials = false
     }
 
     install(Authentication) {
