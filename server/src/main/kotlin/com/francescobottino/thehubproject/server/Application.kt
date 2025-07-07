@@ -34,7 +34,7 @@ fun main() {
         factory = Netty,
         host = "0.0.0.0",
         port = Envs.SERVER_PORT,
-        module = Application::module
+        module = Application::module,
     ).start(wait = true)
 }
 
@@ -70,8 +70,7 @@ fun Application.module() {
         allowMethod(HttpMethod.Patch)
         allowHeader(HttpHeaders.Authorization)
         allowHeader(HttpHeaders.ContentType)
-
-        allowCredentials = false
+        anyHost()
     }
 
     install(Authentication) {
