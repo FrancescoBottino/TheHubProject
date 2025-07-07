@@ -15,8 +15,8 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import com.francescobottino.thehubproject.client_shared.ui.components.SimpleError
-import com.francescobottino.thehubproject.client_shared.ui.components.SimpleErrorCardOverlay
+import com.francescobottino.thehubproject.client_shared.ui.components.AlertCardOverlay
+import com.francescobottino.thehubproject.client_shared.ui.components.AlertState
 import com.francescobottino.thehubproject.client_shared.ui.components.VerticalCenteredLayout
 import com.francescobottino.thehubproject.client_shared.ui.theme.AppTheme
 import compose.icons.FeatherIcons
@@ -86,14 +86,17 @@ private fun LoginScreenContent(
         )
 
         val genericError = remember {
-            SimpleError(
+            AlertState(
                 title = "Error",
                 message = "There was an error while trying to communicate with the server.",
-                action = "Close" to { onEvent(LoginScreenEvent.OnDialogClosed) },
+                primaryAction = AlertState.Action(
+                    label = "Close",
+                    onClick = { onEvent(LoginScreenEvent.OnDialogClosed) }
+                ),
             )
         }
 
-        SimpleErrorCardOverlay(
+        AlertCardOverlay(
             if(state.isError) {
                 genericError
             } else {

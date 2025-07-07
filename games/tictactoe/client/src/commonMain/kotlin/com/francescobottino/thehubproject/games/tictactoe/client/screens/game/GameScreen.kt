@@ -12,14 +12,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.francescobottino.thehubproject.client_shared.ui.components.AlertCardOverlay
+import com.francescobottino.thehubproject.client_shared.ui.components.AlertState
 import com.francescobottino.thehubproject.client_shared.ui.components.LoadingCardOverlay
 import com.francescobottino.thehubproject.games.tictactoe.client.ui.components.SignIcon
 import com.francescobottino.thehubproject.games.tictactoe.client.ui.images.TicTacToeCrown
@@ -142,8 +142,12 @@ private fun GameScreenContent(
 
     LoadingCardOverlay(state.roomId == null || state.isLoading)
 
-    state.dialog?.let {
-        ScreenDialog(it, onEvent)
+    state.dialog?.let { dialogState ->
+        AlertCardOverlay(
+            state = dialogState,
+            onDismissRequest = { onEvent(GameScreenEvent.OnDismissDialog) },
+            modifier = Modifier.fillMaxSize(),
+        )
     }
 }
 
@@ -394,74 +398,6 @@ private fun RoomIdCard(
     }
 }
 
-//todo change to custom component
-@Composable
-private fun ScreenDialog(
-    state: GameScreenState.Dialog,
-    onEvent: (GameScreenEvent) -> Unit,
-) {
-    Dialog(
-        onDismissRequest = {
-            if(state.dismissable) {
-                onEvent(GameScreenEvent.OnDismissDialog)
-            }
-        },
-    ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 32.dp),
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
-                modifier = Modifier
-                    .shadow(elevation = 12.dp)
-                    .background(color = Color.White)
-                    .padding(16.dp),
-            ) {
-                Text(
-                    text = state.title,
-                    style = MaterialTheme.typography.titleLarge,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                )
-
-                if(state.message != null) {
-                    Text(
-                        text = state.message,
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.align(Alignment.CenterHorizontally),
-                    )
-                }
-
-                if(state.onConfirm != null || state.onDismiss != null) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.align(Alignment.End),
-                    ) {
-                        if(state.onDismiss != null) {
-                            TextButton(
-                                onClick = { onEvent(state.onDismiss.event) },
-                            ) {
-                                Text(state.onDismiss.label)
-                            }
-                        }
-                        if(state.onConfirm != null) {
-                            Button(
-                                onClick = { onEvent(state.onConfirm.event) },
-                            ) {
-                                Text(state.onConfirm.label)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
 @Preview
 @Composable
 private fun GameScreenContentPreview_Loading() {
@@ -520,6 +456,39 @@ private fun GameScreenContentPreview_InProgress() {
                         TicTacToeBoardCell(0, 1) to TicTacToePlayerSign.O,
                     ),
                     isUserTurn = true,
+                ),
+                onEvent = {},
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun GameScreenContentPreview_InProgress_error() {
+    MaterialTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            GameScreenContent(
+                state = GameScreenState(
+                    roomId = "2f9f6008-8b10-4d56-95ff-957d8fdf91a2",
+                    roomState = TicTacToeGameRoom.State.InProgress,
+                    opponentState = GameScreenState.OpponentState.Connected("User 2"),
+                    board = mapOf(
+                        TicTacToeBoardCell(0, 0) to TicTacToePlayerSign.X,
+                        TicTacToeBoardCell(0, 1) to TicTacToePlayerSign.O,
+                    ),
+                    isUserTurn = true,
+                    dialog = AlertState(
+                        title = "Error",
+                        message = "you have been disconnected",
+                        primaryAction = AlertState.Action(
+                            label = "close",
+                            onClick = {}
+                        )
+                    )
                 ),
                 onEvent = {},
                 modifier = Modifier.fillMaxSize(),

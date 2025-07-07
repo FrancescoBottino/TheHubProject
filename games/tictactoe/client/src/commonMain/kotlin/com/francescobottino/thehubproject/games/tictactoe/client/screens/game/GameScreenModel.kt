@@ -5,6 +5,7 @@ import cafe.adriel.voyager.navigator.Navigator
 import com.francescobottino.thehubproject.client_shared.model.User
 import com.francescobottino.thehubproject.client_shared.repo.UserRepository
 import com.francescobottino.thehubproject.client_shared.screens.StatefulScreenModel
+import com.francescobottino.thehubproject.client_shared.ui.components.AlertState
 import com.francescobottino.thehubproject.client_shared.usecase.CopyToClipboardUseCase
 import com.francescobottino.thehubproject.games.tictactoe.client.network.TicTacToeApi
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToeBoardCell
@@ -70,12 +71,18 @@ class GameScreenModel(
                     _state.update { screenState ->
                         screenState.copy(
                             isLoading = false,
-                            dialog = GameScreenState.Dialog(
+                            dialog = AlertState(
                                 title = "Error connecting to the room",
                                 message = error.message ?: "Unknown error",
                                 dismissable = false,
-                                onConfirm = GameScreenState.Dialog.Action("Retry", GameScreenEvent.OnDialogActionConnectToRoom),
-                                onDismiss = GameScreenState.Dialog.Action("Leave", GameScreenEvent.OnCloseScreen),
+                                primaryAction = AlertState.Action(
+                                    label = "Retry",
+                                    onClick = { onEvent(GameScreenEvent.OnDialogActionConnectToRoom) }
+                                ),
+                                secondaryAction = AlertState.Action(
+                                    label = "Leave",
+                                    onClick = { onEvent(GameScreenEvent.OnCloseScreen) },
+                                )
                             )
                         )
                     }
@@ -97,22 +104,28 @@ class GameScreenModel(
                     CloseReason.Codes.CANNOT_ACCEPT.code -> _state.update { screenState ->
                         screenState.copy(
                             isLoading = false,
-                            dialog = GameScreenState.Dialog(
+                            dialog = AlertState(
                                 title = "Connection refused",
                                 message = "Cannot connect to the room.\n"+closeReason.message,
                                 dismissable = false,
-                                onConfirm = GameScreenState.Dialog.Action("Close screen", GameScreenEvent.OnCloseScreen),
+                                primaryAction = AlertState.Action(
+                                    label = "Close screen",
+                                    onClick = { onEvent(GameScreenEvent.OnCloseScreen) }
+                                )
                             )
                         )
                     }
                     else -> _state.update { screenState ->
                         screenState.copy(
                             isLoading = false,
-                            dialog = GameScreenState.Dialog(
+                            dialog = AlertState(
                                 title = "Disconnected",
                                 message = "You have been disconnected from the room.",
                                 dismissable = false,
-                                onConfirm = GameScreenState.Dialog.Action("Close screen", GameScreenEvent.OnCloseScreen),
+                                primaryAction = AlertState.Action(
+                                    label = "Close screen",
+                                    onClick = { onEvent(GameScreenEvent.OnCloseScreen) }
+                                )
                             )
                         )
                     }
@@ -123,11 +136,14 @@ class GameScreenModel(
                 _state.update { screenState ->
                     screenState.copy(
                         isLoading = false,
-                        dialog = GameScreenState.Dialog(
+                        dialog = AlertState(
                             title = "Error",
                             message = e.message ?: "Unknown error",
                             dismissable = false,
-                            onConfirm = GameScreenState.Dialog.Action("Close screen", GameScreenEvent.OnCloseScreen),
+                            primaryAction = AlertState.Action(
+                                label = "Close screen",
+                                onClick = { onEvent(GameScreenEvent.OnCloseScreen) }
+                            ),
                         )
                     )
                 }
@@ -218,11 +234,14 @@ class GameScreenModel(
                 .onFailure { e ->
                     _state.update {
                         it.copy(
-                            dialog = GameScreenState.Dialog(
+                            dialog = AlertState(
                                 title = "Error",
                                 message = e.message ?: "Unknown error",
                                 dismissable = true,
-                                onConfirm = GameScreenState.Dialog.Action("OK", GameScreenEvent.OnDismissDialog),
+                                primaryAction = AlertState.Action(
+                                    label = "OK",
+                                    onClick = { onEvent(GameScreenEvent.OnDismissDialog) }
+                                ),
                             ),
                         )
                     }
@@ -251,11 +270,14 @@ class GameScreenModel(
                 .onFailure { e ->
                     _state.update {
                         it.copy(
-                            dialog = GameScreenState.Dialog(
+                            dialog = AlertState(
                                 title = "Error",
                                 message = e.message ?: "Unknown error",
                                 dismissable = true,
-                                onConfirm = GameScreenState.Dialog.Action("OK", GameScreenEvent.OnDismissDialog),
+                                primaryAction = AlertState.Action(
+                                    label = "OK",
+                                    onClick = { onEvent(GameScreenEvent.OnDismissDialog) }
+                                ),
                             ),
                         )
                     }

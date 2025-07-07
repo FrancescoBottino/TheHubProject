@@ -27,9 +27,9 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.francescobottino.thehubproject.client_shared.ui.components.AlertCardOverlay
+import com.francescobottino.thehubproject.client_shared.ui.components.AlertState
 import com.francescobottino.thehubproject.client_shared.ui.components.LoadingCardOverlay
-import com.francescobottino.thehubproject.client_shared.ui.components.SimpleError
-import com.francescobottino.thehubproject.client_shared.ui.components.SimpleErrorCardOverlay
 import com.francescobottino.thehubproject.client_shared.ui.images.Vs
 import com.francescobottino.thehubproject.games.tictactoe.client.ui.components.SignIcon
 import com.francescobottino.thehubproject.games.tictactoe.client.ui.images.TicTacToeCrown
@@ -93,14 +93,17 @@ private fun UserGamesScreenContent(
     LoadingCardOverlay(state.isLoading)
 
     val genericError = remember(state.error) {
-        SimpleError(
+        AlertState(
             title = "Error",
             message = state.error,
-            action = "OK" to { onEvent(UserGamesScreenEvent.OnDialogClosed) },
+            primaryAction = AlertState.Action(
+                label = "OK",
+                onClick = { onEvent(UserGamesScreenEvent.OnDialogClosed) }
+            ),
         )
     }
 
-    SimpleErrorCardOverlay(
+    AlertCardOverlay(
         if(state.error != null) {
             genericError
         } else {

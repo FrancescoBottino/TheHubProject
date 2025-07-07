@@ -17,9 +17,9 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.francescobottino.thehubproject.client_shared.ui.components.AlertCardOverlay
+import com.francescobottino.thehubproject.client_shared.ui.components.AlertState
 import com.francescobottino.thehubproject.client_shared.ui.components.LogoBig
-import com.francescobottino.thehubproject.client_shared.ui.components.SimpleError
-import com.francescobottino.thehubproject.client_shared.ui.components.SimpleErrorCardOverlay
 import com.francescobottino.thehubproject.client_shared.ui.components.VerticalCenteredLayout
 import com.francescobottino.thehubproject.client_shared.ui.theme.AppTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -70,14 +70,17 @@ private fun SplashScreenContent(
         }
 
         val genericError = remember {
-            SimpleError(
+            AlertState(
                 title = "Error",
                 message = "There was an error while trying to fetch user data.",
-                action = "Try Again" to { onEvent(SplashScreenEvent.TryAgain) },
+                primaryAction = AlertState.Action(
+                    label = "Try Again",
+                    onClick = { onEvent(SplashScreenEvent.TryAgain) },
+                )
             )
         }
 
-        SimpleErrorCardOverlay(
+        AlertCardOverlay(
             if(state.isError) {
                 genericError
             } else {

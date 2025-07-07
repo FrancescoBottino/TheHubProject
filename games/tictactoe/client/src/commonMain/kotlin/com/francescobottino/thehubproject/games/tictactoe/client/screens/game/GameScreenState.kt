@@ -1,5 +1,6 @@
 package com.francescobottino.thehubproject.games.tictactoe.client.screens.game
 
+import com.francescobottino.thehubproject.client_shared.ui.components.AlertState
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToeGameRoom
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToeGameState
 import com.francescobottino.thehubproject.games.tictactoe.shared.model.TicTacToePlayerSign
@@ -17,25 +18,12 @@ data class GameScreenState(
     val finishState: FinishState? = null,
 
     val isLoading: Boolean = false,
-    val dialog: Dialog? = null,
+    val dialog: AlertState? = null,
 ) {
     sealed interface OpponentState {
         data object WaitingForOpponent: OpponentState
         data class Connected(val username: String): OpponentState
         data class Disconnected(val username: String?): OpponentState
-    }
-
-    data class Dialog(
-        val title: String,
-        val message: String? = null,
-        val dismissable: Boolean = true,
-        val onConfirm: Action? = null,
-        val onDismiss: Action? = null,
-    ) {
-        data class Action(
-            val label: String,
-            val event: GameScreenEvent,
-        )
     }
 
     data class FinishState(
